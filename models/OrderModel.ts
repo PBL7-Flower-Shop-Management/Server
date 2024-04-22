@@ -33,20 +33,21 @@ const OrderSchema = new Schema(
             max: [100, "Discount cannot greater than 100!"],
             default: 0,
         },
+        totalPrice: {
+            type: Number,
+            min: [0, "Total price cannot be negative!"],
+            default: 0,
+        },
         status: {
             type: String,
             enum: [
-                "Not confirmed",
-                "Confirmed",
                 "Processing",
                 "Shipped",
                 "Delivered",
-                "Completed",
                 "Cancelled",
                 "Pending payment processing",
-                "Paid",
             ],
-            default: "Not confirmed",
+            default: "Processing",
         },
         paymentMethod: {
             type: String,

@@ -14,6 +14,9 @@ const CategorySchema = new Schema(
                     "Category name only contains characters, number, space, slash and dash!",
             },
         },
+        image: {
+            type: String,
+        },
         description: {
             type: String,
         },
