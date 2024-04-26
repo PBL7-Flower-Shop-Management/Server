@@ -1,15 +1,15 @@
 import { Schema, model, models } from "mongoose";
 
-const CropSchema = new Schema(
+const FlowerSchema = new Schema(
     {
         name: {
             type: String,
-            required: [true, "Crop name is required!"],
+            required: [true, "Flower name is required!"],
             maxLength: 100,
             trim: true,
             validate: {
                 validator: function (value: any) {
-                    return /^[_- \p{L}]+$/u.test(value);
+                    return /^[\p{L} _-]+$/u.test(value);
                 },
                 message:
                     "Name field only contains unicode characters, space, underscore or dash!",
@@ -19,9 +19,6 @@ const CropSchema = new Schema(
             type: String,
         },
         care: {
-            type: String,
-        },
-        diseasePrevention: {
             type: String,
         },
         growthTimeDay: {
@@ -106,7 +103,7 @@ const CropSchema = new Schema(
 );
 
 // Pre-save hook to update status based on quantity
-CropSchema.pre("save", function (next) {
+FlowerSchema.pre("save", function (next) {
     if (this.quantity > 0) {
         this.status = "Available";
     } else {
@@ -115,6 +112,6 @@ CropSchema.pre("save", function (next) {
     next();
 });
 
-const CropModel = models.Crop || model("Crop", CropSchema);
+const FlowerModel = models.Flower || model("Flower", FlowerSchema);
 
-module.exports = CropModel;
+module.exports = FlowerModel;

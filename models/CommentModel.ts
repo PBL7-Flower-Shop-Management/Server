@@ -12,6 +12,11 @@ const CommentSchema = new Schema(
             required: [true, "A comment must belong to a user"],
             ref: "User", // Reference to the User model
         },
+        orderId: {
+            type: Schema.Types.ObjectId,
+            required: [true, "A comment must belong to a order"],
+            ref: "Order", // Reference to the Order model
+        },
         numberOfStars: {
             type: Number,
             min: [0, "Number of stars cannot be negative!"],

@@ -8,7 +8,7 @@ const CategorySchema = new Schema(
             trim: true,
             validate: {
                 validator: function (value: any) {
-                    return /^[\w\d\s\/\-]+$/u.test(value);
+                    return /^[\w\d\s\/\-]+$/.test(value);
                 },
                 message:
                     "Category name only contains characters, number, space, slash and dash!",

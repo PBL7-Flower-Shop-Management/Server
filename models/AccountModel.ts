@@ -22,7 +22,7 @@ const AccountSchema = new Schema(
             unique: true,
             validate: {
                 validator: function (value: any) {
-                    return /^[a-zA-Z0-9_]+$/u.test(value);
+                    return /^[a-zA-Z0-9_]+$/.test(value);
                 },
                 message:
                     "Username only contains a-z characters, numbers and underscore!",
@@ -35,7 +35,7 @@ const AccountSchema = new Schema(
             trim: true,
             validate: {
                 validator: function (value: any) {
-                    return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/u.test(
+                    return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
                         value
                     );
                 },
