@@ -39,4 +39,4 @@ const IdentificationHistoryModel =
     models.IdentificationHistory ||
     model("IdentificationHistory", IdentificationHistorySchema);
 
-module.exports = IdentificationHistoryModel;
+export default IdentificationHistoryModel;

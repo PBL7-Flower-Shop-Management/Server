@@ -25,4 +25,4 @@ FavoriteFlowerSchema.index({ userId: 1, flowerId: 1 }, { unique: true });
 const FavoriteFlowerModel =
     models.FavoriteFlower || model("FavoriteFlower", FavoriteFlowerSchema);
 
-module.exports = FavoriteFlowerModel;
+export default FavoriteFlowerModel;

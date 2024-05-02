@@ -83,4 +83,4 @@ UserSchema.virtual("Account", {
 
 const UserModel = models.User || model("User", UserSchema);
 
-module.exports = UserModel;
+export default UserModel;

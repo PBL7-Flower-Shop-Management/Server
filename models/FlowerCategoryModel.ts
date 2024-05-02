@@ -1,15 +1,15 @@
 import { Schema, model, models } from "mongoose";
 
-const FavoriteCategorySchema = new Schema(
+const FlowerCategorySchema = new Schema(
     {
         flowerId: {
             type: Schema.Types.ObjectId,
-            required: [true, "A flower category must belong to a flower"],
+            required: [true, "A flower category must reference a flower"],
             ref: "Flower", // Reference to the Flower model
         },
         categoryId: {
             type: Schema.Types.ObjectId,
-            required: [true, "A favorite flower must reference a category"],
+            required: [true, "A flower category must reference a category"],
             ref: "Category", // Reference to the Category model
         },
     },
@@ -20,10 +20,9 @@ const FavoriteCategorySchema = new Schema(
 );
 
 // Create a compound index on categoryId and flowerId
-FavoriteCategorySchema.index({ categoryId: 1, flowerId: 1 }, { unique: true });
+FlowerCategorySchema.index({ categoryId: 1, flowerId: 1 }, { unique: true });
 
-const FavoriteCategoryModel =
-    models.FavoriteCategory ||
-    model("FavoriteCategory", FavoriteCategorySchema);
+const FlowerCategoryModel =
+    models.FlowerCategory || model("FlowerCategory", FlowerCategorySchema);
 
-module.exports = FavoriteCategoryModel;
+export default FlowerCategoryModel;

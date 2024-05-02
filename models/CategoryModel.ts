@@ -44,4 +44,4 @@ const CategorySchema = new Schema(
 
 const CategoryModel = models.Category || model("Category", CategorySchema);
 
-module.exports = CategoryModel;
+export default CategoryModel;

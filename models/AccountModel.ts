@@ -115,4 +115,4 @@ AccountSchema.methods.createPasswordResetToken = function () {
 
 const AccountModel = models.Account || model("Account", AccountSchema);
 
-module.exports = AccountModel;
+export default AccountModel;

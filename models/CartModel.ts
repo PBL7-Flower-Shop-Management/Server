@@ -28,4 +28,4 @@ CartSchema.index({ userId: 1, flowerId: 1 }, { unique: true });
 
 const CartModel = models.Cart || model("Cart", CartSchema);
 
-module.exports = CartModel;
+export default CartModel;

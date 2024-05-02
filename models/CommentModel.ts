@@ -43,4 +43,4 @@ const CommentSchema = new Schema(
 
 const CommentModel = models.Comment || model("Comment", CommentSchema);
 
-module.exports = CommentModel;
+export default CommentModel;

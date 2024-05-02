@@ -30,4 +30,4 @@ const IdentificationResultModel =
     models.IdentificationResult ||
     model("IdentificationResult", IdentificationResultSchema);
 
-module.exports = IdentificationResultModel;
+export default IdentificationResultModel;

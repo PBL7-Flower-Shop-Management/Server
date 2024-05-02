@@ -37,4 +37,4 @@ OrderDetailSchema.index({ orderId: 1, flowerId: 1 }, { unique: true });
 const OrderDetailModel =
     models.OrderDetail || model("OrderDetail", OrderDetailSchema);
 
-module.exports = OrderDetailModel;
+export default OrderDetailModel;

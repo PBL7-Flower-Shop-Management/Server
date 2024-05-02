@@ -114,4 +114,4 @@ FlowerSchema.pre("save", function (next) {
 
 const FlowerModel = models.Flower || model("Flower", FlowerSchema);
 
-module.exports = FlowerModel;
+export default FlowerModel;
