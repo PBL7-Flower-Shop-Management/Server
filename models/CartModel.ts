@@ -16,10 +16,15 @@ const CartSchema = new Schema(
             type: Number,
             min: [1, "Number of flowers must be positive!"],
         },
+        selected: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         toJSON: { virtuals: true },
         toObject: { virtuals: true },
+        id: false,
     }
 );
 

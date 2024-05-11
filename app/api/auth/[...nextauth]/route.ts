@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google";
 import EmailProvider from "next-auth/providers/email";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/db";
+import { Adapter } from "next-auth/adapters";
 
 const handler = NextAuth({
     providers: [
@@ -18,8 +19,15 @@ const handler = NextAuth({
         //     clientSecret: process.env.FACEBOOK_SECRET,
         // }),
         GoogleProvider({
-            clientId: process.env.GOOGLE_ID,
-            clientSecret: process.env.GOOGLE_SECRET,
+            clientId: process.env.GOOGLE_ID as string,
+            clientSecret: process.env.GOOGLE_SECRET as string,
+            authorization: {
+                params: {
+                    prompt: "consent",
+                    access_type: "offline",
+                    response_type: "code",
+                },
+            },
         }),
         // Passwordless / email sign in
         // EmailProvider({
@@ -27,7 +35,7 @@ const handler = NextAuth({
         //     from: "NextAuth.js <no-reply@example.com>",
         // }),
     ],
-    adapter: MongoDBAdapter(clientPromise),
+    adapter: MongoDBAdapter(clientPromise) as Adapter,
 });
 
 export { handler as GET, handler as POST };

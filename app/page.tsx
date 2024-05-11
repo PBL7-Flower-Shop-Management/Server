@@ -1,8 +1,21 @@
-"use client";
-import Nav from "@/components/Nav";
-import { useSession, signIn, signOut } from "next-auth/react";
+import Header from "@/components/Header/Header";
+import SideMenu from "@/components/SideMenu/SideMenu";
+import Login from "./login/Login";
+import Dashboard from "./dashboard/Dashboard";
+import Head from "next/head";
 
 export default function Home() {
-    const { data: session } = useSession();
-    return <div>Home</div>;
+    return (
+        <>
+            <Head>
+                <title>Data dashboard</title>
+            </Head>
+            <main>
+                <Header />
+                <SideMenu />
+                <Login />
+                <Dashboard />
+            </main>
+        </>
+    );
 }
