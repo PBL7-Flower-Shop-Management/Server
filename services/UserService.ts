@@ -99,7 +99,7 @@ class UserService {
                 ]);
 
                 if (orders.length === 0)
-                    resolve(
+                    reject(
                         new ApiResponse({
                             status: 404,
                             message: "Not found order",
@@ -282,7 +282,7 @@ class UserService {
                 ]);
 
                 if (favouriteFlowers.length === 0)
-                    resolve(
+                    reject(
                         new ApiResponse({
                             status: 404,
                             message:

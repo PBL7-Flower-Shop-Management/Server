@@ -9,12 +9,28 @@ import { NextApiRequest } from "next";
  * @swagger
  *  components:
  *    schemas:
- *      Login:
+ *      Register:
  *        type: object
  *        required:
  *          - username
  *          - password
+ *          - email
  *        properties:
+ *          name:
+ *            type: string
+ *            description: The full name of the user.
+ *          citizenId:
+ *            type: string
+ *            description: The citizenship identification number.
+ *          email:
+ *            type: string
+ *            description: The email address of the user.
+ *          phoneNumber:
+ *            type: string
+ *            description: The contact phone number of the user.
+ *          avatar:
+ *            type: string
+ *            description: URL pointing to the user's avatar image.
  *          username:
  *            type: string
  *            description: The username of the user.
@@ -22,33 +38,86 @@ import { NextApiRequest } from "next";
  *            type: string
  *            format: password
  *            description: The password of the user.
+ *
+ *      User:
+ *        type: object
+ *        properties:
+ *          name:
+ *            type: string
+ *            description: Full name of the user.
+ *          citizenId:
+ *            type: string
+ *            description: Citizenship identification number.
+ *          email:
+ *            type: string
+ *            description: Email address of the user.
+ *          phoneNumber:
+ *            type: string
+ *            description: Phone number of the user.
+ *          role:
+ *            type: string
+ *            description: Role of the user within the system.
+ *          avatar:
+ *            type: string
+ *            description: URL pointing to the user's avatar image.
+ *          createdAt:
+ *            type: string
+ *            format: date-time
+ *            description: Timestamp of user creation.
+ *          createdBy:
+ *            type: string
+ *            description: Identifier for who created the user.
+ *          isDeleted:
+ *            type: boolean
+ *            description: Flag indicating if the user is marked as deleted.
+ *          _id:
+ *            type: string
+ *            description: Database ID of the user.
+ *          __v:
+ *            type: integer
+ *            description: Version number of the user model.
+ *      TokenInfo:
+ *        type: object
+ *        properties:
+ *          accessToken:
+ *            type: string
+ *            description: JWT access token.
+ *          accessTokenExpiresAt:
+ *            type: string
+ *            format: date-time
+ *            description: Expiry date and time of the access token.
+ *          refreshToken:
+ *            type: string
+ *            description: JWT refresh token.
+ *          refreshTokenExpireAt:
+ *            type: string
+ *            format: date-time
+ *            description: Expiry date and time of the refresh token.
+ *
  */
 
 /**
  * @swagger
- * /api/auth/login:
+ * tags:
+ *   name: Auth
+ *   description: The authentication managing API
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
  *   post:
- *     summary: Login and returns account information including tokens.
+ *     summary: Registers a new user and returns account information including tokens.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *                 description: The username of the user.
- *                 required: true
- *               password:
- *                 type: string
- *                 format: password
- *                 description: The password of the user.
- *                 required: true
+ *             $ref: '#/components/schemas/Register'
  *     responses:
  *       200:
- *         description: Login successful and user data returned.
+ *         description: Registration successful and user data returned.
  *         content:
  *           application/json:
  *             schema:
@@ -94,8 +163,8 @@ export const POST = async (req: NextApiRequest) => {
     try {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.LoginSchema)(req, null, null, body);
-        return await AuthController.Login(body);
+        await validate(schemas.RegisterSchema)(req, null, null, body);
+        return await AuthController.Register(body);
     } catch (error: any) {
         return ErrorHandler(error);
     }

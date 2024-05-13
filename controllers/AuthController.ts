@@ -1,22 +1,58 @@
 import AuthService from "@/services/AuthService";
-import ApiResponse from "@/utils/ApiResponse";
+import { OAuth2Client } from "google-auth-library";
 class AuthController {
+    async Register(body: any) {
+        try {
+            return await AuthService.Register(body);
+            // confirmationUserService.createConfirmationTokenAndSendMail(
+            //     newUser._id
+            // );
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async Login(body: any) {
         try {
             const { username, password } = body;
-            const result = AuthService.GetUser(username, password) as any;
-            if (result.status !== 200) return new ApiResponse(result);
-            const user = result.data;
-            const tokens = await AuthService.generateAuthTokens(user);
-            return {
-                user,
-                tokens,
-            };
-        } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
+            return await AuthService.Login(username, password);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    oAuth2Client = new OAuth2Client(
+        process.env.GOOGLE_ID,
+        process.env.GOOGLE_SECRET
+    );
+
+    private async verifyGoogleToken(token: any) {
+        try {
+            const ticket = await this.oAuth2Client.verifyIdToken({
+                idToken: token,
+                audience: [
+                    process.env.GOOGLE_ID!,
+                    // process.env.CLIENT_ID_ANDROID!,
+                ],
             });
+            return { payload: ticket.getPayload() };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async GoogleLogin(body: any) {
+        try {
+            if (body.credential) {
+                const verificationResponse = await this.verifyGoogleToken(
+                    body.credential
+                );
+
+                const profile = verificationResponse?.payload;
+                return await AuthService.HandleGoogleUser(profile);
+            }
+        } catch (error) {
+            throw error;
         }
     }
 }

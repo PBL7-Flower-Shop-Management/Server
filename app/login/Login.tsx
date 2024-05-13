@@ -13,7 +13,7 @@ import {
     Typography,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -21,10 +21,6 @@ import LoginPhoto from "@/public/images/login1.jpg";
 import ShowPwdPhoto from "@/public/images/showPwd.png";
 import HidePwdPhoto from "@/public/images/hidePwd.png";
 import Image from "next/image";
-import axios from "axios";
-import UrlConfig from "@/config/UrlConfig";
-import { saveProfile } from "@/utils/auth";
-import { useCookies } from "react-cookie";
 import useResponsive from "@/hooks/useResponsive";
 
 const StyledRoot = styled("div")(({ theme }) => ({
@@ -55,9 +51,8 @@ const StyledContent = styled("form")(({ theme }) => ({
 }));
 
 const Login = () => {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const router = useRouter();
-    const [cookies, setCookie] = useCookies();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     // const { snack, setSnack } = useSnackbar();
@@ -74,32 +69,12 @@ const Login = () => {
             return;
         }
         setIsSubmitting(true);
-        await axios
-            .post(UrlConfig.authentication.login, {
-                username: username,
-                password: password,
-            })
-            .then((res) => {
-                console.log(res);
-                if (res.status === 200) {
-                    saveProfile(res.data.user);
-                    setCookie("access_token", res.data.tokens.access_token, {
-                        path: "/",
-                    });
-                    setCookie("refresh_token", res.data.tokens.refresh_token, {
-                        path: "/",
-                    });
-                    window.location.reload();
-                }
-            })
-            .catch((err) => {
-                // setSnack({
-                //     open: true,
-                //     type: "error",
-                //     message: `${err.response.data.message}`,
-                // });
-                setIsSubmitting(false);
-            });
+        signIn("credentials", {
+            username: username,
+            password: password,
+            redirect: false,
+        });
+        setIsSubmitting(false);
     };
 
     const mdUp = useResponsive("up", "md");
@@ -161,7 +136,7 @@ const Login = () => {
                                     }}
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") {
-                                            // login();
+                                            login();
                                         }
                                     }}
                                 />
@@ -220,10 +195,10 @@ const Login = () => {
                             fullWidth
                             color="secondary"
                             size="large"
-                            type="submit"
+                            // type="submit"
                             variant="text"
                             loading={isSubmitting}
-                            // onClick={login}
+                            onClick={() => login()}
                             sx={{
                                 bgcolor: "black",
                                 "&:hover": {

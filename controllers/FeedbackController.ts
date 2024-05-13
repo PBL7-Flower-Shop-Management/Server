@@ -1,6 +1,4 @@
 import FeedbackService from "@/services/FeedbackService";
-import ApiResponse from "@/utils/ApiResponse";
-import { NextApiRequest } from "next";
 
 class FeedbackController {
     async GetRecentFeedback(query?: URLSearchParams) {
@@ -10,10 +8,7 @@ class FeedbackController {
                 limit ? Number(limit) : undefined
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 }

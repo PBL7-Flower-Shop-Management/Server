@@ -1,80 +1,200 @@
 import { connectToDB } from "@/utils/database";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import AccountModel from "@/models/AccountModel";
 import { sign } from "@/utils/JwtHelper";
 import moment from "moment";
+import ApiResponse from "@/utils/ApiResponse";
+import UserModel from "@/models/UserModel";
+import mongoose from "mongoose";
 
 class AuthService {
-    async GetUser(username: string, password: string) {
+    async Register(user: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            delete user.role;
+            delete user.createdAt;
+            delete user.createdBy;
+            delete user.updatedAt;
+            delete user.updatedBy;
+            delete user.isDeleted;
+
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    await UserModel.findOne({ email: user.email.toLowerCase() })
+                ) {
+                    reject(
+                        new ApiResponse({
+                            status: 400,
+                            message: "Email already exists!",
+                        })
+                    );
+                }
+                if (
+                    await AccountModel.findOne({
+                        username: user.username.toLowerCase(),
+                    })
+                ) {
+                    reject(
+                        new ApiResponse({
+                            status: 400,
+                            message: "Username already exists!",
+                        })
+                    );
+                }
+                const hashedPassword = await bcrypt.hash(
+                    user.password,
+                    parseInt(process.env.BCRYPT_SALT!)
+                );
+                const newUser = await UserModel.create(
+                    [
+                        {
+                            ...user,
+                            createdAt: moment(),
+                            createdBy: "System",
+                            isDeleted: false,
+                        },
+                    ],
+                    { session: session }
+                ).then((res) => res[0]);
+                const authTokens = await this.generateAuthTokens(newUser);
+                await AccountModel.create(
+                    [
+                        {
+                            userId: newUser._id,
+                            isActived: true,
+                            username: user.username,
+                            password: hashedPassword,
+                            token: authTokens.accessToken,
+                            tokenExpireTime: authTokens.accessTokenExpiresAt,
+                            refreshToken: authTokens.refreshToken,
+                            refreshTokenExpireTime:
+                                authTokens.refreshTokenExpireAt,
+                        },
+                    ],
+                    { session: session }
+                );
+
+                await session.commitTransaction();
+                session.endSession();
+
+                resolve(
+                    new ApiResponse({
+                        status: 201,
+                        data: { user: newUser, token: authTokens },
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
+                reject(error);
+            }
+        });
+    }
+
+    async Login(username: string, password: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             try {
                 await connectToDB();
 
-                const user = await AccountModel.findOne({
+                const account = await AccountModel.findOne({
                     username: username,
                 });
-                if (!user) {
-                    resolve({
-                        status: 400,
-                        message: "Invalid credentials",
-                    });
+                if (!account) {
+                    reject(
+                        new ApiResponse({
+                            status: 400,
+                            message: "Username or password is wrong!",
+                        })
+                    );
                 }
 
                 let passwordMatches = await bcrypt.compare(
                     password,
-                    user.password
+                    account.password
                 );
                 if (!passwordMatches) {
-                    resolve({
-                        status: 400,
-                        message: "Invalid credentials",
-                    });
+                    reject(
+                        new ApiResponse({
+                            status: 400,
+                            message: "Username or password is wrong!",
+                        })
+                    );
                 }
 
-                resolve({
-                    status: 200,
-                    data: user,
+                if (!account.isActived)
+                    reject(
+                        new ApiResponse({
+                            status: 404,
+                            message: "Account isn't actived!",
+                        })
+                    );
+
+                const user = await UserModel.findOne({
+                    _id: account.userId,
                 });
+                if (user.isDeleted)
+                    reject(
+                        new ApiResponse({
+                            status: 404,
+                            message: "Account was deleted!",
+                        })
+                    );
+
+                const authTokens = await this.generateAuthTokens(user);
+
+                resolve(
+                    new ApiResponse({
+                        status: 200,
+                        data: { user: user, token: authTokens },
+                    })
+                );
             } catch (error: any) {
                 reject(error);
             }
         });
     }
 
-    async generateAuthTokens(user: any) {
-        const login_time = moment();
-        let accessTokenExpiresAt = login_time
+    private async generateAuthTokens(user: any) {
+        const loginTime = moment();
+        let accessTokenExpiresAt = loginTime
             .clone()
             .add(process.env.ACCESS_TOKEN_EXPIRATION_MINUTES, "minutes");
 
-        const access_token = await this.generateToken(
+        const accessToken = await this.generateToken(
             user._id,
-            login_time,
+            loginTime,
             accessTokenExpiresAt,
             "access"
         );
 
-        let refreshTokenExpireAt = login_time
+        let refreshTokenExpireAt = loginTime
             .clone()
             .add(process.env.REFRESH_TOKEN_EXPIRATION_DAYS, "days");
 
-        const refresh_token = await this.generateToken(
+        const refreshToken = await this.generateToken(
             user._id,
-            login_time,
+            loginTime,
             refreshTokenExpireAt,
             "refresh"
         );
-        user.refresh_token = refresh_token;
-        user.refreshTokenExpireTime = refreshTokenExpireAt;
-        await user.save();
-        // await saveRefreshToken(user._id, login_time, refresh_token);
+
         return {
-            access_token,
-            refresh_token,
+            accessToken,
+            accessTokenExpiresAt,
+            refreshToken,
+            refreshTokenExpireAt,
         };
     }
 
-    async generateToken(user_id: any, login_time: any, exp: any, type: string) {
+    private async generateToken(
+        user_id: any,
+        login_time: any,
+        exp: any,
+        type: string
+    ) {
         const payload = {
             user_id,
             login_time: new Date(login_time.valueOf()).toISOString(),
@@ -83,6 +203,76 @@ class AuthService {
         };
         let token = await sign(payload, process.env.JWT_SECRET);
         return token;
+    }
+
+    async HandleGoogleUser(googleUser: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                let user = await UserModel.findOne({
+                    email: googleUser.email,
+                });
+
+                if (user) {
+                    if (!user.providers || !user.providers.includes("google")) {
+                        await UserModel.findByIdAndUpdate(user._id, {
+                            $push: { providers: "google" },
+                        });
+                    }
+                } else {
+                    const password = crypto.randomBytes(4).toString("hex");
+                    const hashedPassword = await bcrypt.hash(
+                        password,
+                        parseInt(process.env.BCRYPT_SALT!)
+                    );
+                    console.log(googleUser);
+                    user = await UserModel.create(
+                        [
+                            {
+                                first_name: googleUser.given_name,
+                                last_name: googleUser.family_name,
+                                avatar: googleUser.picture,
+                                email: googleUser.email,
+                                isConfirmed: true,
+                                isRestricted: false,
+                                providers: ["google"],
+                                username: googleUser.email,
+                                password: hashedPassword,
+                            },
+                        ],
+                        { session: session }
+                    );
+
+                    // sendMail({
+                    //     template: "newGoogleUserEmail",
+                    //     templateVars: {
+                    //         username: googleUser.email,
+                    //         password: password,
+                    //     },
+                    //     to: googleUser.email,
+                    //     subject: "New Account",
+                    // });
+                }
+
+                const authTokens = await this.generateAuthTokens(user);
+
+                await session.commitTransaction();
+                session.endSession();
+
+                resolve(
+                    new ApiResponse({
+                        status: 200,
+                        data: { user: user, token: authTokens },
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
+                reject(error);
+            }
+        });
     }
 }
 

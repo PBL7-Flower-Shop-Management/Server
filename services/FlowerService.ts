@@ -261,7 +261,7 @@ class FlowerService {
                 await connectToDB();
                 const flower = await FlowerModel.find({ _id: id });
                 if (flower.length === 0)
-                    resolve(
+                    reject(
                         new ApiResponse({
                             status: 404,
                             message: "Not found flower",
@@ -341,7 +341,7 @@ class FlowerService {
                     },
                 ]);
                 if (feedbacks.length === 0)
-                    resolve(
+                    reject(
                         new ApiResponse({
                             status: 404,
                             message: "Not found feedback of this flower",

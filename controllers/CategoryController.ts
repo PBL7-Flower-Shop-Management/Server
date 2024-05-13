@@ -1,6 +1,5 @@
 import CategoryService from "@/services/CategoryService";
 import ApiResponse from "@/utils/ApiResponse";
-import { NextApiRequest } from "next";
 
 class CategoryController {
     async GetCategoryWithFlowers(query?: URLSearchParams) {
@@ -10,10 +9,7 @@ class CategoryController {
                 limit ? Number(limit) : undefined
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 
@@ -25,10 +21,7 @@ class CategoryController {
                 limit ? Number(limit) : undefined
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 }

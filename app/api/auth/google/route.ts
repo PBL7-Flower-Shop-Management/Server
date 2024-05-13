@@ -26,9 +26,9 @@ import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * /api/auth/login:
+ * /api/auth/google:
  *   post:
- *     summary: Login and returns account information including tokens.
+ *     summary: Login by google and returns account information including tokens.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -95,7 +95,7 @@ export const POST = async (req: NextApiRequest) => {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
         await validate(schemas.LoginSchema)(req, null, null, body);
-        return await AuthController.Login(body);
+        return await AuthController.GoogleLogin(body);
     } catch (error: any) {
         return ErrorHandler(error);
     }

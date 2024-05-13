@@ -1,21 +1,24 @@
-import Header from "@/components/Header/Header";
-import SideMenu from "@/components/SideMenu/SideMenu";
-import Login from "./login/Login";
+"use client";
 import Dashboard from "./dashboard/Dashboard";
 import Head from "next/head";
+import { signOut, useSession } from "next-auth/react";
+import { useEffect } from "react";
 
-export default function Home() {
+const Home = () => {
+    const { data: session } = useSession();
+    useEffect(() => console.log("session", session), [session]);
     return (
         <>
             <Head>
                 <title>Data dashboard</title>
             </Head>
             <main>
-                <Header />
-                <SideMenu />
-                <Login />
+                {session?.user?.name}
+                <button onClick={() => signOut()}>Log out</button>
                 <Dashboard />
             </main>
         </>
     );
-}
+};
+
+export default Home;

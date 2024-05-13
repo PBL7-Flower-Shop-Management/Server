@@ -54,9 +54,11 @@ const UserSchema = new Schema(
         },
         createdAt: {
             type: Date,
+            required: true,
         },
         createdBy: {
             type: String,
+            required: true,
         },
         updatedAt: {
             type: Date,
@@ -66,6 +68,7 @@ const UserSchema = new Schema(
         },
         isDeleted: {
             type: Boolean,
+            required: true,
         },
     },
     {

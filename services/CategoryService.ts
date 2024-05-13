@@ -229,7 +229,7 @@ class CategoryService {
                     ]);
 
                     if (representCategories.length === 0)
-                        resolve(
+                        reject(
                             new ApiResponse({
                                 status: 404,
                                 message: "Not found category",

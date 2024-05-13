@@ -1,6 +1,4 @@
 import FlowerService from "@/services/FlowerService";
-import ApiResponse from "@/utils/ApiResponse";
-import { NextApiRequest } from "next";
 
 class FlowerController {
     async GetBestSellerFlower(query?: URLSearchParams) {
@@ -10,10 +8,7 @@ class FlowerController {
                 limit ? Number(limit) : undefined
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 
@@ -24,10 +19,7 @@ class FlowerController {
                 limit ? Number(limit) : undefined
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 
@@ -38,10 +30,7 @@ class FlowerController {
                 limit ? Number(limit) : undefined
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 
@@ -52,10 +41,7 @@ class FlowerController {
                 limit ? Number(limit) : undefined
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 
@@ -63,10 +49,7 @@ class FlowerController {
         try {
             return await FlowerService.GetFlowerDetail(id);
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 
@@ -74,10 +57,7 @@ class FlowerController {
         try {
             return await FlowerService.GetFeedbackOfFlower(id);
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 }

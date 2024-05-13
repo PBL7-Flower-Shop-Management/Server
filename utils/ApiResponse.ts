@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 class ApiResponse extends NextResponse {
+    data: any;
     constructor({
         status,
         message,
@@ -27,6 +28,7 @@ class ApiResponse extends NextResponse {
             2
         );
         super(body, { status: status });
+        this.data = data;
     }
 }
 

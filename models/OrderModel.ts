@@ -57,9 +57,11 @@ const OrderSchema = new Schema(
         },
         createdAt: {
             type: Date,
+            required: true,
         },
         createdBy: {
             type: String,
+            required: true,
         },
         updatedAt: {
             type: Date,
@@ -69,6 +71,7 @@ const OrderSchema = new Schema(
         },
         isDeleted: {
             type: Boolean,
+            required: true,
         },
     },
     {

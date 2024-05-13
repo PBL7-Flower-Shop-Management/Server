@@ -6,9 +6,39 @@ import EmailProvider from "next-auth/providers/email";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/db";
 import { Adapter } from "next-auth/adapters";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { User } from "next-auth";
+import axios from "axios";
+import UrlConfig from "@/config/UrlConfig";
 
 const handler = NextAuth({
     providers: [
+        CredentialsProvider({
+            name: "credentials",
+            credentials: {},
+            authorize: async (credentials) => {
+                const { username, password } = credentials as any;
+                return await axios
+                    .post(UrlConfig.authentication.login, {
+                        username: username,
+                        password: password,
+                    })
+                    .then((res) => {
+                        if (res.status === 200)
+                            return {
+                                ...res.data.data.user,
+                                ...res.data.data.token,
+                            }; // This is the object that will be encoded in JWT
+
+                        //  wrong credentials
+                        return null;
+                    })
+                    .catch((err: any) => {
+                        // console.log("error", err);
+                        return null;
+                    });
+            },
+        }),
         // // OAuth authentication providers...
         // AppleProvider({
         //     clientId: process.env.APPLE_ID,
@@ -35,6 +65,25 @@ const handler = NextAuth({
         //     from: "NextAuth.js <no-reply@example.com>",
         // }),
     ],
+    callbacks: {
+        // This callback is called whenever a JWT is created. `user` will only be defined during sign in.
+        async jwt({ token, user }) {
+            // console.log("user", user);
+            // console.log("token", token);
+            return { ...token, ...user };
+        },
+        async session({ session, token }) {
+            (session as any).user = token; //token = returned value of jwt()
+            // console.log("session", session);
+            return session;
+        },
+    },
+    session: {
+        strategy: "jwt",
+    },
+    // pages: {
+    //     signIn: "/",
+    // },
     adapter: MongoDBAdapter(clientPromise) as Adapter,
 });
 

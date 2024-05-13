@@ -82,9 +82,11 @@ const FlowerSchema = new Schema(
         },
         createdAt: {
             type: Date,
+            required: true,
         },
         createdBy: {
             type: String,
+            required: true,
         },
         updatedAt: {
             type: Date,
@@ -94,6 +96,7 @@ const FlowerSchema = new Schema(
         },
         isDeleted: {
             type: Boolean,
+            required: true,
         },
     },
     {

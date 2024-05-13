@@ -15,9 +15,11 @@ const IdentificationHistorySchema = new Schema(
         },
         createdAt: {
             type: Date,
+            required: true,
         },
         createdBy: {
             type: String,
+            required: true,
         },
         updatedAt: {
             type: Date,
@@ -27,6 +29,7 @@ const IdentificationHistorySchema = new Schema(
         },
         isDeleted: {
             type: Boolean,
+            required: true,
         },
     },
     {

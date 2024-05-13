@@ -1,5 +1,4 @@
 import IdentificationService from "@/services/IdentificationService";
-import ApiResponse from "@/utils/ApiResponse";
 
 class IdentificationController {
     async GetIdentificationHistoryByUserId(userId: string) {
@@ -8,10 +7,7 @@ class IdentificationController {
                 userId
             );
         } catch (error: any) {
-            return new ApiResponse({
-                status: 500,
-                message: error.message ?? error,
-            });
+            throw error;
         }
     }
 }

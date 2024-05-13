@@ -97,7 +97,7 @@ class OrderService {
                 ]);
 
                 if (orders.length === 0)
-                    resolve(
+                    reject(
                         new ApiResponse({
                             status: 404,
                             message: "Not found order",
