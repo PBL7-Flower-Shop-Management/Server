@@ -6,7 +6,11 @@ const nextConfig = {
             "th.bing.com",
             "kenh14cdn.com",
             "product.hstatic.net",
-        ], // Add 'th.bing.com' to the list
+            "file1.hutech.edu.vn",
+            "media.istockphoto.com",
+            "static.wixstatic.com",
+            "juro.com.vn",
+        ],
     },
 };
 

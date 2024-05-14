@@ -26,17 +26,15 @@ import PencilSquareIcon from "@mui/icons-material/ModeEditOutlined";
 import EyeIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import TrashIcon from "@mui/icons-material/DeleteOutline";
 import { alpha, styled } from "@mui/material/styles";
-import React, { useEffect } from "react";
+import React from "react";
 import { Stack } from "@mui/system";
-import { productStatus, productStatusColor } from "@/utils/constants";
-import Chip from "@mui/material/Chip";
 import { ShortenString } from "@/utils/helper";
 import moment from "moment-timezone";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-export const ProductTable = (props: any) => {
+export const CategoryTable = (props: any) => {
     const {
         count = 0,
         items = [],
@@ -44,7 +42,7 @@ export const ProductTable = (props: any) => {
         onRowsPerPageChange,
         page = 0,
         rowsPerPage = 0,
-        onDeleteProduct,
+        onDeleteCategory,
         isFetching,
     } = props;
     const router = useRouter();
@@ -68,7 +66,7 @@ export const ProductTable = (props: any) => {
     }));
 
     const handleDeleteConfirm = () => {
-        onDeleteProduct(selectedId);
+        onDeleteCategory(selectedId);
         setOpenDeletePopup(false);
     };
 
@@ -173,27 +171,9 @@ export const ProductTable = (props: any) => {
                                             }}
                                         />
                                     </StickyLeftTableCell>
-                                    <TableCell>Mã sản phẩm</TableCell>
-                                    <TableCell>Minh hoạ</TableCell>
-                                    <TableCell>Tên sản phẩm</TableCell>
-                                    <TableCell>Môi trường</TableCell>
-                                    <TableCell
-                                        sx={{
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        Đơn giá ($)
-                                    </TableCell>
-                                    <TableCell
-                                        sx={{
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        Giảm giá (%)
-                                    </TableCell>
-                                    <TableCell>Số lượng</TableCell>
-                                    <TableCell>Đã bán</TableCell>
-                                    <TableCell>Trạng thái</TableCell>
+                                    <TableCell>Mã hạng mục</TableCell>
+                                    <TableCell>Tên hạng mục</TableCell>
+                                    <TableCell>Ảnh minh hoạ</TableCell>
                                     <TableCell>Mô tả</TableCell>
                                     <TableCell>Ngày tạo</TableCell>
                                     <TableCell>Tạo bởi</TableCell>
@@ -207,28 +187,28 @@ export const ProductTable = (props: any) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {items.map((product: any, index: any) => {
+                                {items.map((category: any, index: any) => {
                                     const isItemSelected = isSelected(
-                                        product._id
+                                        category._id
                                     );
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
                                     return (
                                         <TableRow
                                             hover
-                                            key={product._id}
+                                            key={category._id}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             selected={isItemSelected}
                                             onClick={(event) =>
-                                                handleClick(event, product._id)
+                                                handleClick(event, category._id)
                                             }
                                             onDoubleClick={() =>
                                                 router.push(
-                                                    `/product/${encodeURIComponent(
-                                                        product._id
+                                                    `/category/${encodeURIComponent(
+                                                        category._id
                                                     )}&name=${encodeURIComponent(
-                                                        product.name
+                                                        category.name
                                                     )}`
                                                 )
                                             }
@@ -246,72 +226,38 @@ export const ProductTable = (props: any) => {
                                             </StickyLeftTableCell>
                                             <TableCell>
                                                 <Typography variant="subtitle2">
-                                                    {product._id}
+                                                    {category._id}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="subtitle2">
+                                                    {category.categoryName}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
                                                 <Image
-                                                    src={product.image}
+                                                    src={category.image}
                                                     alt="avatar"
                                                     width={100}
                                                     height={100}
                                                 />
                                             </TableCell>
-                                            <TableCell id={labelId} scope="row">
-                                                <Typography variant="subtitle2">
-                                                    {product.name}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.habitat}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.unitPrice}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.discount}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.quantity}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.soldQuantity}
-                                            </TableCell>
-                                            <TableCell
-                                                sx={{
-                                                    textAlign: "center",
-                                                }}
-                                            >
-                                                <Chip
-                                                    label={
-                                                        productStatus[
-                                                            product.status
-                                                        ]
-                                                    }
-                                                    color={
-                                                        productStatusColor[
-                                                            product.status
-                                                        ]
-                                                    }
-                                                    variant="outlined"
-                                                />
-                                            </TableCell>
                                             <TableCell>
                                                 {ShortenString(
-                                                    product.description,
+                                                    category.description,
                                                     30
                                                 )}
                                             </TableCell>
                                             <TableCell>
                                                 {moment
                                                     .tz(
-                                                        product.createdAt,
+                                                        category.createdAt,
                                                         "Asia/Ho_Chi_Minh"
                                                     )
                                                     .format("DD/MM/YYYY HH:mm")}
                                             </TableCell>
                                             <TableCell>
-                                                {product.createdBy}
+                                                {category.createdBy}
                                             </TableCell>
                                             <StickyTableCell
                                                 sx={{
@@ -333,10 +279,10 @@ export const ProductTable = (props: any) => {
                                                             LinkComponent={
                                                                 NextLink
                                                             }
-                                                            href={`/product/${encodeURIComponent(
-                                                                product._id
+                                                            href={`/category/${encodeURIComponent(
+                                                                category._id
                                                             )}?name=${encodeURIComponent(
-                                                                product.name
+                                                                category.name
                                                             )}`}
                                                         >
                                                             <SvgIcon
@@ -348,25 +294,25 @@ export const ProductTable = (props: any) => {
                                                         </IconButton>
                                                     </Tooltip>
 
-                                                    <Tooltip title="Chỉnh sửa sản phẩm">
+                                                    <Tooltip title="Chỉnh sửa hạng mục">
                                                         <IconButton
                                                             LinkComponent={
                                                                 NextLink
                                                             }
-                                                            href={`/product/${encodeURIComponent(
-                                                                product._id
+                                                            href={`/category/${encodeURIComponent(
+                                                                category._id
                                                             )}?name=${encodeURIComponent(
-                                                                product.name
+                                                                category.name
                                                             )}&edit=1`}
                                                             // href={{
                                                             //     pathname:
-                                                            //         "/product/[id]",
+                                                            //         "/category/[id]",
                                                             //     query: {
                                                             //         id: encodeURIComponent(
-                                                            //             product._id
+                                                            //             category._id
                                                             //         ),
                                                             //         name: encodeURIComponent(
-                                                            //             product.name
+                                                            //             category.name
                                                             //         ),
                                                             //     },
                                                             // }}
@@ -380,11 +326,11 @@ export const ProductTable = (props: any) => {
                                                         </IconButton>
                                                     </Tooltip>
 
-                                                    <Tooltip title="Xóa sản phẩm">
+                                                    <Tooltip title="Xóa hạng mục">
                                                         <IconButton
                                                             onClick={() =>
                                                                 handleDeleteClick(
-                                                                    product._id
+                                                                    category._id
                                                                 )
                                                             }
                                                         >
@@ -415,9 +361,9 @@ export const ProductTable = (props: any) => {
                     rowsPerPageOptions={[5, 10, 20]}
                 />
                 <Dialog open={openDeletePopup} onClose={handleDeleteCancel}>
-                    <DialogTitle>Xác nhận xóa sản phẩm</DialogTitle>
+                    <DialogTitle>Xác nhận xóa hạng mục</DialogTitle>
                     <DialogContent>
-                        Bạn có chắc chắn muốn xóa sản phẩm này?
+                        Bạn có chắc chắn muốn xóa hạng mục này?
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleDeleteCancel} color="primary">
@@ -433,13 +379,13 @@ export const ProductTable = (props: any) => {
     );
 };
 
-ProductTable.propTypes = {
+CategoryTable.propTypes = {
     count: PropTypes.number,
     items: PropTypes.array,
     onPageChange: PropTypes.func,
     onRowsPerPageChange: PropTypes.func,
     page: PropTypes.number,
     rowsPerPage: PropTypes.number,
-    onDeleteProduct: PropTypes.func,
+    onDeleteCategory: PropTypes.func,
     isFetching: PropTypes.bool,
 };

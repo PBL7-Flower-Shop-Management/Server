@@ -26,17 +26,15 @@ import PencilSquareIcon from "@mui/icons-material/ModeEditOutlined";
 import EyeIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import TrashIcon from "@mui/icons-material/DeleteOutline";
 import { alpha, styled } from "@mui/material/styles";
-import React, { useEffect } from "react";
+import React from "react";
 import { Stack } from "@mui/system";
-import { productStatus, productStatusColor } from "@/utils/constants";
 import Chip from "@mui/material/Chip";
-import { ShortenString } from "@/utils/helper";
-import moment from "moment-timezone";
+import { isValidUrl } from "@/utils/helper";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-export const ProductTable = (props: any) => {
+export const AccountTable = (props: any) => {
     const {
         count = 0,
         items = [],
@@ -44,7 +42,7 @@ export const ProductTable = (props: any) => {
         onRowsPerPageChange,
         page = 0,
         rowsPerPage = 0,
-        onDeleteProduct,
+        onDeleteAccount,
         isFetching,
     } = props;
     const router = useRouter();
@@ -68,7 +66,7 @@ export const ProductTable = (props: any) => {
     }));
 
     const handleDeleteConfirm = () => {
-        onDeleteProduct(selectedId);
+        onDeleteAccount(selectedId);
         setOpenDeletePopup(false);
     };
 
@@ -86,7 +84,7 @@ export const ProductTable = (props: any) => {
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         if (event.target.checked) {
-            const newSelected = items.map((n: any) => n._id);
+            const newSelected = items.map((n: any) => n.userId);
             setSelected(newSelected);
             return;
         }
@@ -173,30 +171,18 @@ export const ProductTable = (props: any) => {
                                             }}
                                         />
                                     </StickyLeftTableCell>
-                                    <TableCell>Mã sản phẩm</TableCell>
-                                    <TableCell>Minh hoạ</TableCell>
-                                    <TableCell>Tên sản phẩm</TableCell>
-                                    <TableCell>Môi trường</TableCell>
+                                    <TableCell>Tên tài khoản</TableCell>
+                                    <TableCell>Ảnh đại diện</TableCell>
+                                    <TableCell>Họ và tên</TableCell>
+                                    <TableCell>Chức vụ</TableCell>
+                                    <TableCell>Email</TableCell>
                                     <TableCell
                                         sx={{
                                             textAlign: "center",
                                         }}
                                     >
-                                        Đơn giá ($)
+                                        Trạng thái tài khoản
                                     </TableCell>
-                                    <TableCell
-                                        sx={{
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        Giảm giá (%)
-                                    </TableCell>
-                                    <TableCell>Số lượng</TableCell>
-                                    <TableCell>Đã bán</TableCell>
-                                    <TableCell>Trạng thái</TableCell>
-                                    <TableCell>Mô tả</TableCell>
-                                    <TableCell>Ngày tạo</TableCell>
-                                    <TableCell>Tạo bởi</TableCell>
                                     <StickyTableCell
                                         sx={{
                                             textAlign: "center",
@@ -207,28 +193,31 @@ export const ProductTable = (props: any) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {items.map((product: any, index: any) => {
+                                {items.map((account: any, index: any) => {
                                     const isItemSelected = isSelected(
-                                        product._id
+                                        account.userId
                                     );
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
                                     return (
                                         <TableRow
                                             hover
-                                            key={product._id}
+                                            key={account.userId}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             selected={isItemSelected}
                                             onClick={(event) =>
-                                                handleClick(event, product._id)
+                                                handleClick(
+                                                    event,
+                                                    account.userId
+                                                )
                                             }
                                             onDoubleClick={() =>
                                                 router.push(
-                                                    `/product/${encodeURIComponent(
-                                                        product._id
+                                                    `/account/${encodeURIComponent(
+                                                        account.userId
                                                     )}&name=${encodeURIComponent(
-                                                        product.name
+                                                        account.name
                                                     )}`
                                                 )
                                             }
@@ -246,36 +235,31 @@ export const ProductTable = (props: any) => {
                                             </StickyLeftTableCell>
                                             <TableCell>
                                                 <Typography variant="subtitle2">
-                                                    {product._id}
+                                                    {account.username}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
                                                 <Image
-                                                    src={product.image}
+                                                    src={
+                                                        isValidUrl(
+                                                            account.avatar
+                                                        )
+                                                            ? account.avatar
+                                                            : undefined
+                                                    }
                                                     alt="avatar"
                                                     width={100}
                                                     height={100}
                                                 />
                                             </TableCell>
-                                            <TableCell id={labelId} scope="row">
-                                                <Typography variant="subtitle2">
-                                                    {product.name}
-                                                </Typography>
+                                            <TableCell>
+                                                {account.name}
                                             </TableCell>
                                             <TableCell>
-                                                {product.habitat}
+                                                {account.role}
                                             </TableCell>
                                             <TableCell>
-                                                {product.unitPrice}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.discount}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.quantity}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.soldQuantity}
+                                                {account.email}
                                             </TableCell>
                                             <TableCell
                                                 sx={{
@@ -284,34 +268,17 @@ export const ProductTable = (props: any) => {
                                             >
                                                 <Chip
                                                     label={
-                                                        productStatus[
-                                                            product.status
-                                                        ]
+                                                        account.isActived
+                                                            ? "Đã kích hoạt"
+                                                            : "Chưa kích hoạt"
                                                     }
                                                     color={
-                                                        productStatusColor[
-                                                            product.status
-                                                        ]
+                                                        account.isActived
+                                                            ? "primary"
+                                                            : "warning"
                                                     }
                                                     variant="outlined"
                                                 />
-                                            </TableCell>
-                                            <TableCell>
-                                                {ShortenString(
-                                                    product.description,
-                                                    30
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {moment
-                                                    .tz(
-                                                        product.createdAt,
-                                                        "Asia/Ho_Chi_Minh"
-                                                    )
-                                                    .format("DD/MM/YYYY HH:mm")}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.createdBy}
                                             </TableCell>
                                             <StickyTableCell
                                                 sx={{
@@ -333,10 +300,10 @@ export const ProductTable = (props: any) => {
                                                             LinkComponent={
                                                                 NextLink
                                                             }
-                                                            href={`/product/${encodeURIComponent(
-                                                                product._id
+                                                            href={`/account/${encodeURIComponent(
+                                                                account.userId
                                                             )}?name=${encodeURIComponent(
-                                                                product.name
+                                                                account.name
                                                             )}`}
                                                         >
                                                             <SvgIcon
@@ -348,25 +315,25 @@ export const ProductTable = (props: any) => {
                                                         </IconButton>
                                                     </Tooltip>
 
-                                                    <Tooltip title="Chỉnh sửa sản phẩm">
+                                                    <Tooltip title="Chỉnh sửa tài khoản">
                                                         <IconButton
                                                             LinkComponent={
                                                                 NextLink
                                                             }
-                                                            href={`/product/${encodeURIComponent(
-                                                                product._id
+                                                            href={`/account/${encodeURIComponent(
+                                                                account.userId
                                                             )}?name=${encodeURIComponent(
-                                                                product.name
+                                                                account.name
                                                             )}&edit=1`}
                                                             // href={{
                                                             //     pathname:
-                                                            //         "/product/[id]",
+                                                            //         "/account/[id]",
                                                             //     query: {
                                                             //         id: encodeURIComponent(
-                                                            //             product._id
+                                                            //             account.userId
                                                             //         ),
                                                             //         name: encodeURIComponent(
-                                                            //             product.name
+                                                            //             account.name
                                                             //         ),
                                                             //     },
                                                             // }}
@@ -380,11 +347,11 @@ export const ProductTable = (props: any) => {
                                                         </IconButton>
                                                     </Tooltip>
 
-                                                    <Tooltip title="Xóa sản phẩm">
+                                                    <Tooltip title="Xóa tài khoản">
                                                         <IconButton
                                                             onClick={() =>
                                                                 handleDeleteClick(
-                                                                    product._id
+                                                                    account.userId
                                                                 )
                                                             }
                                                         >
@@ -415,9 +382,9 @@ export const ProductTable = (props: any) => {
                     rowsPerPageOptions={[5, 10, 20]}
                 />
                 <Dialog open={openDeletePopup} onClose={handleDeleteCancel}>
-                    <DialogTitle>Xác nhận xóa sản phẩm</DialogTitle>
+                    <DialogTitle>Xác nhận xóa tài khoản</DialogTitle>
                     <DialogContent>
-                        Bạn có chắc chắn muốn xóa sản phẩm này?
+                        Bạn có chắc chắn muốn xóa tài khoản này?
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleDeleteCancel} color="primary">
@@ -433,13 +400,13 @@ export const ProductTable = (props: any) => {
     );
 };
 
-ProductTable.propTypes = {
+AccountTable.propTypes = {
     count: PropTypes.number,
     items: PropTypes.array,
     onPageChange: PropTypes.func,
     onRowsPerPageChange: PropTypes.func,
     page: PropTypes.number,
     rowsPerPage: PropTypes.number,
-    onDeleteProduct: PropTypes.func,
+    onDeleteAccount: PropTypes.func,
     isFetching: PropTypes.bool,
 };

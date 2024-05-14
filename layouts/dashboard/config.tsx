@@ -3,7 +3,7 @@ import ChartBarIcon from "@mui/icons-material/TroubleshootOutlined";
 import ProductIcon from "@mui/icons-material/LocalFloristOutlined";
 import OrderIcon from "@mui/icons-material/BallotOutlined";
 import UsersIcon from "@mui/icons-material/GroupOutlined";
-import CategoryIcon from "@mui/icons-material/CategoryOutlined";
+import CategoryIcon from "@mui/icons-material/WidgetsOutlined";
 import { SvgIcon } from "@mui/material";
 
 export const items = [
@@ -44,7 +44,7 @@ export const items = [
         ),
     },
     {
-        title: "Danh sách hoá đơn",
+        title: "Danh sách đơn hàng",
         path: "/order",
         icon: (
             <SvgIcon fontSize="small">

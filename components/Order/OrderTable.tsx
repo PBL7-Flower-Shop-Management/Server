@@ -28,7 +28,7 @@ import TrashIcon from "@mui/icons-material/DeleteOutline";
 import { alpha, styled } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { Stack } from "@mui/system";
-import { productStatus, productStatusColor } from "@/utils/constants";
+import { orderStatus, orderStatusColor } from "@/utils/constants";
 import Chip from "@mui/material/Chip";
 import { ShortenString } from "@/utils/helper";
 import moment from "moment-timezone";
@@ -36,7 +36,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-export const ProductTable = (props: any) => {
+export const OrderTable = (props: any) => {
     const {
         count = 0,
         items = [],
@@ -44,7 +44,7 @@ export const ProductTable = (props: any) => {
         onRowsPerPageChange,
         page = 0,
         rowsPerPage = 0,
-        onDeleteProduct,
+        onDeleteOrder,
         isFetching,
     } = props;
     const router = useRouter();
@@ -68,7 +68,7 @@ export const ProductTable = (props: any) => {
     }));
 
     const handleDeleteConfirm = () => {
-        onDeleteProduct(selectedId);
+        onDeleteOrder(selectedId);
         setOpenDeletePopup(false);
     };
 
@@ -173,28 +173,17 @@ export const ProductTable = (props: any) => {
                                             }}
                                         />
                                     </StickyLeftTableCell>
-                                    <TableCell>Mã sản phẩm</TableCell>
-                                    <TableCell>Minh hoạ</TableCell>
-                                    <TableCell>Tên sản phẩm</TableCell>
-                                    <TableCell>Môi trường</TableCell>
-                                    <TableCell
-                                        sx={{
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        Đơn giá ($)
+                                    <TableCell>Mã đơn hàng</TableCell>
+                                    <TableCell>Người đặt hàng</TableCell>
+                                    <TableCell>Ngày đặt</TableCell>
+                                    <TableCell>Ngày giao</TableCell>
+                                    <TableCell>Địa chỉ giao hàng</TableCell>
+                                    <TableCell>
+                                        Phương thức thanh toán
                                     </TableCell>
-                                    <TableCell
-                                        sx={{
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        Giảm giá (%)
-                                    </TableCell>
-                                    <TableCell>Số lượng</TableCell>
-                                    <TableCell>Đã bán</TableCell>
+                                    <TableCell>Tổng tiền</TableCell>
                                     <TableCell>Trạng thái</TableCell>
-                                    <TableCell>Mô tả</TableCell>
+                                    <TableCell>Ghi chú</TableCell>
                                     <TableCell>Ngày tạo</TableCell>
                                     <TableCell>Tạo bởi</TableCell>
                                     <StickyTableCell
@@ -207,28 +196,28 @@ export const ProductTable = (props: any) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {items.map((product: any, index: any) => {
+                                {items.map((order: any, index: any) => {
                                     const isItemSelected = isSelected(
-                                        product._id
+                                        order._id
                                     );
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
                                     return (
                                         <TableRow
                                             hover
-                                            key={product._id}
+                                            key={order._id}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             selected={isItemSelected}
                                             onClick={(event) =>
-                                                handleClick(event, product._id)
+                                                handleClick(event, order._id)
                                             }
                                             onDoubleClick={() =>
                                                 router.push(
-                                                    `/product/${encodeURIComponent(
-                                                        product._id
+                                                    `/order/${encodeURIComponent(
+                                                        order._id
                                                     )}&name=${encodeURIComponent(
-                                                        product.name
+                                                        order.name
                                                     )}`
                                                 )
                                             }
@@ -246,36 +235,42 @@ export const ProductTable = (props: any) => {
                                             </StickyLeftTableCell>
                                             <TableCell>
                                                 <Typography variant="subtitle2">
-                                                    {product._id}
+                                                    {order._id}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                <Image
-                                                    src={product.image}
-                                                    alt="avatar"
-                                                    width={100}
-                                                    height={100}
-                                                />
+                                                <Typography variant="subtitle2">
+                                                    {order.username}
+                                                </Typography>
                                             </TableCell>
                                             <TableCell id={labelId} scope="row">
                                                 <Typography variant="subtitle2">
-                                                    {product.name}
+                                                    {moment
+                                                        .tz(
+                                                            order.orderDate,
+                                                            "Asia/Ho_Chi_Minh"
+                                                        )
+                                                        .format(
+                                                            "DD/MM/YYYY HH:mm"
+                                                        )}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                {product.habitat}
+                                                {moment
+                                                    .tz(
+                                                        order.shipDate,
+                                                        "Asia/Ho_Chi_Minh"
+                                                    )
+                                                    .format("DD/MM/YYYY HH:mm")}
                                             </TableCell>
                                             <TableCell>
-                                                {product.unitPrice}
+                                                {order.shipAddress}
                                             </TableCell>
                                             <TableCell>
-                                                {product.discount}
+                                                {order.paymentMethod}
                                             </TableCell>
                                             <TableCell>
-                                                {product.quantity}
-                                            </TableCell>
-                                            <TableCell>
-                                                {product.soldQuantity}
+                                                {order.totalPrice}
                                             </TableCell>
                                             <TableCell
                                                 sx={{
@@ -284,34 +279,31 @@ export const ProductTable = (props: any) => {
                                             >
                                                 <Chip
                                                     label={
-                                                        productStatus[
-                                                            product.status
+                                                        orderStatus[
+                                                            order.status
                                                         ]
                                                     }
                                                     color={
-                                                        productStatusColor[
-                                                            product.status
+                                                        orderStatusColor[
+                                                            order.status
                                                         ]
                                                     }
                                                     variant="outlined"
                                                 />
                                             </TableCell>
                                             <TableCell>
-                                                {ShortenString(
-                                                    product.description,
-                                                    30
-                                                )}
+                                                {ShortenString(order.note, 30)}
                                             </TableCell>
                                             <TableCell>
                                                 {moment
                                                     .tz(
-                                                        product.createdAt,
+                                                        order.createdAt,
                                                         "Asia/Ho_Chi_Minh"
                                                     )
                                                     .format("DD/MM/YYYY HH:mm")}
                                             </TableCell>
                                             <TableCell>
-                                                {product.createdBy}
+                                                {order.createdBy}
                                             </TableCell>
                                             <StickyTableCell
                                                 sx={{
@@ -333,10 +325,10 @@ export const ProductTable = (props: any) => {
                                                             LinkComponent={
                                                                 NextLink
                                                             }
-                                                            href={`/product/${encodeURIComponent(
-                                                                product._id
+                                                            href={`/order/${encodeURIComponent(
+                                                                order._id
                                                             )}?name=${encodeURIComponent(
-                                                                product.name
+                                                                order.name
                                                             )}`}
                                                         >
                                                             <SvgIcon
@@ -348,25 +340,25 @@ export const ProductTable = (props: any) => {
                                                         </IconButton>
                                                     </Tooltip>
 
-                                                    <Tooltip title="Chỉnh sửa sản phẩm">
+                                                    <Tooltip title="Chỉnh sửa đơn hàng">
                                                         <IconButton
                                                             LinkComponent={
                                                                 NextLink
                                                             }
-                                                            href={`/product/${encodeURIComponent(
-                                                                product._id
+                                                            href={`/order/${encodeURIComponent(
+                                                                order._id
                                                             )}?name=${encodeURIComponent(
-                                                                product.name
+                                                                order.name
                                                             )}&edit=1`}
                                                             // href={{
                                                             //     pathname:
-                                                            //         "/product/[id]",
+                                                            //         "/order/[id]",
                                                             //     query: {
                                                             //         id: encodeURIComponent(
-                                                            //             product._id
+                                                            //             order._id
                                                             //         ),
                                                             //         name: encodeURIComponent(
-                                                            //             product.name
+                                                            //             order.name
                                                             //         ),
                                                             //     },
                                                             // }}
@@ -380,11 +372,11 @@ export const ProductTable = (props: any) => {
                                                         </IconButton>
                                                     </Tooltip>
 
-                                                    <Tooltip title="Xóa sản phẩm">
+                                                    <Tooltip title="Xóa đơn hàng">
                                                         <IconButton
                                                             onClick={() =>
                                                                 handleDeleteClick(
-                                                                    product._id
+                                                                    order._id
                                                                 )
                                                             }
                                                         >
@@ -415,9 +407,9 @@ export const ProductTable = (props: any) => {
                     rowsPerPageOptions={[5, 10, 20]}
                 />
                 <Dialog open={openDeletePopup} onClose={handleDeleteCancel}>
-                    <DialogTitle>Xác nhận xóa sản phẩm</DialogTitle>
+                    <DialogTitle>Xác nhận xóa đơn hàng</DialogTitle>
                     <DialogContent>
-                        Bạn có chắc chắn muốn xóa sản phẩm này?
+                        Bạn có chắc chắn muốn xóa đơn hàng này?
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleDeleteCancel} color="primary">
@@ -433,13 +425,13 @@ export const ProductTable = (props: any) => {
     );
 };
 
-ProductTable.propTypes = {
+OrderTable.propTypes = {
     count: PropTypes.number,
     items: PropTypes.array,
     onPageChange: PropTypes.func,
     onRowsPerPageChange: PropTypes.func,
     page: PropTypes.number,
     rowsPerPage: PropTypes.number,
-    onDeleteProduct: PropTypes.func,
+    onDeleteOrder: PropTypes.func,
     isFetching: PropTypes.bool,
 };

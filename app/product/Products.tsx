@@ -14,7 +14,7 @@ import { ProductTable } from "@/components/Product/ProductTable";
 // import { ProductsSearch } from "src/sections/products/products-search";
 import NextLink from "next/link";
 
-const Product = () => {
+const Products = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [productData, setProductData] = useState([
@@ -270,4 +270,4 @@ const Product = () => {
         </>
     );
 };
-export default Product;
+export default Products;

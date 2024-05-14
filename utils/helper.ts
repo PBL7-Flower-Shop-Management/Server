@@ -11,3 +11,13 @@ export const ShortenString = (str = "", numberOfCharacters = 10) => {
         return str.substring(0, numberOfCharacters) + "...";
     else return str.substring(0, numberOfCharacters);
 };
+
+export const isValidUrl = (url: string) => {
+    try {
+        new URL(url);
+        return true; // It's an absolute URL
+    } catch (_) {
+        // It's not an absolute URL, so let's check if it's a valid relative path
+        return url.startsWith("/");
+    }
+};
