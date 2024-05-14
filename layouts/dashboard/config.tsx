@@ -3,6 +3,7 @@ import ChartBarIcon from "@mui/icons-material/TroubleshootOutlined";
 import ProductIcon from "@mui/icons-material/LocalFloristOutlined";
 import OrderIcon from "@mui/icons-material/BallotOutlined";
 import UsersIcon from "@mui/icons-material/GroupOutlined";
+import CategoryIcon from "@mui/icons-material/CategoryOutlined";
 import { SvgIcon } from "@mui/material";
 
 export const items = [
@@ -30,6 +31,15 @@ export const items = [
         icon: (
             <SvgIcon fontSize="small">
                 <ProductIcon />
+            </SvgIcon>
+        ),
+    },
+    {
+        title: "Danh sách hạng mục",
+        path: "/category",
+        icon: (
+            <SvgIcon fontSize="small">
+                <CategoryIcon />
             </SvgIcon>
         ),
     },
