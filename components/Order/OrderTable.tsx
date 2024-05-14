@@ -216,8 +216,6 @@ export const OrderTable = (props: any) => {
                                                 router.push(
                                                     `/order/${encodeURIComponent(
                                                         order._id
-                                                    )}&name=${encodeURIComponent(
-                                                        order.name
                                                     )}`
                                                 )
                                             }
@@ -327,8 +325,6 @@ export const OrderTable = (props: any) => {
                                                             }
                                                             href={`/order/${encodeURIComponent(
                                                                 order._id
-                                                            )}?name=${encodeURIComponent(
-                                                                order.name
                                                             )}`}
                                                         >
                                                             <SvgIcon
@@ -347,9 +343,7 @@ export const OrderTable = (props: any) => {
                                                             }
                                                             href={`/order/${encodeURIComponent(
                                                                 order._id
-                                                            )}?name=${encodeURIComponent(
-                                                                order.name
-                                                            )}&edit=1`}
+                                                            )}?edit=1`}
                                                             // href={{
                                                             //     pathname:
                                                             //         "/order/[id]",

@@ -12,7 +12,8 @@ export const ShortenString = (str = "", numberOfCharacters = 10) => {
     else return str.substring(0, numberOfCharacters);
 };
 
-export const isValidUrl = (url: string) => {
+export const isValidUrl = (url: string | undefined) => {
+    if (!url) return false;
     try {
         new URL(url);
         return true; // It's an absolute URL

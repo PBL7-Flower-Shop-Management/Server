@@ -17,57 +17,46 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useSearchParams } from "next/navigation";
-import ProductInformation from "@/components/Product/Detail/ProductInformation";
-import { ProductAvatar } from "@/components/Product/Detail/ProductAvatar";
+import AccountInformation from "@/components/Account/Detail/AccountInformation";
+import { AccountAvatar } from "@/components/Account/Detail/AccountAvatar";
+import { isValidUrl } from "@/utils/helper";
 
-const ProductDetail = ({ params }: any) => {
-    const [product, setProduct] = useState<any>(null);
+const AccountDetail = ({ params }: any) => {
+    const [account, setAccount] = useState<any>(null);
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
     const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
     const searchParams = useSearchParams();
-    const productId = params?.id;
-    const productName = searchParams.get("name");
+    const accountId = params?.id;
+    const accountName = searchParams.get("name");
     const canEdit = searchParams.get("edit") === "1";
     const [open, setOpen] = useState(true);
 
-    const getProduct = useCallback(async () => {
+    const getAccount = useCallback(async () => {
         setLoadingSkeleton(true);
         setError("");
         try {
-            // const product = await productsApi.getProductById(
-            //     productId,
+            // const account = await accountsApi.getAccountById(
+            //     accountId,
             //     auth
             // );
-            const product = {
-                _id: "6630456bfc13ae1b64a24116",
-                name: "Cheese - Brie, Triple Creme",
-                habitat: "Garden",
-                care: "Fusce consequat. Nulla nisl. Nunc nisl.",
-                growthTime: "3 tháng",
-                starsTotal: 4.6,
-                feedbacksTotal: 786,
-                unitPrice: 123,
-                discount: 86,
-                quantity: 459,
-                soldQuantity: 270,
-                imageVideoFiles: [
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                ],
-                description:
-                    "Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
-                status: "Available",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Tanny Aspital",
-                updatedAt: "2024-04-01T00:00:00Z",
-                updatedBy: "Queenie Houchen",
-                isDeleted: true,
+            const account = {
+                userId: "663f3e3680056378c19e8957",
+                isActived: true,
+                username: "danghoann",
+                name: "Dang Hoan",
+                citizenId: "456789",
+                email: "danghoan77777@gmail.com",
+                phoneNumber: "98765",
+                role: "Customer",
+                avatar: "https://th.bing.com/th/id/OIP.ebPexDgG2kic7e_ubIhaqgHaEK?rs=1&pid=ImgDetMain",
+                createdAt: "2024-04-30T10:00:00Z",
+                createdBy: "Admin",
             };
-            setProduct(product);
-            console.log(product);
+            setAccount(account);
+            console.log(account);
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -76,29 +65,29 @@ const ProductDetail = ({ params }: any) => {
     }, []);
 
     useEffect(() => {
-        getProduct();
+        getAccount();
     }, []);
 
     const updateDetails = useCallback(
         async (updatedDetails: any) => {
             try {
-                const updatedProduct = {
-                    id: productId, // dung params de truyen id
-                    ...product,
+                const updatedAccount = {
+                    id: accountId, // dung params de truyen id
+                    ...account,
                     ...updatedDetails,
                 };
 
                 const {
                     relatedCases,
                     charge,
-                    isWantedProduct,
-                    wantedProducts,
+                    isWantedAccount,
+                    wantedAccounts,
                     avatarLink,
                     ...updated
-                } = updatedProduct;
+                } = updatedAccount;
                 // console.log(updated);
-                // await productsApi.editProduct(updated, auth);
-                // getProduct();
+                // await accountsApi.editAccount(updated, auth);
+                // getAccount();
                 setSuccess("Cập nhật thông tin chi tiết tội phạm thành công.");
                 setError("");
             } catch (error: any) {
@@ -107,15 +96,15 @@ const ProductDetail = ({ params }: any) => {
                 console.log(error);
             }
         },
-        [product]
+        [account]
     );
 
-    const updateProductDetails = useCallback(
+    const updateAccountDetails = useCallback(
         async (updatedDetails: any) => {
             try {
                 setLoadingButtonDetails(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
+                setAccount((prevAccount: any) => ({
+                    ...prevAccount,
                     ...updatedDetails,
                 }));
                 setOpen(true);
@@ -126,29 +115,29 @@ const ProductDetail = ({ params }: any) => {
                 setLoadingButtonDetails(false);
             }
         },
-        [setProduct, updateDetails]
+        [setAccount, updateDetails]
     );
 
     const uploadImage = useCallback(
         async (newImage: any) => {
             try {
                 // const response = await imagesApi.uploadImage(newImage);
-                // const updatedProduct = {
-                //     id: productId,
-                //     ...product,
+                // const updatedAccount = {
+                //     id: accountId,
+                //     ...account,
                 //     avatar: response[0].filePath,
                 // };
                 // const {
                 //     relatedCases,
                 //     charge,
-                //     isWantedProduct,
-                //     wantedProducts,
+                //     isWantedAccount,
+                //     wantedAccounts,
                 //     avatarLink,
                 //     ...updated
-                // } = updatedProduct;
+                // } = updatedAccount;
                 // // console.log(updated);
-                // // await productsApi.editProduct(updated, auth);
-                // // getProduct();
+                // // await accountsApi.editAccount(updated, auth);
+                // // getAccount();
                 // setSuccess("Cập nhật ảnh đại diện tội phạm thành công.");
                 // setError("");
             } catch (error: any) {
@@ -157,15 +146,15 @@ const ProductDetail = ({ params }: any) => {
                 console.log(error);
             }
         },
-        [product]
+        [account]
     );
 
-    const updateProductPicture = useCallback(
+    const updateAccountPicture = useCallback(
         async (newImage: any) => {
             try {
                 setLoadingButtonPicture(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
+                setAccount((prevAccount: any) => ({
+                    ...prevAccount,
                     avatar: newImage,
                 }));
                 setOpen(true);
@@ -176,13 +165,13 @@ const ProductDetail = ({ params }: any) => {
                 setLoadingButtonPicture(false);
             }
         },
-        [setProduct, uploadImage]
+        [setAccount, uploadImage]
     );
 
     return (
         <>
             <Head>
-                <title>Sản phẩm | {product?.name}</title>
+                <title>Tài khoản | {account?.name}</title>
             </Head>
             <Box
                 sx={{
@@ -201,7 +190,7 @@ const ProductDetail = ({ params }: any) => {
                                             mb: 2.5,
                                         }}
                                     >
-                                        Sản phẩm
+                                        Tài khoản
                                     </Typography>
                                 </Skeleton>
                             ) : (
@@ -219,7 +208,7 @@ const ProductDetail = ({ params }: any) => {
                                             display: "flex",
                                             alignItems: "center",
                                         }}
-                                        href="/product"
+                                        href="/account"
                                         color="text.primary"
                                     >
                                         <Typography
@@ -237,7 +226,7 @@ const ProductDetail = ({ params }: any) => {
                                                 },
                                             }}
                                         >
-                                            Sản phẩm
+                                            Tài khoản
                                         </Typography>
                                     </Link>
                                     <Typography
@@ -246,7 +235,7 @@ const ProductDetail = ({ params }: any) => {
                                             color: "primary.main",
                                         }}
                                     >
-                                        {product?.name}
+                                        {account?.name}
                                     </Typography>
                                 </Breadcrumbs>
                             )}
@@ -254,8 +243,12 @@ const ProductDetail = ({ params }: any) => {
                         <div>
                             <Grid container spacing={3}>
                                 <Grid xs={12} md={12} lg={12}>
-                                    <ProductAvatar
-                                        imageLink={product?.imageVideoFiles[0]}
+                                    <AccountAvatar
+                                        imageLink={
+                                            isValidUrl(account?.avatar)
+                                                ? account?.avatar
+                                                : undefined
+                                        }
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
@@ -263,14 +256,14 @@ const ProductDetail = ({ params }: any) => {
                                         loadingButtonPicture={
                                             loadingButtonPicture
                                         }
-                                        onUpdate={updateProductPicture}
+                                        onUpdate={updateAccountPicture}
                                         success={success}
                                     />
                                 </Grid>
 
                                 <Grid xs={12} md={12} lg={12}>
-                                    <ProductInformation
-                                        product={product}
+                                    <AccountInformation
+                                        account={account}
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
@@ -278,7 +271,7 @@ const ProductDetail = ({ params }: any) => {
                                         loadingButtonPicture={
                                             loadingButtonPicture
                                         }
-                                        handleSubmit={updateProductDetails}
+                                        handleSubmit={updateAccountDetails}
                                         canEdit={canEdit}
                                     />
                                 </Grid>
@@ -359,4 +352,4 @@ const ProductDetail = ({ params }: any) => {
     );
 };
 
-export default ProductDetail;
+export default AccountDetail;

@@ -17,57 +17,42 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useSearchParams } from "next/navigation";
-import ProductInformation from "@/components/Product/Detail/ProductInformation";
-import { ProductAvatar } from "@/components/Product/Detail/ProductAvatar";
+import CategoryInformation from "@/components/Category/Detail/CategoryInformation";
+import { CategoryAvatar } from "@/components/Category/Detail/CategoryAvatar";
+import { isValidUrl } from "@/utils/helper";
 
-const ProductDetail = ({ params }: any) => {
-    const [product, setProduct] = useState<any>(null);
+const CategoryDetail = ({ params }: any) => {
+    const [category, setCategory] = useState<any>(null);
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
     const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
     const searchParams = useSearchParams();
-    const productId = params?.id;
-    const productName = searchParams.get("name");
+    const categoryId = params?.id;
+    const categoryName = searchParams.get("name");
     const canEdit = searchParams.get("edit") === "1";
     const [open, setOpen] = useState(true);
 
-    const getProduct = useCallback(async () => {
+    const getCategory = useCallback(async () => {
         setLoadingSkeleton(true);
         setError("");
         try {
-            // const product = await productsApi.getProductById(
-            //     productId,
+            // const category = await categorysApi.getCategoryById(
+            //     categoryId,
             //     auth
             // );
-            const product = {
-                _id: "6630456bfc13ae1b64a24116",
-                name: "Cheese - Brie, Triple Creme",
-                habitat: "Garden",
-                care: "Fusce consequat. Nulla nisl. Nunc nisl.",
-                growthTime: "3 tháng",
-                starsTotal: 4.6,
-                feedbacksTotal: 786,
-                unitPrice: 123,
-                discount: 86,
-                quantity: 459,
-                soldQuantity: 270,
-                imageVideoFiles: [
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                ],
+            const category = {
+                _id: "663047485c22d11402fcc6d3",
+                categoryName: "Hoa trồng vườn",
+                image: "https://th.bing.com/th/id/OIP.f-FXUJ0aDZgeT7USzI7CUgHaKW?rs=1&pid=ImgDetMain",
                 description:
-                    "Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
-                status: "Available",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Tanny Aspital",
-                updatedAt: "2024-04-01T00:00:00Z",
-                updatedBy: "Queenie Houchen",
-                isDeleted: true,
+                    "Integer ac leo. Pellentesque ultrices mattis odio. Donec vitae nisi.",
+                createdAt: "2024-04-01T00:00:00Z",
+                createdBy: "Merl",
             };
-            setProduct(product);
-            console.log(product);
+            setCategory(category);
+            console.log(category);
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -76,29 +61,29 @@ const ProductDetail = ({ params }: any) => {
     }, []);
 
     useEffect(() => {
-        getProduct();
+        getCategory();
     }, []);
 
     const updateDetails = useCallback(
         async (updatedDetails: any) => {
             try {
-                const updatedProduct = {
-                    id: productId, // dung params de truyen id
-                    ...product,
+                const updatedCategory = {
+                    id: categoryId, // dung params de truyen id
+                    ...category,
                     ...updatedDetails,
                 };
 
                 const {
                     relatedCases,
                     charge,
-                    isWantedProduct,
-                    wantedProducts,
+                    isWantedCategory,
+                    wantedCategorys,
                     avatarLink,
                     ...updated
-                } = updatedProduct;
+                } = updatedCategory;
                 // console.log(updated);
-                // await productsApi.editProduct(updated, auth);
-                // getProduct();
+                // await categorysApi.editCategory(updated, auth);
+                // getCategory();
                 setSuccess("Cập nhật thông tin chi tiết tội phạm thành công.");
                 setError("");
             } catch (error: any) {
@@ -107,15 +92,15 @@ const ProductDetail = ({ params }: any) => {
                 console.log(error);
             }
         },
-        [product]
+        [category]
     );
 
-    const updateProductDetails = useCallback(
+    const updateCategoryDetails = useCallback(
         async (updatedDetails: any) => {
             try {
                 setLoadingButtonDetails(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
+                setCategory((prevCategory: any) => ({
+                    ...prevCategory,
                     ...updatedDetails,
                 }));
                 setOpen(true);
@@ -126,29 +111,29 @@ const ProductDetail = ({ params }: any) => {
                 setLoadingButtonDetails(false);
             }
         },
-        [setProduct, updateDetails]
+        [setCategory, updateDetails]
     );
 
     const uploadImage = useCallback(
         async (newImage: any) => {
             try {
                 // const response = await imagesApi.uploadImage(newImage);
-                // const updatedProduct = {
-                //     id: productId,
-                //     ...product,
+                // const updatedCategory = {
+                //     id: categoryId,
+                //     ...category,
                 //     avatar: response[0].filePath,
                 // };
                 // const {
                 //     relatedCases,
                 //     charge,
-                //     isWantedProduct,
-                //     wantedProducts,
+                //     isWantedCategory,
+                //     wantedCategorys,
                 //     avatarLink,
                 //     ...updated
-                // } = updatedProduct;
+                // } = updatedCategory;
                 // // console.log(updated);
-                // // await productsApi.editProduct(updated, auth);
-                // // getProduct();
+                // // await categorysApi.editCategory(updated, auth);
+                // // getCategory();
                 // setSuccess("Cập nhật ảnh đại diện tội phạm thành công.");
                 // setError("");
             } catch (error: any) {
@@ -157,15 +142,15 @@ const ProductDetail = ({ params }: any) => {
                 console.log(error);
             }
         },
-        [product]
+        [category]
     );
 
-    const updateProductPicture = useCallback(
+    const updateCategoryPicture = useCallback(
         async (newImage: any) => {
             try {
                 setLoadingButtonPicture(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
+                setCategory((prevCategory: any) => ({
+                    ...prevCategory,
                     avatar: newImage,
                 }));
                 setOpen(true);
@@ -176,13 +161,13 @@ const ProductDetail = ({ params }: any) => {
                 setLoadingButtonPicture(false);
             }
         },
-        [setProduct, uploadImage]
+        [setCategory, uploadImage]
     );
 
     return (
         <>
             <Head>
-                <title>Sản phẩm | {product?.name}</title>
+                <title>Hạng mục | {category?.name}</title>
             </Head>
             <Box
                 sx={{
@@ -201,7 +186,7 @@ const ProductDetail = ({ params }: any) => {
                                             mb: 2.5,
                                         }}
                                     >
-                                        Sản phẩm
+                                        Hạng mục
                                     </Typography>
                                 </Skeleton>
                             ) : (
@@ -219,7 +204,7 @@ const ProductDetail = ({ params }: any) => {
                                             display: "flex",
                                             alignItems: "center",
                                         }}
-                                        href="/product"
+                                        href="/category"
                                         color="text.primary"
                                     >
                                         <Typography
@@ -237,7 +222,7 @@ const ProductDetail = ({ params }: any) => {
                                                 },
                                             }}
                                         >
-                                            Sản phẩm
+                                            Hạng mục
                                         </Typography>
                                     </Link>
                                     <Typography
@@ -246,7 +231,7 @@ const ProductDetail = ({ params }: any) => {
                                             color: "primary.main",
                                         }}
                                     >
-                                        {product?.name}
+                                        {category?.categoryName}
                                     </Typography>
                                 </Breadcrumbs>
                             )}
@@ -254,8 +239,12 @@ const ProductDetail = ({ params }: any) => {
                         <div>
                             <Grid container spacing={3}>
                                 <Grid xs={12} md={12} lg={12}>
-                                    <ProductAvatar
-                                        imageLink={product?.imageVideoFiles[0]}
+                                    <CategoryAvatar
+                                        imageLink={
+                                            isValidUrl(category?.image)
+                                                ? category?.image
+                                                : undefined
+                                        }
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
@@ -263,14 +252,14 @@ const ProductDetail = ({ params }: any) => {
                                         loadingButtonPicture={
                                             loadingButtonPicture
                                         }
-                                        onUpdate={updateProductPicture}
+                                        onUpdate={updateCategoryPicture}
                                         success={success}
                                     />
                                 </Grid>
 
                                 <Grid xs={12} md={12} lg={12}>
-                                    <ProductInformation
-                                        product={product}
+                                    <CategoryInformation
+                                        category={category}
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
@@ -278,7 +267,7 @@ const ProductDetail = ({ params }: any) => {
                                         loadingButtonPicture={
                                             loadingButtonPicture
                                         }
-                                        handleSubmit={updateProductDetails}
+                                        handleSubmit={updateCategoryDetails}
                                         canEdit={canEdit}
                                     />
                                 </Grid>
@@ -359,4 +348,4 @@ const ProductDetail = ({ params }: any) => {
     );
 };
 
-export default ProductDetail;
+export default CategoryDetail;

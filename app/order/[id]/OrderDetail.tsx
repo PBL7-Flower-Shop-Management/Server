@@ -17,57 +17,63 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useSearchParams } from "next/navigation";
-import ProductInformation from "@/components/Product/Detail/ProductInformation";
-import { ProductAvatar } from "@/components/Product/Detail/ProductAvatar";
+import OrderInformation from "@/components/Order/Detail/OrderInformation";
+import { OrderAvatar } from "@/components/Order/Detail/OrderAvatar";
 
-const ProductDetail = ({ params }: any) => {
-    const [product, setProduct] = useState<any>(null);
+const OrderDetail = ({ params }: any) => {
+    const [order, setOrder] = useState<any>(null);
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
     const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
     const searchParams = useSearchParams();
-    const productId = params?.id;
-    const productName = searchParams.get("name");
+    const orderId = params?.id;
+    const orderName = searchParams.get("name");
     const canEdit = searchParams.get("edit") === "1";
     const [open, setOpen] = useState(true);
 
-    const getProduct = useCallback(async () => {
+    const getOrder = useCallback(async () => {
         setLoadingSkeleton(true);
         setError("");
         try {
-            // const product = await productsApi.getProductById(
-            //     productId,
+            // const order = await ordersApi.getOrderById(
+            //     orderId,
             //     auth
             // );
-            const product = {
-                _id: "6630456bfc13ae1b64a24116",
-                name: "Cheese - Brie, Triple Creme",
-                habitat: "Garden",
-                care: "Fusce consequat. Nulla nisl. Nunc nisl.",
-                growthTime: "3 tháng",
-                starsTotal: 4.6,
-                feedbacksTotal: 786,
-                unitPrice: 123,
-                discount: 86,
-                quantity: 459,
-                soldQuantity: 270,
-                imageVideoFiles: [
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
+            const order = {
+                _id: "6159f6a23603a45f08268eb9",
+                orderDate: "2024-04-29T12:00:00Z",
+                shipDate: "2024-07-30T12:00:00Z",
+                shipAddress: "456 Elm St",
+                shipPrice: 15,
+                discount: 0,
+                totalPrice: 200,
+                status: "Shipped",
+                paymentMethod: "PayPal",
+                note: "Customer requested fast shipping",
+                username: "DangHoan",
+                orderDetails: [
+                    {
+                        _id: "663854104a2729c881f9d18f",
+                        name: "Lobster - Tail 6 Oz",
+                        unitPrice: 13,
+                        discount: 3,
+                        numberOfFlowers: 10,
+                        image: "https://happyflower.vn/app/uploads/2019/12/RoseMixBaby-1024x1024.jpg",
+                    },
+                    {
+                        _id: "663052f124e3cdd3e58c1e73",
+                        name: "Fenngreek Seed",
+                        unitPrice: 30,
+                        discount: 0,
+                        numberOfFlowers: 20,
+                        image: "https://th.bing.com/th/id/R.f852bb117e8734ca0d7507781d76ad2e?rik=VtL1rYEsidWJsA&pid=ImgRaw&r=0",
+                    },
                 ],
-                description:
-                    "Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
-                status: "Available",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Tanny Aspital",
-                updatedAt: "2024-04-01T00:00:00Z",
-                updatedBy: "Queenie Houchen",
-                isDeleted: true,
             };
-            setProduct(product);
-            console.log(product);
+            setOrder(order);
+            console.log(order);
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -76,29 +82,29 @@ const ProductDetail = ({ params }: any) => {
     }, []);
 
     useEffect(() => {
-        getProduct();
+        getOrder();
     }, []);
 
     const updateDetails = useCallback(
         async (updatedDetails: any) => {
             try {
-                const updatedProduct = {
-                    id: productId, // dung params de truyen id
-                    ...product,
+                const updatedOrder = {
+                    id: orderId, // dung params de truyen id
+                    ...order,
                     ...updatedDetails,
                 };
 
                 const {
                     relatedCases,
                     charge,
-                    isWantedProduct,
-                    wantedProducts,
+                    isWantedOrder,
+                    wantedOrders,
                     avatarLink,
                     ...updated
-                } = updatedProduct;
+                } = updatedOrder;
                 // console.log(updated);
-                // await productsApi.editProduct(updated, auth);
-                // getProduct();
+                // await ordersApi.editOrder(updated, auth);
+                // getOrder();
                 setSuccess("Cập nhật thông tin chi tiết tội phạm thành công.");
                 setError("");
             } catch (error: any) {
@@ -107,15 +113,15 @@ const ProductDetail = ({ params }: any) => {
                 console.log(error);
             }
         },
-        [product]
+        [order]
     );
 
-    const updateProductDetails = useCallback(
+    const updateOrderDetails = useCallback(
         async (updatedDetails: any) => {
             try {
                 setLoadingButtonDetails(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
+                setOrder((prevOrder: any) => ({
+                    ...prevOrder,
                     ...updatedDetails,
                 }));
                 setOpen(true);
@@ -126,29 +132,29 @@ const ProductDetail = ({ params }: any) => {
                 setLoadingButtonDetails(false);
             }
         },
-        [setProduct, updateDetails]
+        [setOrder, updateDetails]
     );
 
     const uploadImage = useCallback(
         async (newImage: any) => {
             try {
                 // const response = await imagesApi.uploadImage(newImage);
-                // const updatedProduct = {
-                //     id: productId,
-                //     ...product,
+                // const updatedOrder = {
+                //     id: orderId,
+                //     ...order,
                 //     avatar: response[0].filePath,
                 // };
                 // const {
                 //     relatedCases,
                 //     charge,
-                //     isWantedProduct,
-                //     wantedProducts,
+                //     isWantedOrder,
+                //     wantedOrders,
                 //     avatarLink,
                 //     ...updated
-                // } = updatedProduct;
+                // } = updatedOrder;
                 // // console.log(updated);
-                // // await productsApi.editProduct(updated, auth);
-                // // getProduct();
+                // // await ordersApi.editOrder(updated, auth);
+                // // getOrder();
                 // setSuccess("Cập nhật ảnh đại diện tội phạm thành công.");
                 // setError("");
             } catch (error: any) {
@@ -157,15 +163,15 @@ const ProductDetail = ({ params }: any) => {
                 console.log(error);
             }
         },
-        [product]
+        [order]
     );
 
-    const updateProductPicture = useCallback(
+    const updateOrderPicture = useCallback(
         async (newImage: any) => {
             try {
                 setLoadingButtonPicture(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
+                setOrder((prevOrder: any) => ({
+                    ...prevOrder,
                     avatar: newImage,
                 }));
                 setOpen(true);
@@ -176,13 +182,13 @@ const ProductDetail = ({ params }: any) => {
                 setLoadingButtonPicture(false);
             }
         },
-        [setProduct, uploadImage]
+        [setOrder, uploadImage]
     );
 
     return (
         <>
             <Head>
-                <title>Sản phẩm | {product?.name}</title>
+                <title>Đơn hàng | {order?.name}</title>
             </Head>
             <Box
                 sx={{
@@ -201,7 +207,7 @@ const ProductDetail = ({ params }: any) => {
                                             mb: 2.5,
                                         }}
                                     >
-                                        Sản phẩm
+                                        Đơn hàng
                                     </Typography>
                                 </Skeleton>
                             ) : (
@@ -219,7 +225,7 @@ const ProductDetail = ({ params }: any) => {
                                             display: "flex",
                                             alignItems: "center",
                                         }}
-                                        href="/product"
+                                        href="/order"
                                         color="text.primary"
                                     >
                                         <Typography
@@ -237,7 +243,7 @@ const ProductDetail = ({ params }: any) => {
                                                 },
                                             }}
                                         >
-                                            Sản phẩm
+                                            Đơn hàng
                                         </Typography>
                                     </Link>
                                     <Typography
@@ -246,7 +252,7 @@ const ProductDetail = ({ params }: any) => {
                                             color: "primary.main",
                                         }}
                                     >
-                                        {product?.name}
+                                        {order?._id}
                                     </Typography>
                                 </Breadcrumbs>
                             )}
@@ -254,8 +260,8 @@ const ProductDetail = ({ params }: any) => {
                         <div>
                             <Grid container spacing={3}>
                                 <Grid xs={12} md={12} lg={12}>
-                                    <ProductAvatar
-                                        imageLink={product?.imageVideoFiles[0]}
+                                    {/* <OrderAvatar
+                                        imageLink={order?.imageVideoFiles[0]}
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
@@ -263,14 +269,14 @@ const ProductDetail = ({ params }: any) => {
                                         loadingButtonPicture={
                                             loadingButtonPicture
                                         }
-                                        onUpdate={updateProductPicture}
+                                        onUpdate={updateOrderPicture}
                                         success={success}
-                                    />
+                                    /> */}
                                 </Grid>
 
                                 <Grid xs={12} md={12} lg={12}>
-                                    <ProductInformation
-                                        product={product}
+                                    <OrderInformation
+                                        order={order}
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
@@ -278,7 +284,7 @@ const ProductDetail = ({ params }: any) => {
                                         loadingButtonPicture={
                                             loadingButtonPicture
                                         }
-                                        handleSubmit={updateProductDetails}
+                                        handleSubmit={updateOrderDetails}
                                         canEdit={canEdit}
                                     />
                                 </Grid>
@@ -359,4 +365,4 @@ const ProductDetail = ({ params }: any) => {
     );
 };
 
-export default ProductDetail;
+export default OrderDetail;

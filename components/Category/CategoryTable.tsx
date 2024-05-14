@@ -208,7 +208,7 @@ export const CategoryTable = (props: any) => {
                                                     `/category/${encodeURIComponent(
                                                         category._id
                                                     )}&name=${encodeURIComponent(
-                                                        category.name
+                                                        category.categoryName
                                                     )}`
                                                 )
                                             }
@@ -282,7 +282,7 @@ export const CategoryTable = (props: any) => {
                                                             href={`/category/${encodeURIComponent(
                                                                 category._id
                                                             )}?name=${encodeURIComponent(
-                                                                category.name
+                                                                category.categoryName
                                                             )}`}
                                                         >
                                                             <SvgIcon
@@ -302,7 +302,7 @@ export const CategoryTable = (props: any) => {
                                                             href={`/category/${encodeURIComponent(
                                                                 category._id
                                                             )}?name=${encodeURIComponent(
-                                                                category.name
+                                                                category.categoryName
                                                             )}&edit=1`}
                                                             // href={{
                                                             //     pathname:
@@ -312,7 +312,7 @@ export const CategoryTable = (props: any) => {
                                                             //             category._id
                                                             //         ),
                                                             //         name: encodeURIComponent(
-                                                            //             category.name
+                                                            //             category.categoryName
                                                             //         ),
                                                             //     },
                                                             // }}

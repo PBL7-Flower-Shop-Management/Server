@@ -33,6 +33,7 @@ import { isValidUrl } from "@/utils/helper";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
+import moment from "moment-timezone";
 
 export const AccountTable = (props: any) => {
     const {
@@ -183,6 +184,8 @@ export const AccountTable = (props: any) => {
                                     >
                                         Trạng thái tài khoản
                                     </TableCell>
+                                    <TableCell>Ngày tạo</TableCell>
+                                    <TableCell>Tạo bởi</TableCell>
                                     <StickyTableCell
                                         sx={{
                                             textAlign: "center",
@@ -216,8 +219,6 @@ export const AccountTable = (props: any) => {
                                                 router.push(
                                                     `/account/${encodeURIComponent(
                                                         account.userId
-                                                    )}&name=${encodeURIComponent(
-                                                        account.name
                                                     )}`
                                                 )
                                             }
@@ -280,6 +281,17 @@ export const AccountTable = (props: any) => {
                                                     variant="outlined"
                                                 />
                                             </TableCell>
+                                            <TableCell>
+                                                {moment
+                                                    .tz(
+                                                        account.createdAt,
+                                                        "Asia/Ho_Chi_Minh"
+                                                    )
+                                                    .format("DD/MM/YYYY HH:mm")}
+                                            </TableCell>
+                                            <TableCell>
+                                                {account.createdBy}
+                                            </TableCell>
                                             <StickyTableCell
                                                 sx={{
                                                     textAlign: "center",
@@ -302,9 +314,8 @@ export const AccountTable = (props: any) => {
                                                             }
                                                             href={`/account/${encodeURIComponent(
                                                                 account.userId
-                                                            )}?name=${encodeURIComponent(
-                                                                account.name
-                                                            )}`}
+                                                            )}                                                            
+                                                          `}
                                                         >
                                                             <SvgIcon
                                                                 color="primary"
@@ -322,9 +333,7 @@ export const AccountTable = (props: any) => {
                                                             }
                                                             href={`/account/${encodeURIComponent(
                                                                 account.userId
-                                                            )}?name=${encodeURIComponent(
-                                                                account.name
-                                                            )}&edit=1`}
+                                                            )}?edit=1`}
                                                             // href={{
                                                             //     pathname:
                                                             //         "/account/[id]",
