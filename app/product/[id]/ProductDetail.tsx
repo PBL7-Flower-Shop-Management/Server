@@ -18,10 +18,11 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { useSearchParams } from "next/navigation";
 import ProductInformation from "@/components/Product/Detail/ProductInformation";
-import { ProductAvatar } from "@/components/Product/Detail/ProductAvatar";
+import ProductImages from "@/components/Product/Detail/ProductImages";
 
 const ProductDetail = ({ params }: any) => {
     const [product, setProduct] = useState<any>(null);
+    const [categories, setCategories] = useState<any>(null);
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
     const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
@@ -59,6 +60,10 @@ const ProductDetail = ({ params }: any) => {
                 ],
                 description:
                     "Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
+                categoryId: [
+                    "663047485c22d11402fcc6d3",
+                    "663047485c22d11402fcc6da",
+                ],
                 status: "Available",
                 createdAt: "2023-12-01T00:00:00Z",
                 createdBy: "Tanny Aspital",
@@ -75,8 +80,70 @@ const ProductDetail = ({ params }: any) => {
         }
     }, []);
 
+    const getCategories = () => {
+        setCategories([
+            {
+                _id: "663047485c22d11402fcc6d3",
+                categoryName: "Hoa trồng vườn",
+                image: "https://th.bing.com/th/id/OIP.f-FXUJ0aDZgeT7USzI7CUgHaKW?rs=1&pid=ImgDetMain",
+                description:
+                    "Integer ac leo. Pellentesque ultrices mattis odio. Donec vitae nisi.",
+            },
+            {
+                _id: "663047485c22d11402fcc6d4",
+                categoryName: "Hoa trưng bày",
+                image: "https://th.bing.com/th/id/OIP.IDIBlRIRqoabOvqKdaToLgHaHg?rs=1&pid=ImgDetMain",
+                description:
+                    "Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.",
+            },
+            {
+                _id: "663047485c22d11402fcc6d8",
+                categoryName: "Hoa tốt nghiệp",
+                image: "https://file1.hutech.edu.vn/file/news/tot_nghiep_2-1561445014.png",
+                description:
+                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
+            },
+            {
+                _id: "663047485c22d11402fcc6d6",
+                categoryName: "Hoa khai trương",
+                image: "https://juro.com.vn/wp-content/uploads/mau-phong-nen-khai-truong-3.jpg",
+                description:
+                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
+            },
+            {
+                _id: "663047485c22d11402fcc6d7",
+                categoryName: "Hoa cưới",
+                image: "https://th.bing.com/th/id/R.94ced6306675d8e8950bc8dfebb6ba00?rik=9uxw5rY1bzM0kQ&pid=ImgRaw&r=0",
+                description:
+                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
+            },
+            {
+                _id: "663047485c22d11402fcc6d5",
+                categoryName: "Hoa sinh nhật",
+                image: "https://th.bing.com/th/id/R.1110331de5a4c5a98db02fe00f876b4e?rik=IfafVIxyoYdnLw&riu=http%3a%2f%2fhinhnenhd.com%2fwp-content%2fuploads%2f2021%2f11%2fHinh-anh-chuc-mung-sinh-nhat-dep-y-nghia-23.jpg&ehk=NiCTn3VrqMORZ1cxUpmybo4zEekg4tQQ5ozNFUeqqTg%3d&risl=&pid=ImgRaw&r=0",
+                description:
+                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
+            },
+            {
+                _id: "663047485c22d11402fcc6d9",
+                categoryName: "Hoa tang lễ",
+                image: "https://static.wixstatic.com/media/9d8ed5_63efad3fb2594010bd409d19d3ef8aa0~mv2.jpg/v1/fill/w_900,h_600,al_c,q_90/9d8ed5_63efad3fb2594010bd409d19d3ef8aa0~mv2.jpg",
+                description:
+                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
+            },
+            {
+                _id: "663047485c22d11402fcc6da",
+                categoryName: "Hoa chúc mừng",
+                image: "https://media.istockphoto.com/vectors/party-popper-with-confetti-vector-id1125716911?k=6&m=1125716911&s=170667a&w=0&h=2QJzLxp2RFqt96beEhaWzdHHIrLUD6FOK2h3Ns4WH0s=",
+                description:
+                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
+            },
+        ]);
+    };
+
     useEffect(() => {
         getProduct();
+        getCategories();
     }, []);
 
     const updateDetails = useCallback(
@@ -254,8 +321,23 @@ const ProductDetail = ({ params }: any) => {
                         <div>
                             <Grid container spacing={3}>
                                 <Grid xs={12} md={12} lg={12}>
-                                    <ProductAvatar
-                                        imageLink={product?.imageVideoFiles[0]}
+                                    <ProductInformation
+                                        product={product}
+                                        initCategories={categories}
+                                        loadingSkeleton={loadingSkeleton}
+                                        loadingButtonDetails={
+                                            loadingButtonDetails
+                                        }
+                                        loadingButtonPicture={
+                                            loadingButtonPicture
+                                        }
+                                        handleSubmit={updateProductDetails}
+                                        canEdit={canEdit}
+                                    />
+                                </Grid>
+                                <Grid xs={12} md={12} lg={12}>
+                                    <ProductImages
+                                        productImages={product?.imageVideoFiles}
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
@@ -265,20 +347,6 @@ const ProductDetail = ({ params }: any) => {
                                         }
                                         onUpdate={updateProductPicture}
                                         success={success}
-                                    />
-                                </Grid>
-
-                                <Grid xs={12} md={12} lg={12}>
-                                    <ProductInformation
-                                        product={product}
-                                        loadingSkeleton={loadingSkeleton}
-                                        loadingButtonDetails={
-                                            loadingButtonDetails
-                                        }
-                                        loadingButtonPicture={
-                                            loadingButtonPicture
-                                        }
-                                        handleSubmit={updateProductDetails}
                                         canEdit={canEdit}
                                     />
                                 </Grid>

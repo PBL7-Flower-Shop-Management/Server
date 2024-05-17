@@ -57,7 +57,7 @@ import { NextApiRequest } from "next";
  *        properties:
  *          _id:
  *            type: string
- *            description: The ID of the order detail.
+ *            description: The ID of the flower.
  *          name:
  *            type: string
  *            description: The name of the ordered item.
@@ -130,7 +130,7 @@ import { NextApiRequest } from "next";
  *                   paymentMethod: "Credit Card"
  *                   note: "Please deliver before 5 PM"
  *                   orderDetails:
- *                     - _id: "663052f124e3cdd3e58c1e72"
+ *                     - _id: "6630456bfc13ae1b64a24116"
  *                       name: "Cheese - Brie, Triple Creme"
  *                       unitPrice: 25
  *                       discount: 3

@@ -6,6 +6,10 @@ import {
     CardContent,
     CardActions,
     Divider,
+    Box,
+    Autocomplete,
+    Avatar,
+    Chip,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Skeleton from "@mui/material/Skeleton";
@@ -18,6 +22,7 @@ import { useState, useEffect } from "react";
 const ProductInformation = (props: any) => {
     const {
         product,
+        initCategories,
         loading,
         loadingButtonDetails,
         loadingButtonPicture,
@@ -28,6 +33,8 @@ const ProductInformation = (props: any) => {
     const [isClicked, setIsClicked] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [changesMade, setChangesMade] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [value, setValue] = useState([]);
 
     useEffect(() => {
         if (!loadingButtonDetails && hasSubmitted) {
@@ -205,16 +212,28 @@ const ProductInformation = (props: any) => {
         },
     });
 
+    useEffect(() => {
+        if (categories) {
+            setValue(
+                categories.filter((category: any) =>
+                    product.categoryId.includes(category._id)
+                )
+            );
+        }
+        setCategories(initCategories);
+    }, [categories]);
+
     return (
         <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
             <Card
                 sx={{
                     p: 0,
-                    borderTopLeftRadius: 0,
-                    borderTopRightRadius: 0,
                 }}
             >
                 <CardContent>
+                    <Box sx={{ fontWeight: 700, marginBottom: 1 }}>
+                        Thông tin chung
+                    </Box>
                     <Grid container spacing={3}>
                         {[
                             {
@@ -274,6 +293,13 @@ const ProductInformation = (props: any) => {
                             {
                                 label: "Trạng thái",
                                 name: "status",
+                                disabled: true,
+                                md: 12,
+                            },
+                            {
+                                label: "Hạng mục",
+                                name: "categories",
+                                autoComplete: true,
                                 md: 12,
                             },
                         ].map((field: any) => (
@@ -328,6 +354,100 @@ const ProductInformation = (props: any) => {
                                             />
                                         )}
                                         // maxDate={new Date()} // Assuming current date is the maximum allowed
+                                    />
+                                ) : field.autoComplete ? (
+                                    <Autocomplete
+                                        id="autocomplete-investigators"
+                                        multiple
+                                        autoHighlight={true}
+                                        disabled={
+                                            isFieldDisabled || field.disabled
+                                        }
+                                        name={field.name}
+                                        label={field.label}
+                                        disablePortal
+                                        fullWidth
+                                        options={categories}
+                                        getOptionLabel={(option: any) =>
+                                            value ? option.categoryName : ""
+                                        }
+                                        renderTags={(value, getTagProps) =>
+                                            value.map((option: any, index) => (
+                                                <Chip
+                                                    variant="outlined"
+                                                    avatar={
+                                                        <Avatar
+                                                            src={option.image}
+                                                        />
+                                                    }
+                                                    label={option.categoryName}
+                                                    {...getTagProps({ index })}
+                                                    // sx={{
+                                                    //     color: "black",
+                                                    //     backgroundColor:
+                                                    //         "white",
+                                                    // }}
+                                                />
+                                            ))
+                                        }
+                                        // isOptionEqualToValue={(option, value) => {
+                                        //     if (value === null || value === undefined) {
+                                        //         return option === value;
+                                        //     }
+                                        //     return option.id === value.id;
+                                        // }}
+                                        // onChange={async (event, value) => {
+                                        //     if (value === null || value === undefined) {
+                                        //         setValue('');
+                                        //         handleChangeCriminals(event, '', index);
+                                        //     } else {
+                                        //         setValue(value);
+                                        //         handleChangeCriminals(event, value, index);
+                                        //     }
+
+                                        // }}
+
+                                        onChange={(event, value: any) => {
+                                            setValue(value);
+                                        }}
+                                        value={value}
+                                        renderOption={(props, option: any) => (
+                                            <Box
+                                                component="li"
+                                                key={option._id}
+                                                {...props}
+                                            >
+                                                <Avatar
+                                                    sx={{
+                                                        mr: 1.5,
+                                                        height: 32,
+                                                        width: 32,
+                                                    }}
+                                                    src={option?.image}
+                                                />
+                                                {option.categoryName}
+                                            </Box>
+                                        )} // Set the default value based on the criminal prop
+                                        renderInput={(params: any) => (
+                                            <TextField
+                                                {...params}
+                                                disabled={
+                                                    isFieldDisabled ||
+                                                    field.disabled
+                                                }
+                                                label={field.label}
+                                                required={
+                                                    field.required || false
+                                                }
+                                                sx={{
+                                                    "& .MuiInputBase-input": {
+                                                        overflow: "hidden",
+                                                        textOverflow:
+                                                            "ellipsis",
+                                                    },
+                                                }}
+                                            />
+                                        )}
                                     />
                                 ) : (
                                     <TextField

@@ -45,3 +45,16 @@ export const orderStatusColor: {
     Delivered: "success",
     Cancelled: "error",
 };
+
+export const isActive = Object.freeze({
+    false: "Chưa kích hoạt",
+    true: "Đã kích hoạt",
+});
+
+export const role = Object.freeze({
+    Admin: "Admin",
+    Employee: "Nhân viên",
+    Customer: "Khách hàng",
+});
+
+//value: label

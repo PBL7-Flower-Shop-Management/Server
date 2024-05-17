@@ -1,87 +1,69 @@
+import React, { useState } from "react";
 import {
-    Unstable_Grid2 as Grid,
-    TextField,
     Button,
     Card,
-    CardContent,
     CardActions,
+    CardContent,
     Divider,
+    TextField,
+    Unstable_Grid2 as Grid,
+    Skeleton,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import Skeleton from "@mui/material/Skeleton";
+import { format, parse } from "date-fns";
+import { isActive, role } from "@/utils/constants";
 import { LoadingButton } from "@mui/lab";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { format, parse } from "date-fns";
-import { useState, useEffect } from "react";
+
+const initialState = {
+    isFieldDisabled: true,
+    changesMade: false,
+};
+
+// const reducer = (state, action) => {
+//     switch (action.type) {
+//         case "ENABLE_EDIT":
+//             return {
+//                 ...state,
+//                 isFieldDisabled: false,
+//                 changesMade: false,
+//             };
+
+//         case "CANCEL_EDIT":
+//             return {
+//                 ...state,
+//                 isFieldDisabled: true,
+//                 changesMade: false,
+//             };
+
+//         case "UPDATE_ACCOUNT":
+//             return {
+//                 ...state,
+//                 changesMade: true,
+//             };
+//         case "SUBMIT_FORM":
+//             return { ...state, isFieldDisabled: true, changesMade: false };
+
+//         default:
+//             return state;
+//     }
+// };
 
 const AccountInformation = (props: any) => {
     const {
         account,
         loading,
+        loadingSkeleton,
         loadingButtonDetails,
         loadingButtonPicture,
-        handleSubmit,
+        // handleSubmit,
         canEdit,
     } = props;
     const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
     const [isClicked, setIsClicked] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [changesMade, setChangesMade] = useState(false);
-
-    useEffect(() => {
-        if (!loadingButtonDetails && hasSubmitted) {
-            setIsClicked(false);
-            setHasSubmitted(false);
-        }
-    }, [loadingButtonDetails, hasSubmitted]);
-
-    const handleEditGeneral = () => {
-        setIsFieldDisabled(false);
-        setIsClicked(false);
-        setChangesMade(false);
-    };
-
-    const handleSubmitGeneral = () => {
-        setIsFieldDisabled(true);
-        setIsClicked(true);
-        setHasSubmitted(true);
-        if (changesMade)
-            handleSubmit({
-                ...formik.values,
-                birthday:
-                    formik.values.birthday &&
-                    format(formik.values.birthday, "dd/MM/yyyy"),
-                fatherBirthday:
-                    formik.values.fatherBirthday &&
-                    format(formik.values.fatherBirthday, "dd/MM/yyyy"),
-                motherBirthday:
-                    formik.values.motherBirthday &&
-                    format(formik.values.motherBirthday, "dd/MM/yyyy"),
-                gender:
-                    formik.values.gender === true ||
-                    formik.values.gender === "true",
-            });
-    };
-
-    const handleCancelGeneral = () => {
-        setIsClicked(false);
-        setIsFieldDisabled(true);
-        formik.setValues({
-            ...account,
-            birthday: parse(account.birthday, "dd/MM/yyyy", new Date()),
-            fatherBirthday: parse(
-                account.fatherBirthday,
-                "dd/MM/yyyy",
-                new Date()
-            ),
-            motherBirthday: parse(
-                account.motherBirthday,
-                "dd/MM/yyyy",
-                new Date()
-            ),
-        });
-    };
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -196,7 +178,7 @@ const AccountInformation = (props: any) => {
         }),
         onSubmit: async (values: any, helpers: any) => {
             try {
-                handleSubmitGeneral();
+                // handleSubmitGeneral();
             } catch (err: any) {
                 helpers.setStatus({ success: false });
                 helpers.setErrors({ submit: err.message });
@@ -205,15 +187,48 @@ const AccountInformation = (props: any) => {
         },
     });
 
+    const handleToggleActivation = () => {
+        // dispatch({ type: "UPDATE_ACCOUNT" });
+        formik.setValues({
+            ...formik.values,
+            isActive: !formik.values?.isActived,
+        });
+        formik.handleSubmit();
+    };
+
+    const handleChange = (e: any) => {
+        // dispatch({ type: "UPDATE_ACCOUNT" });
+        formik.handleChange(e);
+    };
+
+    const handleSubmit = () => {
+        // if (state.changesMade) {
+        //     onUpdate({
+        //         ...formik.values,
+        //         birthday: format(formik.values.birthday, "dd/MM/yyyy"),
+        //         gender:
+        //             formik.values.gender === true ||
+        //             formik.values.gender === "true",
+        //         role: parseInt(formik.values.role, 10),
+        //         isActive: formik.values?.isActived,
+        //     });
+        // }
+        // dispatch({ type: "SUBMIT_FORM" });
+    };
+
+    const handleClick = () => {
+        // dispatch({ type: "ENABLE_EDIT" });
+        // setOriginalAccount(formik.values);
+    };
+
+    const handleCancel = () => {
+        // dispatch({ type: "CANCEL_EDIT" });
+        // formik.setValues(originalAccount);
+    };
+
     return (
         <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
-            <Card
-                sx={{
-                    p: 0,
-                    borderTopLeftRadius: 0,
-                    borderTopRightRadius: 0,
-                }}
-            >
+            <Card>
                 <CardContent>
                     <Grid container spacing={3}>
                         {[
@@ -249,13 +264,16 @@ const AccountInformation = (props: any) => {
                                 label: "Chức vụ",
                                 name: "role",
                                 required: true,
+                                select: true,
+                                selectProps: role,
                                 md: 6,
                             },
                             {
                                 label: "Trạng thái",
                                 name: "isActived",
-                                required: true,
                                 md: 6,
+                                selectProps: isActive,
+                                disabled: true,
                             },
                         ].map((field: any) => (
                             <Grid key={field.name} xs={12} md={field.md || 12}>
@@ -278,6 +296,9 @@ const AccountInformation = (props: any) => {
                                             formik.touched[field.name] &&
                                             formik.errors[field.name]
                                         }
+                                        disabled={
+                                            isFieldDisabled || field.disabled
+                                        }
                                         label={field.label}
                                         name={field.name}
                                         onBlur={formik.handleBlur}
@@ -290,9 +311,6 @@ const AccountInformation = (props: any) => {
                                         }}
                                         type={field.name}
                                         value={formik.values[field.name]}
-                                        disabled={
-                                            isFieldDisabled || field.disabled
-                                        }
                                         renderInput={(params: any) => (
                                             <TextField
                                                 {...params}
@@ -308,7 +326,7 @@ const AccountInformation = (props: any) => {
                                                 }
                                             />
                                         )}
-                                        // maxDate={new Date()} // Assuming current date is the maximum allowed
+                                        maxDate={new Date()} // Assuming current date is the maximum allowed
                                     />
                                 ) : (
                                     <TextField
@@ -319,22 +337,24 @@ const AccountInformation = (props: any) => {
                                             )
                                         }
                                         fullWidth
-                                        // helperText={
-                                        //     formik.touched[field.name] &&
-                                        //     formik.errors[field.name]
-                                        // }
+                                        helperText={
+                                            formik.touched[field.name] &&
+                                            formik.errors[field.name]
+                                        }
+                                        disabled={
+                                            isFieldDisabled || field.disabled
+                                        }
                                         label={field.label}
                                         name={field.name}
                                         onBlur={formik.handleBlur}
-                                        onChange={(e) => {
-                                            setChangesMade(true);
-                                            formik.handleChange(e);
-                                        }}
+                                        onChange={handleChange}
                                         type={field.name}
-                                        value={formik.values[field.name]}
-                                        multiline={field.textArea || false}
-                                        disabled={
-                                            isFieldDisabled || field.disabled
+                                        value={
+                                            !field.select && field.selectProps
+                                                ? field.selectProps[
+                                                      formik.values[field.name]
+                                                  ]
+                                                : formik.values[field.name]
                                         }
                                         required={field.required || false}
                                         select={field.select}
@@ -351,7 +371,6 @@ const AccountInformation = (props: any) => {
                                         }}
                                     >
                                         {field.select &&
-                                            field.selectProps &&
                                             Object.entries(
                                                 field.selectProps
                                             ).map(([value, label]) => (
@@ -369,44 +388,116 @@ const AccountInformation = (props: any) => {
                     </Grid>
                 </CardContent>
                 <Divider />
-                {canEdit && (
-                    <CardActions sx={{ justifyContent: "flex-end" }}>
-                        {isClicked ? (
-                            loadingButtonDetails && (
-                                <LoadingButton
-                                    disabled
-                                    loading={loadingButtonDetails}
-                                    size="medium"
-                                    variant="contained"
-                                >
-                                    Lưu
-                                </LoadingButton>
-                            )
-                        ) : (
-                            <>
+                <CardActions sx={{ justifyContent: "flex-end" }}>
+                    {loadingSkeleton ? (
+                        <>
+                            <Skeleton
+                                height={40}
+                                width={170}
+                                variant="rounded"
+                            ></Skeleton>
+                            <Skeleton
+                                height={40}
+                                width={170}
+                                variant="rounded"
+                            ></Skeleton>
+                            <Skeleton
+                                height={40}
+                                width={170}
+                                variant="rounded"
+                            ></Skeleton>
+                        </>
+                    ) : loadingButtonDetails ? (
+                        <>
+                            <Button
+                                variant="outlined"
+                                color={
+                                    formik.values?.isActived
+                                        ? "error"
+                                        : "success"
+                                }
+                                onClick={handleToggleActivation}
+                                disabled={
+                                    loadingButtonPicture || loadingButtonDetails
+                                }
+                            >
+                                {formik.values?.isActived
+                                    ? "Khoá tài khoản"
+                                    : "Mở khoá tài khoản"}
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => {}}
+                                disabled={
+                                    loadingButtonPicture || loadingButtonDetails
+                                }
+                            >
+                                Đặt lại mật khẩu
+                            </Button>
+                            <LoadingButton
+                                disabled
+                                loading={loadingButtonDetails}
+                                size="medium"
+                                variant="contained"
+                            >
+                                Chỉnh sửa thông tin
+                            </LoadingButton>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                variant="outlined"
+                                color={
+                                    formik.values?.isActived
+                                        ? "error"
+                                        : "success"
+                                }
+                                onClick={handleToggleActivation}
+                                disabled={
+                                    loadingButtonPicture || loadingButtonDetails
+                                }
+                            >
+                                {formik.values?.isActived
+                                    ? "Khoá tài khoản"
+                                    : "Mở khoá tài khoản"}
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => {}}
+                                disabled={
+                                    loadingButtonPicture || loadingButtonDetails
+                                }
+                            >
+                                Đặt lại mật khẩu
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={
+                                    isFieldDisabled
+                                        ? handleClick
+                                        : formik.handleSubmit
+                                }
+                                disabled={
+                                    loadingButtonPicture || loadingButtonDetails
+                                }
+                            >
+                                {isFieldDisabled
+                                    ? "Chỉnh sửa thông tin"
+                                    : "Cập nhật thông tin"}
+                            </Button>
+                            {!isFieldDisabled && (
                                 <Button
-                                    variant="contained"
-                                    onClick={() => {
-                                        if (isFieldDisabled)
-                                            handleEditGeneral();
-                                        else formik.handleSubmit();
-                                    }}
-                                    disabled={loadingButtonPicture}
+                                    variant="outlined"
+                                    onClick={handleCancel}
                                 >
-                                    Cập nhật thông tin
+                                    Hủy
                                 </Button>
-                                {!isFieldDisabled && (
-                                    <Button
-                                        variant="outlined"
-                                        onClick={handleCancelGeneral}
-                                    >
-                                        Hủy
-                                    </Button>
-                                )}
-                            </>
-                        )}
-                    </CardActions>
-                )}
+                            )}
+                        </>
+                    )}
+                </CardActions>
             </Card>
         </form>
     );

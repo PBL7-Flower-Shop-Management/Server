@@ -28,11 +28,12 @@ const AccountDetail = ({ params }: any) => {
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
+    const [open, setOpen] = useState(true);
+
     const searchParams = useSearchParams();
     const accountId = params?.id;
     const accountName = searchParams.get("name");
     const canEdit = searchParams.get("edit") === "1";
-    const [open, setOpen] = useState(true);
 
     const getAccount = useCallback(async () => {
         setLoadingSkeleton(true);
@@ -56,7 +57,6 @@ const AccountDetail = ({ params }: any) => {
                 createdBy: "Admin",
             };
             setAccount(account);
-            console.log(account);
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -180,7 +180,7 @@ const AccountDetail = ({ params }: any) => {
                 }}
             >
                 <Container maxWidth="lg">
-                    <Stack spacing={0} pb={1}>
+                    <Stack spacing={0}>
                         <div>
                             {loadingSkeleton ? (
                                 <Skeleton variant="rounded">
@@ -242,7 +242,7 @@ const AccountDetail = ({ params }: any) => {
                         </div>
                         <div>
                             <Grid container spacing={3}>
-                                <Grid xs={12} md={12} lg={12}>
+                                <Grid xs={12} md={6} lg={4}>
                                     <AccountAvatar
                                         imageLink={
                                             isValidUrl(account?.avatar)
@@ -260,8 +260,7 @@ const AccountDetail = ({ params }: any) => {
                                         success={success}
                                     />
                                 </Grid>
-
-                                <Grid xs={12} md={12} lg={12}>
+                                <Grid xs={12} md={6} lg={8}>
                                     <AccountInformation
                                         account={account}
                                         loadingSkeleton={loadingSkeleton}
@@ -280,68 +279,68 @@ const AccountDetail = ({ params }: any) => {
                         <div>
                             {success && (
                                 <Collapse in={open}>
-                                    {open && (
-                                        <Alert
-                                            variant="outlined"
-                                            severity="success"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="success"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
+                                    <Alert
+                                        variant="outlined"
+                                        open={open}
+                                        severity="success"
+                                        action={
+                                            <IconButton
+                                                aria-label="close"
                                                 color="success"
-                                                variant="subtitle2"
+                                                size="small"
+                                                onClick={() => {
+                                                    setOpen(false);
+                                                }}
                                             >
-                                                {success}
-                                            </Typography>
-                                        </Alert>
-                                    )}
+                                                <CloseIcon fontSize="inherit" />
+                                            </IconButton>
+                                        }
+                                        sx={{
+                                            mt: 2,
+                                            mb: 2,
+                                            borderRadius: "12px",
+                                        }}
+                                    >
+                                        <Typography
+                                            color="success"
+                                            variant="subtitle2"
+                                        >
+                                            {success}
+                                        </Typography>
+                                    </Alert>
                                 </Collapse>
                             )}
                             {error && (
                                 <Collapse in={open}>
-                                    {open && (
-                                        <Alert
-                                            variant="outlined"
-                                            severity="error"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
+                                    <Alert
+                                        variant="outlined"
+                                        open={open}
+                                        severity="error"
+                                        action={
+                                            <IconButton
+                                                aria-label="close"
                                                 color="error"
-                                                variant="subtitle2"
+                                                size="small"
+                                                onClick={() => {
+                                                    setOpen(false);
+                                                }}
                                             >
-                                                {error}
-                                            </Typography>
-                                        </Alert>
-                                    )}
+                                                <CloseIcon fontSize="inherit" />
+                                            </IconButton>
+                                        }
+                                        sx={{
+                                            mt: 2,
+                                            mb: 2,
+                                            borderRadius: "12px",
+                                        }}
+                                    >
+                                        <Typography
+                                            color="error"
+                                            variant="subtitle2"
+                                        >
+                                            {error}
+                                        </Typography>
+                                    </Alert>
                                 </Collapse>
                             )}
                         </div>

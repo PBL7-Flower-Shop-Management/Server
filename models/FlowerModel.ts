@@ -21,17 +21,8 @@ const FlowerSchema = new Schema(
         care: {
             type: String,
         },
-        growthTimeDay: {
-            type: Number,
-            min: [0, "Day part of growth time can't be negative!"],
-        },
-        growthTimeMinute: {
-            type: Number,
-            min: [0, "Minute part of growth time can't be negative!"],
-            max: [
-                24 * 60,
-                "Minute part of growth time can't greater than 1 day!",
-            ],
+        growthTime: {
+            type: String,
         },
         starsTotal: {
             type: Number,

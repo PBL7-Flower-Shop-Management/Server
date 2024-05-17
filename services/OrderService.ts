@@ -53,10 +53,21 @@ class OrderService {
                             paymentMethod: 1,
                             note: 1,
                             orderDetails: {
-                                _id: "$orderDetails._id",
+                                // _id: "$orderDetails._id",
+                                _id: "$orderDetails.flowerId",
                                 name: "$flowerDetails.name",
                                 unitPrice: "$orderDetails.unitPrice",
                                 discount: "$orderDetails.discount",
+                                care: "$flowerDetails.care",
+                                createdAt: "$flowerDetails.createdAt",
+                                createdBy: "$flowerDetails.createdBy",
+                                description: "$flowerDetails.description",
+                                feedbacksTotal: "$flowerDetails.feedbacksTotal",
+                                habitat: "$flowerDetails.habitat",
+                                quantity: "$flowerDetails.quantity",
+                                soldQuantity: "$flowerDetails.soldQuantity",
+                                starsTotal: "$flowerDetails.starsTotal",
+                                status: "$flowerDetails.status",
                                 numberOfFlowers:
                                     "$orderDetails.numberOfFlowers",
                                 image: {

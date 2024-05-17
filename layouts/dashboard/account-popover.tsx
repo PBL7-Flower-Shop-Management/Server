@@ -1,11 +1,11 @@
 import NextLink from "next/link";
 import PropTypes from "prop-types";
 import {
-    Box,
     Divider,
     MenuItem,
     MenuList,
     Popover,
+    Stack,
     Typography,
 } from "@mui/material";
 import { signOut } from "next-auth/react";
@@ -35,7 +35,8 @@ export const AccountPopover = (props: any) => {
             open={open}
             slotProps={{ paper: { sx: { width: 200 } } }}
         >
-            <Box
+            <Stack
+                direction={"column"}
                 sx={{
                     py: 1.5,
                     px: 2,
@@ -53,7 +54,7 @@ export const AccountPopover = (props: any) => {
                 >
                     {user?.name}
                 </Typography>
-            </Box>
+            </Stack>
             <Divider />
             <MenuList
                 disablePadding

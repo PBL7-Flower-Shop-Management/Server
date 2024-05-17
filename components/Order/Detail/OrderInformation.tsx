@@ -6,6 +6,7 @@ import {
     CardContent,
     CardActions,
     Divider,
+    Box,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Skeleton from "@mui/material/Skeleton";
@@ -14,6 +15,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { format, parse } from "date-fns";
 import { useState, useEffect } from "react";
+import moment from "moment-timezone";
 
 const OrderInformation = (props: any) => {
     const {
@@ -210,11 +212,12 @@ const OrderInformation = (props: any) => {
             <Card
                 sx={{
                     p: 0,
-                    borderTopLeftRadius: 0,
-                    borderTopRightRadius: 0,
                 }}
             >
                 <CardContent>
+                    <Box sx={{ fontWeight: 700, marginBottom: 1 }}>
+                        Thông tin chung
+                    </Box>
                     <Grid container spacing={3}>
                         {[
                             {
