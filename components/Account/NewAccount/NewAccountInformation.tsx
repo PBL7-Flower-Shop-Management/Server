@@ -25,6 +25,7 @@ export const NewAccountInformation = (props: any) => {
                         {
                             label: "Họ và tên",
                             name: "name",
+                            required: true,
                             md: 8,
                         },
                         {

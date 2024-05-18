@@ -1,9 +1,6 @@
-import { NextApiRequest } from "next";
-
 const validate =
     (schema: any) =>
     async (
-        req?: NextApiRequest | null,
         params?: object | null,
         query?: URLSearchParams | null,
         body?: any

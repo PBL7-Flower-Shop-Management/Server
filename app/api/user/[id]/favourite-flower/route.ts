@@ -81,7 +81,7 @@ import { NextApiRequest } from "next";
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
         ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetFavouriteFlowerByUserId)(null, params);
+        await validate(schemas.GetFavouriteFlowerByUserId)(params);
         const { id } = params;
         return await UserController.GetFavouriteFlowerByUserId(id);
     } catch (error: any) {

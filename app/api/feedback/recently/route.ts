@@ -78,7 +78,7 @@ export const GET = async (req: NextApiRequest) => {
     try {
         let query;
         ({ req, query: query } = TrimRequest.all(req));
-        await validate(schemas.GetRecentFeedbackSchema)(req, null, query);
+        await validate(schemas.GetRecentFeedbackSchema)(null, query);
         return await FeedbackController.GetRecentFeedback(query);
     } catch (error: any) {
         return ErrorHandler(error);

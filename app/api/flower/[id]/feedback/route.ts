@@ -82,7 +82,7 @@ import { NextApiRequest } from "next";
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
         ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetFeedbackOfFlowerSchema)(null, params);
+        await validate(schemas.GetFeedbackOfFlowerSchema)(params);
         const { id } = params;
         return await FlowerController.GetFeedbackOfFlower(id);
     } catch (error: any) {

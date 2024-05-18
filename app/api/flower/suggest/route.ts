@@ -88,7 +88,7 @@ export const GET = async (req: NextApiRequest) => {
     try {
         let query;
         ({ req, query: query } = TrimRequest.all(req));
-        await validate(schemas.GetSuggestedFlowerSchema)(req, null, query);
+        await validate(schemas.GetSuggestedFlowerSchema)(null, query);
         return await FlowerController.GetSuggestedFlower(query);
     } catch (error: any) {
         return ErrorHandler(error);

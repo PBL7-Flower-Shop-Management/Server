@@ -141,7 +141,7 @@ import { NextApiRequest } from "next";
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
         ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetOrderByUserId)(null, params);
+        await validate(schemas.GetOrderByUserId)(params);
         const { id } = params;
         return await UserController.GetOrderByUserId(id);
     } catch (error: any) {

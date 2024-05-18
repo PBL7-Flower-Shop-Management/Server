@@ -11,13 +11,6 @@ import mongoose from "mongoose";
 class AuthService {
     async Register(user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
-            delete user.role;
-            delete user.createdAt;
-            delete user.createdBy;
-            delete user.updatedAt;
-            delete user.updatedBy;
-            delete user.isDeleted;
-
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
@@ -222,11 +215,11 @@ class AuthService {
                         });
                     }
                 } else {
-                    const password = crypto.randomBytes(4).toString("hex");
-                    const hashedPassword = await bcrypt.hash(
-                        password,
-                        parseInt(process.env.BCRYPT_SALT!)
-                    );
+                    // const password = crypto.randomBytes(4).toString("hex");
+                    // const hashedPassword = await bcrypt.hash(
+                    //     password,
+                    //     parseInt(process.env.BCRYPT_SALT!)
+                    // );
                     console.log(googleUser);
                     user = await UserModel.create(
                         [
@@ -239,7 +232,7 @@ class AuthService {
                                 isRestricted: false,
                                 providers: ["google"],
                                 username: googleUser.email,
-                                password: hashedPassword,
+                                // password: hashedPassword,
                             },
                         ],
                         { session: session }

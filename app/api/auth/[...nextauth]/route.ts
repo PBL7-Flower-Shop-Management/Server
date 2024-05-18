@@ -7,9 +7,9 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/db";
 import { Adapter } from "next-auth/adapters";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { User } from "next-auth";
 import axios from "axios";
 import UrlConfig from "@/config/UrlConfig";
+import ApiResponse from "@/utils/ApiResponse";
 
 const handler = NextAuth({
     providers: [
@@ -28,14 +28,15 @@ const handler = NextAuth({
                             return {
                                 ...res.data.data.user,
                                 ...res.data.data.token,
-                            }; // This is the object that will be encoded in JWT
-
+                            };
+                        // This is the object that will be encoded in JWT
                         //  wrong credentials
-                        return null;
+                        else {
+                            throw res.data;
+                        }
                     })
                     .catch((err: any) => {
-                        // console.log("error", err);
-                        return null;
+                        throw err.response.data;
                     });
             },
         }),

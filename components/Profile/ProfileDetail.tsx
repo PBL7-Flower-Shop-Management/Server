@@ -267,6 +267,7 @@ const ProfileDetail = (props: any) => {
                                 name: "role",
                                 select: true,
                                 selectProps: role,
+                                disabled: true,
                                 md: 6,
                             },
                         ].map((field: any) => (

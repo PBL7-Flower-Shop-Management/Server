@@ -1,6 +1,7 @@
 import AuthController from "@/controllers/AuthController";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import ApiResponse from "@/utils/ApiResponse";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AuthValidation";
 import { NextApiRequest } from "next";
@@ -163,7 +164,7 @@ export const POST = async (req: NextApiRequest) => {
     try {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.RegisterSchema)(req, null, null, body);
+        await validate(schemas.RegisterSchema)(null, null, body);
         return await AuthController.Register(body);
     } catch (error: any) {
         return ErrorHandler(error);

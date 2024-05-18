@@ -94,7 +94,7 @@ export const POST = async (req: NextApiRequest) => {
     try {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.LoginSchema)(req, null, null, body);
+        await validate(schemas.LoginSchema)(null, null, body);
         return await AuthController.Login(body);
     } catch (error: any) {
         return ErrorHandler(error);

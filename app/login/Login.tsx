@@ -69,11 +69,13 @@ const Login = () => {
             return;
         }
         setIsSubmitting(true);
-        signIn("credentials", {
+        const res = await signIn("credentials", {
             username: username,
             password: password,
             redirect: false,
         });
+        if (res && res.error) console.log("error", res.error);
+
         setIsSubmitting(false);
     };
 

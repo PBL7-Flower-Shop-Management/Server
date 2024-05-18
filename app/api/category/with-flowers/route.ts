@@ -89,7 +89,7 @@ export const GET = async (req: NextApiRequest) => {
     try {
         let query;
         ({ req, query: query } = TrimRequest.all(req));
-        await validate(schemas.GetCategoryWithFlowers)(req, null, query);
+        await validate(schemas.GetCategoryWithFlowers)(null, query);
         return await CategoryController.GetCategoryWithFlowers(query);
     } catch (error: any) {
         return ErrorHandler(error);

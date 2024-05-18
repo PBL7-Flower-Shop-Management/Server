@@ -85,7 +85,7 @@ import { NextApiRequest } from "next";
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
         ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetCartByUserId)(null, params);
+        await validate(schemas.GetCartByUserId)(params);
         const { id } = params;
         return await UserController.GetCartByUserId(id);
     } catch (error: any) {

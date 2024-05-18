@@ -139,7 +139,7 @@ import { NextApiRequest } from "next";
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
         ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetFlowerDetailSchema)(null, params);
+        await validate(schemas.GetFlowerDetailSchema)(params);
         const { id } = params;
         return await FlowerController.GetFlowerDetail(id);
     } catch (error: any) {

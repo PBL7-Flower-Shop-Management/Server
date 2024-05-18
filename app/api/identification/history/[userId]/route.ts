@@ -95,7 +95,7 @@ import { NextApiRequest } from "next";
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
         ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetIdentificationHistoryByUserId)(null, params);
+        await validate(schemas.GetIdentificationHistoryByUserId)(params);
         const { userId } = params;
         return await IdentificationController.GetIdentificationHistoryByUserId(
             userId

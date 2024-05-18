@@ -7,6 +7,7 @@ const UserSchema = new Schema(
             type: String,
             maxLength: 200,
             trim: true,
+            required: [true, "Name is required!"],
             validate: {
                 validator: function (value: any) {
                     return /^[ \p{L}]+$/u.test(value);
