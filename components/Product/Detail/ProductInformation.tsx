@@ -357,7 +357,7 @@ const ProductInformation = (props: any) => {
                                     />
                                 ) : field.autoComplete ? (
                                     <Autocomplete
-                                        id="autocomplete-investigators"
+                                        id="autocomplete-products"
                                         multiple
                                         autoHighlight={true}
                                         disabled={

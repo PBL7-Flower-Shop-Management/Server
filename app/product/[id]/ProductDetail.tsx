@@ -22,7 +22,7 @@ import ProductImages from "@/components/Product/Detail/ProductImages";
 
 const ProductDetail = ({ params }: any) => {
     const [product, setProduct] = useState<any>(null);
-    const [categories, setCategories] = useState<any>(null);
+    const [categories, setCategories] = useState<any>([]);
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
     const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);

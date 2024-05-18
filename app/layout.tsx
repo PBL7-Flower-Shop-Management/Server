@@ -8,10 +8,11 @@ import { createTheme } from "./theme";
 import { CssBaseline } from "@mui/material";
 import { Layout } from "@/layouts/dashboard/layout";
 import { usePathname } from "next/navigation";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider/LocalizationProvider";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import vi from "date-fns/locale/vi";
 import { ConfigProvider } from "antd";
+import { CacheProvider } from "@emotion/react";
 import viVN from "antd/lib/locale/vi_VN";
 
 const inter = Inter({ subsets: ["latin"] });
