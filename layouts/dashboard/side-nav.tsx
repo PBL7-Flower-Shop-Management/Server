@@ -3,10 +3,10 @@ import { usePathname } from "next/navigation";
 import PropTypes from "prop-types";
 import { Box, Divider, Drawer, Stack, useMediaQuery } from "@mui/material";
 import Logo from "@/public/images/login2.jpg";
-import { Scrollbar } from "@/components/Scrollbar";
 import { items } from "./config";
 import { SideNavItem } from "./side-nav-item";
 import Image from "next/image";
+import ScrollBar from "react-perfect-scrollbar";
 // import { useAuth } from "src/hooks/use-auth";
 
 export const SideNav = (props: any) => {
@@ -20,15 +20,15 @@ export const SideNav = (props: any) => {
         : items.filter((item: any) => item.path !== "/accounts");
 
     const content = (
-        <Scrollbar
-            sx={{
+        <ScrollBar
+            style={{
                 height: "100%",
-                "& .simplebar-content": {
-                    height: "100%",
-                },
-                "& .simplebar-scrollbar:before": {
-                    background: "neutral.400",
-                },
+                // "& .simplebar-content": {
+                //     height: "100%",
+                // },
+                // "& .simplebar-scrollbar:before": {
+                //     background: "neutral.400",
+                // },
             }}
         >
             <Box
@@ -101,7 +101,7 @@ export const SideNav = (props: any) => {
                     </Stack>
                 </Box>
             </Box>
-        </Scrollbar>
+        </ScrollBar>
     );
 
     if (lgUp) {

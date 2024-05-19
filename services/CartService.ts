@@ -1,4 +1,5 @@
 import { connectToDB } from "@/utils/database";
+import HttpStatus from "http-status";
 import ApiResponse from "@/utils/ApiResponse";
 import CartModel from "@/models/CartModel";
 import mongoose from "mongoose";
@@ -89,7 +90,7 @@ class CartService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: cart,
                     })
                 );

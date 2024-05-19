@@ -1,45 +1,33 @@
 import FlowerService from "@/services/FlowerService";
 
 class FlowerController {
-    async GetBestSellerFlower(query?: URLSearchParams) {
+    async GetBestSellerFlower(query: any) {
         try {
-            const limit = query?.get("limit");
-            return await FlowerService.GetBestSellerFlower(
-                limit ? Number(limit) : undefined
-            );
+            return await FlowerService.GetBestSellerFlower(query.limit);
         } catch (error: any) {
             throw error;
         }
     }
 
-    async GetDecorationFlower(query?: URLSearchParams) {
+    async GetDecorationFlower(query: any) {
         try {
-            const limit = query?.get("limit");
-            return await FlowerService.GetDecorationFlower(
-                limit ? Number(limit) : undefined
-            );
+            return await FlowerService.GetDecorationFlower(query.limit);
         } catch (error: any) {
             throw error;
         }
     }
 
-    async GetFlowerAsGift(query?: URLSearchParams) {
+    async GetFlowerAsGift(query: any) {
         try {
-            const limit = query?.get("limit");
-            return await FlowerService.GetFlowerAsGift(
-                limit ? Number(limit) : undefined
-            );
+            return await FlowerService.GetFlowerAsGift(query.limit);
         } catch (error: any) {
             throw error;
         }
     }
 
-    async GetSuggestedFlower(query?: URLSearchParams) {
+    async GetSuggestedFlower(query: any) {
         try {
-            const limit = query?.get("limit");
-            return await FlowerService.GetSuggestedFlower(
-                limit ? Number(limit) : undefined
-            );
+            return await FlowerService.GetSuggestedFlower(query.limit);
         } catch (error: any) {
             throw error;
         }

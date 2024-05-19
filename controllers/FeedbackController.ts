@@ -1,12 +1,9 @@
 import FeedbackService from "@/services/FeedbackService";
 
 class FeedbackController {
-    async GetRecentFeedback(query?: URLSearchParams) {
+    async GetRecentFeedback(query: any) {
         try {
-            const limit = query?.get("limit");
-            return await FeedbackService.GetRecentFeedback(
-                limit ? Number(limit) : undefined
-            );
+            return await FeedbackService.GetRecentFeedback(query.limit);
         } catch (error: any) {
             throw error;
         }

@@ -1,4 +1,5 @@
 import { connectToDB } from "@/utils/database";
+import HttpStatus from "http-status";
 import ApiResponse from "@/utils/ApiResponse";
 import mongoose from "mongoose";
 import IdentificationHistoryModel from "@/models/IdentificationHistoryModel";
@@ -48,14 +49,14 @@ class IdentificationService {
                 if (histories.length === 0)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message: "Not found history",
                         })
                     );
                 else
                     resolve(
                         new ApiResponse({
-                            status: 200,
+                            status: HttpStatus.OK,
                             data: histories,
                         })
                     );

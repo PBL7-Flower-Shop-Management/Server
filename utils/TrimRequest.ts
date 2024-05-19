@@ -16,13 +16,43 @@ function trimStringProperties(obj: any) {
     }
 }
 
-const trimURLSearchParams = (params: URLSearchParams) => {
-    const trimmedParams = new URLSearchParams();
-    for (const [key, value] of params) {
-        trimmedParams.append(key, value.trim());
+const trimURLSearchParams = (searchParams: URLSearchParams) => {
+    const obj: any = {};
+    for (const [key, value] of searchParams) {
+        // Trim the value before converting
+        const trimmedValue = value.trim();
+
+        // Convert value to the appropriate type
+        let convertedValue;
+        if (!isNaN(Number(trimmedValue))) {
+            convertedValue = Number(trimmedValue);
+        } else if (
+            trimmedValue.toLowerCase() === "true" ||
+            trimmedValue.toLowerCase() === "false"
+        ) {
+            convertedValue = trimmedValue.toLowerCase() === "true";
+        } else {
+            convertedValue = trimmedValue;
+        }
+
+        if (!obj[key]) {
+            obj[key] = convertedValue;
+        } else if (Array.isArray(obj[key])) {
+            obj[key].push(convertedValue);
+        } else {
+            obj[key] = [obj[key], convertedValue];
+        }
     }
-    return trimmedParams;
+    return obj;
 };
+
+// const trimURLSearchParams = (params: URLSearchParams) => {
+//     const trimmedParams = new URLSearchParams();
+//     for (const [key, value] of params) {
+//         trimmedParams.append(key, value.trim());
+//     }
+//     return trimmedParams;
+// };
 
 // trimRequest middleware: trim all request object: body, params, query
 const all = (

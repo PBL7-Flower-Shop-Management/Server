@@ -1,0 +1,2118 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Next Swagger API Example",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/account/{id}": {
+      "get": {
+        "summary": "Get account by id",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Account id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return account by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an account",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Account id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Delete account successfully"
+          }
+        }
+      }
+    },
+    "/api/account": {
+      "get": {
+        "summary": "Get all account",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of feedback lists",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return all accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create an new account",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Account"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create account successfully and return account information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an account",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatedAccount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update account successfully and return account information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Lock/unlock an account",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "type": "string",
+                    "description": "The account id.",
+                    "required": true
+                  },
+                  "isActived": {
+                    "type": "boolean",
+                    "description": "The account status",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lock/unlock successful account and return result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "post": {
+        "summary": "Login by google and returns account information including tokens.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "The username of the user.",
+                    "required": true
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "The password of the user.",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful and user data returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "token": {
+                          "$ref": "#/components/schemas/TokenInfo"
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": {
+                      "user": {
+                        "name": "string",
+                        "citizenId": "53454353",
+                        "email": "strireng@gmail.com",
+                        "phoneNumber": "5345435",
+                        "role": "Customer",
+                        "avatar": "string",
+                        "createdAt": "2024-05-11T07:58:52.792Z",
+                        "createdBy": "System",
+                        "isDeleted": false,
+                        "_id": "663f253c26cc6a0b75bfcad7",
+                        "__v": 0
+                      },
+                      "token": {
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjYzZjI1M2MyNmNjNmEwYjc1YmZjYWQ3IiwibG9naW5fdGltZSI6IjIwMjQtMDUtMTFUMDc6NTg6NTIuODcwWiIsImV4cCI6MTcxNTQxNjEzMiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTcxNTQxNDMzMn0.HpwUQP7VgYjAiDoNh7sA9U8MN6MnqHq0u2JCVWj4CGE",
+                        "accessTokenExpiresAt": "2024-05-11T08:28:52.870Z",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjYzZjI1M2MyNmNjNmEwYjc1YmZjYWQ3IiwibG9naW5fdGltZSI6IjIwMjQtMDUtMTFUMDc6NTg6NTIuODcwWiIsImV4cCI6MTcxNTY3MzUzMiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3MTU0MTQzMzJ9.IU2KPPNSSpu0cOSrGjIaaqIxalRoIvTZuN0fzxV9Kk0",
+                        "refreshTokenExpireAt": "2024-05-14T07:58:52.870Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login and returns account information including tokens.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "The username of the user.",
+                    "required": true
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "The password of the user.",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful and user data returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "token": {
+                          "$ref": "#/components/schemas/TokenInfo"
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": {
+                      "user": {
+                        "name": "string",
+                        "citizenId": "53454353",
+                        "email": "strireng@gmail.com",
+                        "phoneNumber": "5345435",
+                        "role": "Customer",
+                        "avatar": "string",
+                        "createdAt": "2024-05-11T07:58:52.792Z",
+                        "createdBy": "System",
+                        "isDeleted": false,
+                        "_id": "663f253c26cc6a0b75bfcad7",
+                        "__v": 0
+                      },
+                      "token": {
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjYzZjI1M2MyNmNjNmEwYjc1YmZjYWQ3IiwibG9naW5fdGltZSI6IjIwMjQtMDUtMTFUMDc6NTg6NTIuODcwWiIsImV4cCI6MTcxNTQxNjEzMiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTcxNTQxNDMzMn0.HpwUQP7VgYjAiDoNh7sA9U8MN6MnqHq0u2JCVWj4CGE",
+                        "accessTokenExpiresAt": "2024-05-11T08:28:52.870Z",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjYzZjI1M2MyNmNjNmEwYjc1YmZjYWQ3IiwibG9naW5fdGltZSI6IjIwMjQtMDUtMTFUMDc6NTg6NTIuODcwWiIsImV4cCI6MTcxNTY3MzUzMiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3MTU0MTQzMzJ9.IU2KPPNSSpu0cOSrGjIaaqIxalRoIvTZuN0fzxV9Kk0",
+                        "refreshTokenExpireAt": "2024-05-14T07:58:52.870Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Registers a new user and returns account information including tokens.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Register"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration successful and user data returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "token": {
+                          "$ref": "#/components/schemas/TokenInfo"
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": {
+                      "user": {
+                        "name": "string",
+                        "citizenId": "53454353",
+                        "email": "strireng@gmail.com",
+                        "phoneNumber": "5345435",
+                        "role": "Customer",
+                        "avatar": "string",
+                        "createdAt": "2024-05-11T07:58:52.792Z",
+                        "createdBy": "System",
+                        "isDeleted": false,
+                        "_id": "663f253c26cc6a0b75bfcad7",
+                        "__v": 0
+                      },
+                      "token": {
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjYzZjI1M2MyNmNjNmEwYjc1YmZjYWQ3IiwibG9naW5fdGltZSI6IjIwMjQtMDUtMTFUMDc6NTg6NTIuODcwWiIsImV4cCI6MTcxNTQxNjEzMiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTcxNTQxNDMzMn0.HpwUQP7VgYjAiDoNh7sA9U8MN6MnqHq0u2JCVWj4CGE",
+                        "accessTokenExpiresAt": "2024-05-11T08:28:52.870Z",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjYzZjI1M2MyNmNjNmEwYjc1YmZjYWQ3IiwibG9naW5fdGltZSI6IjIwMjQtMDUtMTFUMDc6NTg6NTIuODcwWiIsImV4cCI6MTcxNTY3MzUzMiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3MTU0MTQzMzJ9.IU2KPPNSSpu0cOSrGjIaaqIxalRoIvTZuN0fzxV9Kk0",
+                        "refreshTokenExpireAt": "2024-05-14T07:58:52.870Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/category/with-flowers/{categoryId}": {
+      "get": {
+        "summary": "Return the category by id with flowers",
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "description": "Category id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of flowers list in the category",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of the category by id with flowers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object",
+                      "items": {
+                        "$ref": "#/components/schemas/CategoryWithFlowers"
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": {
+                      "_id": "663047485c22d11402fcc6d3",
+                      "name": "Hoa trồng vườn",
+                      "avatar": "https://th.bing.com/th/id/OIP.f-FXUJ0aDZgeT7USzI7CUgHaKW?rs=1&pid=ImgDetMain",
+                      "flowers": [
+                        {
+                          "_id": "6630456bfc13ae1b64a24114",
+                          "name": "Soup - Campbells Chili Veg",
+                          "stars": 2.9,
+                          "unitPrice": 100,
+                          "status": "Out of Stock",
+                          "discount": 41,
+                          "soldQuantity": 499,
+                          "image": "https://th.bing.com/th/id/OIP.WijcKwJiY-TL-qj6UwNovwHaFv?rs=1&pid=ImgDetMain"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/category/with-flowers": {
+      "get": {
+        "summary": "Return the list of all the categories with flowers",
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of flowers list in each category",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of the categories with flowers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CategoryWithFlowers"
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": [
+                      {
+                        "_id": "663047485c22d11402fcc6d3",
+                        "name": "Hoa trồng vườn",
+                        "avatar": "https://th.bing.com/th/id/OIP.f-FXUJ0aDZgeT7USzI7CUgHaKW?rs=1&pid=ImgDetMain",
+                        "flowers": [
+                          {
+                            "_id": "6630456bfc13ae1b64a24114",
+                            "name": "Soup - Campbells Chili Veg",
+                            "stars": 2.9,
+                            "unitPrice": 100,
+                            "status": "Out of Stock",
+                            "discount": 41,
+                            "soldQuantity": 499,
+                            "image": "https://th.bing.com/th/id/OIP.WijcKwJiY-TL-qj6UwNovwHaFv?rs=1&pid=ImgDetMain"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feedback/recently": {
+      "get": {
+        "summary": "Return the list of all the recent feedback",
+        "tags": [
+          "Feedback"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of feedback lists",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of the feedbacks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Feedback"
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": [
+                      {
+                        "_id": "6630456bfc13ae1b64a24111",
+                        "content": "Sản phẩm okela!",
+                        "numberOfStars": 4.5,
+                        "feedbackBy": "Nguyễn Thế Đăng Hoan"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flower/{id}/feedback": {
+      "get": {
+        "summary": "Return feedbacks of flower",
+        "tags": [
+          "Flower"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Flower id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feedback by flower id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "array",
+                      "$ref": "#/components/schemas/Feedback"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "total": 1,
+                  "data": [
+                    {
+                      "content": "Great product!",
+                      "numberOfStars": 5,
+                      "numberOfLikes": 10,
+                      "feedbackBy": "Dang Hoan",
+                      "commentDate": "2023-12-01T00:00:00.000Z",
+                      "imageVideoFiles": [
+                        "https://example.com/image1.jpg",
+                        "https://example.com/image2.jpg"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flower/{id}": {
+      "get": {
+        "summary": "Return flower by id",
+        "tags": [
+          "Flower"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Flower id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flower by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object",
+                      "$ref": "#/components/schemas/Flower"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "total": 1,
+                  "data": {
+                    "_id": "6630456bfc13ae1b64a24116",
+                    "name": "Cheese - Brie, Triple Creme",
+                    "habitat": "Garden",
+                    "care": "Fusce consequat. Nulla nisl. Nunc nisl.",
+                    "growthTimeDay": 113,
+                    "growthTimeMinute": 43,
+                    "starsTotal": 4.6,
+                    "feedbacksTotal": 786,
+                    "unitPrice": 123,
+                    "discount": 86,
+                    "quantity": 270,
+                    "soldQuantity": 459,
+                    "imageVideoFiles": [
+                      "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
+                      "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1"
+                    ],
+                    "description": "Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
+                    "status": "Available",
+                    "createdAt": "2023-12-01T00:00:00.000Z",
+                    "createdBy": "Tanny Aspital",
+                    "updatedAt": "2024-04-01T00:00:00.000Z",
+                    "updatedBy": "Queenie Houchen",
+                    "isDeleted": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flower/best-seller": {
+      "get": {
+        "summary": "Return the list of all the best seller flowers",
+        "tags": [
+          "Flower"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of best seller flower lists",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of the best seller flowers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShortendFlower"
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": [
+                      {
+                        "_id": "6630456bfc13ae1b64a24222",
+                        "name": "Fenngreek Seed",
+                        "unitPrice": 341,
+                        "discount": 34,
+                        "image": "https://th.bing.com/th/id/R.f852bb117e8734ca0d7507781d76ad2e?rik=VtL1rYEsidWJsA&pid=ImgRaw&r=0",
+                        "status": "Available",
+                        "stars": 0.8
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flower/decoration": {
+      "get": {
+        "summary": "Return the list of all the decorative flowers",
+        "tags": [
+          "Flower"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of decorative flower lists",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of the decorative flowers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShortendFlower"
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": [
+                      {
+                        "_id": "6630456bfc13ae1b64a24222",
+                        "name": "Fenngreek Seed",
+                        "unitPrice": 341,
+                        "discount": 34,
+                        "image": "https://th.bing.com/th/id/R.f852bb117e8734ca0d7507781d76ad2e?rik=VtL1rYEsidWJsA&pid=ImgRaw&r=0",
+                        "status": "Available",
+                        "stars": 0.8
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flower/gift": {
+      "get": {
+        "summary": "Return the list of all the flowers as gifts",
+        "tags": [
+          "Flower"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of flower as gift lists",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of the flowers as gifts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShortendFlower"
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": [
+                      {
+                        "_id": "6630456bfc13ae1b64a24222",
+                        "name": "Fenngreek Seed",
+                        "unitPrice": 341,
+                        "discount": 34,
+                        "image": "https://th.bing.com/th/id/R.f852bb117e8734ca0d7507781d76ad2e?rik=VtL1rYEsidWJsA&pid=ImgRaw&r=0",
+                        "status": "Available",
+                        "stars": 0.8
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flower/suggest": {
+      "get": {
+        "summary": "Return the list of all the suggested flowers",
+        "tags": [
+          "Flower"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of suggested flower lists",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of the suggested flowers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SuggestedFlower"
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "total": 1,
+                    "data": [
+                      {
+                        "_id": "6630456bfc13ae1b64a24222",
+                        "name": "Fenngreek Seed",
+                        "unitPrice": 341,
+                        "discount": 34,
+                        "soldQuantity": 123420,
+                        "image": "https://th.bing.com/th/id/R.f852bb117e8734ca0d7507781d76ad2e?rik=VtL1rYEsidWJsA&pid=ImgRaw&r=0",
+                        "status": "Available",
+                        "stars": 0.8
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/identification/history/{userId}": {
+      "get": {
+        "summary": "Return identification history by user id",
+        "tags": [
+          "Identification"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "User id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Identification history by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The number of identification results."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/IdentificationHistory"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "total": 1,
+                  "data": [
+                    {
+                      "date": "2023-11-01T00:00:00Z",
+                      "inputImage": "https://i.ytimg.com/vi/KxgkeWdEoA8/maxresdefault.jpg",
+                      "results": [
+                        {
+                          "flowerName": "Hoa lan",
+                          "accuracy": 0.8,
+                          "image": "https://th.bing.com/th/id/OIP.1Ge95dy85jSACr6fUFPx3AHaEW?rs=1&pid=ImgDetMain"
+                        },
+                        {
+                          "flowerName": "Hoa loa kèn",
+                          "accuracy": 0.2,
+                          "image": "https://flowershop.com.vn/wp-content/uploads/2020/09/y-nghia-hoa-loa-ken-8.jpg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/order/{id}": {
+      "get": {
+        "summary": "Return order detail",
+        "tags": [
+          "Order"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Order id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return order by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The number of order results."
+                    },
+                    "data": {
+                      "type": "object",
+                      "items": {
+                        "$ref": "#/components/schemas/Order"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "total": 1,
+                  "data": {
+                    "_id": "6159f6a23603a45f08268eb7",
+                    "orderDate": "2024-04-30T12:00:00Z",
+                    "shipDate": "2024-04-30T12:00:00Z",
+                    "shipAddress": "123 Main St",
+                    "shipPrice": 10,
+                    "discount": 5,
+                    "totalPrice": 100,
+                    "status": "Processing",
+                    "paymentMethod": "Credit Card",
+                    "note": "Please deliver before 5 PM",
+                    "orderDetails": [
+                      {
+                        "_id": "6630456bfc13ae1b64a24116",
+                        "name": "Cheese - Brie, Triple Creme",
+                        "unitPrice": 25,
+                        "discount": 3,
+                        "numberOfFlowers": 10,
+                        "image": "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/{id}/cart": {
+      "get": {
+        "summary": "Return cart by user id",
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cart by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The data length."
+                    },
+                    "data": {
+                      "type": "object",
+                      "$ref": "#/components/schemas/Cart"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "total": 1,
+                  "data": [
+                    {
+                      "flowerId": "6630456bfc13ae1b64a24111",
+                      "name": "Lobster - Tail 6 Oz",
+                      "numberOfFlowers": 12,
+                      "unitPrice": 234,
+                      "discount": 42,
+                      "image": "https://happyflower.vn/app/uploads/2019/12/RoseMixBaby-1024x1024.jpg",
+                      "remainAmount": 190,
+                      "selected": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/{id}/favourite-flower": {
+      "get": {
+        "summary": "Return favourite flowers by user id",
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Favourite flowers by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The total number of favourite flowers of user."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FavouriteFlower"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "total": 1,
+                  "data": [
+                    {
+                      "flowerId": "6630456bfc13ae1b64a24111",
+                      "name": "Lobster - Tail 6 Oz",
+                      "stars": 3.6,
+                      "unitPrice": 234,
+                      "status": "Available",
+                      "discount": 42,
+                      "image": "https://happyflower.vn/app/uploads/2019/12/RoseMixBaby-1024x1024.jpg"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/{id}/order": {
+      "get": {
+        "summary": "Return order by user id",
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return order by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "The number of order results."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Order"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "total": 1,
+                  "data": [
+                    {
+                      "_id": "6159f6a23603a45f08268eb7",
+                      "orderDate": "2024-04-30T12:00:00Z",
+                      "shipDate": "2024-04-30T12:00:00Z",
+                      "shipAddress": "123 Main St",
+                      "shipPrice": 10,
+                      "discount": 5,
+                      "totalPrice": 100,
+                      "status": "Processing",
+                      "paymentMethod": "Credit Card",
+                      "note": "Please deliver before 5 PM",
+                      "orderDetails": [
+                        {
+                          "_id": "6630456bfc13ae1b64a24116",
+                          "name": "Cheese - Brie, Triple Creme",
+                          "unitPrice": 25,
+                          "discount": 3,
+                          "numberOfFlowers": 10,
+                          "image": "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The full name of the user."
+          },
+          "citizenId": {
+            "type": "string",
+            "description": "The citizenship identification number."
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the user."
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The contact phone number of the user."
+          },
+          "avatar": {
+            "type": "string",
+            "description": "URL pointing to the user's avatar image."
+          },
+          "isActived": {
+            "type": "boolean",
+            "description": "The account status",
+            "default": false,
+            "enum": [
+              true,
+              false
+            ]
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of account",
+            "default": "Customer",
+            "enum": [
+              "Admin",
+              "Employee",
+              "Customer"
+            ]
+          }
+        }
+      },
+      "UpdatedAccount": {
+        "type": "object",
+        "required": [
+          "_id",
+          "name",
+          "email"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The account id."
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name of the user."
+          },
+          "citizenId": {
+            "type": "string",
+            "description": "The citizenship identification number."
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the user."
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The contact phone number of the user."
+          },
+          "avatar": {
+            "type": "string",
+            "description": "URL pointing to the user's avatar image."
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of account",
+            "default": "Customer",
+            "enum": [
+              "Admin",
+              "Employee",
+              "Customer"
+            ]
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "The username of the user."
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "The password of the user."
+          }
+        }
+      },
+      "Register": {
+        "type": "object",
+        "required": [
+          "username",
+          "password",
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The full name of the user."
+          },
+          "citizenId": {
+            "type": "string",
+            "description": "The citizenship identification number."
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the user."
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The contact phone number of the user."
+          },
+          "avatar": {
+            "type": "string",
+            "description": "URL pointing to the user's avatar image."
+          },
+          "username": {
+            "type": "string",
+            "description": "The username of the user."
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "The password of the user."
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Full name of the user."
+          },
+          "citizenId": {
+            "type": "string",
+            "description": "Citizenship identification number."
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address of the user."
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "Phone number of the user."
+          },
+          "role": {
+            "type": "string",
+            "description": "Role of the user within the system."
+          },
+          "avatar": {
+            "type": "string",
+            "description": "URL pointing to the user's avatar image."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of user creation."
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Identifier for who created the user."
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Flag indicating if the user is marked as deleted."
+          },
+          "_id": {
+            "type": "string",
+            "description": "Database ID of the user."
+          },
+          "__v": {
+            "type": "integer",
+            "description": "Version number of the user model."
+          }
+        }
+      },
+      "TokenInfo": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT access token."
+          },
+          "accessTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiry date and time of the access token."
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "JWT refresh token."
+          },
+          "refreshTokenExpireAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiry date and time of the refresh token."
+          }
+        }
+      },
+      "CategoryWithFlowers": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The id of the category."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the category."
+          },
+          "avatar": {
+            "type": "string",
+            "description": "The avatar path of the category."
+          },
+          "flowers": {
+            "type": "array",
+            "description": "The flowers belong to the category.",
+            "items": {
+              "$ref": "#/components/schemas/SuggestedFlower"
+            }
+          }
+        }
+      },
+      "Feedback": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The unique identifier of the flower."
+          },
+          "content": {
+            "type": "string",
+            "description": "The content of the feedback."
+          },
+          "numberOfStars": {
+            "type": "integer",
+            "description": "The number of stars given in the feedback."
+          },
+          "feedbackBy": {
+            "type": "string",
+            "description": "The user who provided the feedback."
+          },
+          "numberOfLikes": {
+            "type": "integer",
+            "description": "The number of likes received by the feedback."
+          },
+          "commentDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the feedback was created."
+          },
+          "imageVideoFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The URLs of image or video files related to the feedback."
+          }
+        }
+      },
+      "Flower": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The unique identifier of the flower."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the flower."
+          },
+          "habitat": {
+            "type": "string",
+            "description": "The habitat of the flower."
+          },
+          "care": {
+            "type": "string",
+            "description": "The care instructions for the flower."
+          },
+          "growthTimeDay": {
+            "type": "integer",
+            "description": "The growth time of the flower in days."
+          },
+          "growthTimeMinute": {
+            "type": "integer",
+            "description": "The growth time of the flower in minutes."
+          },
+          "starsTotal": {
+            "type": "number",
+            "description": "The total stars received by the flower."
+          },
+          "feedbacksTotal": {
+            "type": "integer",
+            "description": "The total number of feedbacks received by the flower."
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "The unit price for the flower."
+          },
+          "discount": {
+            "type": "integer",
+            "description": "The discount percentage for the flower."
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "The quantity of the flower available."
+          },
+          "soldQuantity": {
+            "type": "integer",
+            "description": "The quantity of the flower sold."
+          },
+          "imageVideoFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The URLs of image or video files related to the flower."
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the flower."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the flower."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the flower was created."
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "The user who created the flower."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the flower was last updated."
+          },
+          "updatedBy": {
+            "type": "string",
+            "description": "The user who last updated the flower."
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Indicates whether the flower is deleted or not."
+          }
+        }
+      },
+      "ShortendFlower": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The unique identifier of the flower."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the flower."
+          },
+          "stars": {
+            "type": "number",
+            "description": "The total number of stars received by the flower."
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "The unit price for the flower"
+          },
+          "discount": {
+            "type": "integer",
+            "description": "The discount percentage for the flower."
+          },
+          "image": {
+            "type": "string",
+            "description": "The URLs of image or video file related to the flower."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the flower."
+          }
+        }
+      },
+      "SuggestedFlower": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The unique identifier of the flower."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the flower."
+          },
+          "stars": {
+            "type": "number",
+            "description": "The total number of stars received by the flower."
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "The unit price for the flower"
+          },
+          "discount": {
+            "type": "integer",
+            "description": "The discount percentage for the flower."
+          },
+          "soldQuantity": {
+            "type": "integer",
+            "description": "The sold quantity of the flower."
+          },
+          "image": {
+            "type": "string",
+            "description": "The URLs of image or video file related to the flower."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the flower."
+          }
+        }
+      },
+      "IdentificationResult": {
+        "type": "object",
+        "properties": {
+          "flowerName": {
+            "type": "string",
+            "description": "The name of the identified flower."
+          },
+          "accuracy": {
+            "type": "number",
+            "format": "float",
+            "description": "The accuracy of the flower identification."
+          },
+          "image": {
+            "type": "string",
+            "description": "The URL of the image associated with the identified flower."
+          }
+        }
+      },
+      "IdentificationHistory": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date when the identification was processed."
+          },
+          "inputImage": {
+            "type": "string",
+            "description": "The URL of the input image used for identification."
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IdentificationResult"
+            },
+            "description": "A list of identification results."
+          }
+        }
+      },
+      "Cart": {
+        "type": "object",
+        "properties": {
+          "flowerId": {
+            "type": "string",
+            "description": "The unique identifier of the flower."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the flower."
+          },
+          "numberOfFlowers": {
+            "type": "integer",
+            "description": "The quantity of the flower available."
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "The unit price for the flower."
+          },
+          "discount": {
+            "type": "integer",
+            "description": "The discount percentage for the flower."
+          },
+          "image": {
+            "type": "string",
+            "description": "The URL of the image related to the flower."
+          },
+          "remainAmount": {
+            "type": "integer",
+            "description": "The remaining quantity of the flower."
+          },
+          "selected": {
+            "type": "boolean",
+            "description": "Indicates whether the flower is selected or not."
+          }
+        }
+      },
+      "FavouriteFlower": {
+        "type": "object",
+        "properties": {
+          "flowerId": {
+            "type": "string",
+            "description": "The unique identifier of the flower."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the flower."
+          },
+          "stars": {
+            "type": "number",
+            "format": "float",
+            "description": "The average star rating of the flower."
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "The unit price for the flower."
+          },
+          "status": {
+            "type": "string",
+            "description": "The availability status of the flower."
+          },
+          "discount": {
+            "type": "integer",
+            "description": "The discount percentage for the flower."
+          },
+          "image": {
+            "type": "string",
+            "description": "The URL of the image related to the flower."
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The ID of the order."
+          },
+          "orderDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date when the order was placed."
+          },
+          "shipDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date when the product was shipped."
+          },
+          "shipAddress": {
+            "type": "string",
+            "description": "The shipping address of the order."
+          },
+          "shipPrice": {
+            "type": "number",
+            "format": "float",
+            "description": "The shipping price of the order."
+          },
+          "discount": {
+            "type": "number",
+            "format": "float",
+            "description": "The discount applied to the order."
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "float",
+            "description": "The total price of the order."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the order."
+          },
+          "paymentMethod": {
+            "type": "string",
+            "description": "The payment method used for the order."
+          },
+          "note": {
+            "type": "string",
+            "description": "Any additional notes for the order."
+          },
+          "orderDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderDetail"
+            },
+            "description": "A list of order details."
+          }
+        }
+      },
+      "OrderDetail": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "The ID of the flower."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the ordered item."
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "float",
+            "description": "The unit price of the ordered item."
+          },
+          "discount": {
+            "type": "number",
+            "format": "integer",
+            "description": "The discount of the ordered item."
+          },
+          "numberOfFlowers": {
+            "type": "integer",
+            "description": "The number of flowers ordered."
+          },
+          "image": {
+            "type": "string",
+            "description": "The URL of the image associated with the ordered item."
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Account",
+      "description": "The account managing API"
+    },
+    {
+      "name": "Auth",
+      "description": "The authentication managing API"
+    },
+    {
+      "name": "Category",
+      "description": "The category managing API"
+    },
+    {
+      "name": "Feedback",
+      "description": "The feedback managing API"
+    },
+    {
+      "name": "Flower",
+      "description": "The flower managing API"
+    },
+    {
+      "name": "Identification",
+      "description": "The identification managing API"
+    },
+    {
+      "name": "Order",
+      "description": "The order managing API"
+    },
+    {
+      "name": "User",
+      "description": "The user managing API"
+    }
+  ]
+}

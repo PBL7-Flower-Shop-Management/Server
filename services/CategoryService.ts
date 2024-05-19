@@ -1,4 +1,5 @@
 import { connectToDB } from "@/utils/database";
+import HttpStatus from "http-status";
 import ApiResponse from "@/utils/ApiResponse";
 import CategoryModel from "@/models/CategoryModel";
 import FlowerModel from "@/models/FlowerModel";
@@ -115,7 +116,7 @@ class CategoryService {
                 representCategories.unshift({
                     _id: 0,
                     name: "Tất cả",
-                    avatar: "https://th.bing.com/th/id/R.d10f6cdbdee788fc31c200a327335357?rik=Eqo%2bzTxQDGQmbg&pid=ImgRaw&r=0",
+                    avatar: "https://th.bing.com/th/id/R.d10f6cdbdee788fc31cHttpStatus.OKa327335357?rik=Eqo%2bzTxQDGQmbg&pid=ImgRaw&r=0",
                     flowers: limit
                         ? flowers.slice(0, Math.min(limit, flowers.length))
                         : flowers,
@@ -123,7 +124,7 @@ class CategoryService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: representCategories,
                     })
                 );
@@ -231,14 +232,14 @@ class CategoryService {
                     if (representCategories.length === 0)
                         reject(
                             new ApiResponse({
-                                status: 404,
+                                status: HttpStatus.NOT_FOUND,
                                 message: "Not found category",
                             })
                         );
                     else
                         resolve(
                             new ApiResponse({
-                                status: 200,
+                                status: HttpStatus.OK,
                                 data: representCategories[0],
                             })
                         );
@@ -269,7 +270,7 @@ class CategoryService {
                     const representCategories = {
                         _id: 0,
                         name: "Tất cả",
-                        avatar: "https://th.bing.com/th/id/R.d10f6cdbdee788fc31c200a327335357?rik=Eqo%2bzTxQDGQmbg&pid=ImgRaw&r=0",
+                        avatar: "https://th.bing.com/th/id/R.d10f6cdbdee788fc31cHttpStatus.OKa327335357?rik=Eqo%2bzTxQDGQmbg&pid=ImgRaw&r=0",
                         flowers: limit
                             ? flowers.slice(0, Math.min(limit, flowers.length))
                             : flowers,
@@ -277,7 +278,7 @@ class CategoryService {
 
                     resolve(
                         new ApiResponse({
-                            status: 200,
+                            status: HttpStatus.OK,
                             data: representCategories,
                         })
                     );

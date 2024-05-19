@@ -17,16 +17,19 @@ class ApiResponse extends NextResponse {
             : `${status}`.startsWith("4")
             ? "fail"
             : "error";
-        const body = JSON.stringify(
-            {
-                status: requestStatus,
-                message: message,
-                total: data ? data.length ?? 1 : undefined,
-                data: data,
-            },
-            null,
-            2
-        );
+        const body =
+            status === 204
+                ? null
+                : JSON.stringify(
+                      {
+                          status: requestStatus,
+                          message: message,
+                          total: data ? data.length ?? 1 : undefined,
+                          data: data,
+                      },
+                      null,
+                      2
+                  );
         super(body, { status: status });
         this.data = data;
     }

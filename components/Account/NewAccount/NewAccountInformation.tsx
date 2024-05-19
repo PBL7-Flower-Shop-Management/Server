@@ -48,7 +48,6 @@ export const NewAccountInformation = (props: any) => {
                         {
                             label: "Chức vụ",
                             name: "role",
-                            required: true,
                             select: true,
                             selectProps: role,
                             selected: "Customer",

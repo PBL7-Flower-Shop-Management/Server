@@ -1,4 +1,5 @@
 import CommentModel from "@/models/CommentModel";
+import HttpStatus from "http-status";
 import { connectToDB } from "@/utils/database";
 import ApiResponse from "@/utils/ApiResponse";
 
@@ -35,7 +36,7 @@ class FeedbackService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: recentFeedbacks,
                     })
                 );

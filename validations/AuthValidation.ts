@@ -34,7 +34,7 @@ const schemas = {
                 email: yup
                     .string()
                     .trim()
-                    .required("Please provide your email")
+                    .required("Email is required")
                     .email("Please provide a valid email!"),
                 phoneNumber: yup
                     .string()

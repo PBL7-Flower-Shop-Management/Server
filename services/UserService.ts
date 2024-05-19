@@ -1,4 +1,5 @@
 import { connectToDB } from "@/utils/database";
+import HttpStatus from "http-status";
 import ApiResponse from "@/utils/ApiResponse";
 import CartModel from "@/models/CartModel";
 import mongoose from "mongoose";
@@ -101,14 +102,14 @@ class UserService {
                 if (orders.length === 0)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message: "Not found order",
                         })
                     );
                 else
                     resolve(
                         new ApiResponse({
-                            status: 200,
+                            status: HttpStatus.OK,
                             data: orders,
                         })
                     );
@@ -203,7 +204,7 @@ class UserService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: cart,
                     })
                 );
@@ -284,7 +285,7 @@ class UserService {
                 if (favouriteFlowers.length === 0)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message:
                                 "Not found favourite flowers of this user!",
                         })
@@ -292,7 +293,7 @@ class UserService {
                 else
                     resolve(
                         new ApiResponse({
-                            status: 200,
+                            status: HttpStatus.OK,
                             data: favouriteFlowers,
                         })
                     );

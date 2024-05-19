@@ -25,6 +25,7 @@
     "date-fns": "^2.29.3",
     "formik": "^2.4.6",
     "google-auth-library": "^9.9.0",
+    "http-status": "^1.7.4",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",

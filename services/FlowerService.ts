@@ -1,4 +1,5 @@
 import FlowerModel from "@/models/FlowerModel";
+import HttpStatus from "http-status";
 import OrderDetailModel from "@/models/OrderDetailModel";
 import OrderModel from "@/models/OrderModel";
 import CategoryModel from "@/models/CategoryModel";
@@ -71,7 +72,7 @@ class FlowerService {
                 );
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: flowers,
                     })
                 );
@@ -130,7 +131,7 @@ class FlowerService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: flowers,
                     })
                 );
@@ -195,7 +196,7 @@ class FlowerService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: flowers,
                     })
                 );
@@ -245,7 +246,7 @@ class FlowerService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: flowers,
                     })
                 );
@@ -263,14 +264,14 @@ class FlowerService {
                 if (flower.length === 0)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message: "Not found flower",
                         })
                     );
                 else
                     resolve(
                         new ApiResponse({
-                            status: 200,
+                            status: HttpStatus.OK,
                             data: flower[0],
                         })
                     );
@@ -343,14 +344,14 @@ class FlowerService {
                 if (feedbacks.length === 0)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message: "Not found feedback of this flower",
                         })
                     );
                 else
                     resolve(
                         new ApiResponse({
-                            status: 200,
+                            status: HttpStatus.OK,
                             data: feedbacks,
                         })
                     );

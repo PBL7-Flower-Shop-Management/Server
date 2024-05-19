@@ -29,7 +29,7 @@ const UserSchema = new Schema(
         },
         email: {
             type: String,
-            required: [true, "Please provide your email"],
+            required: [true, "Email is required"],
             trim: true,
             unique: true,
             validate: [validator.isEmail, "Please provide a valid email!"],

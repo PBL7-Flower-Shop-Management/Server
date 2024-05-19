@@ -1,4 +1,5 @@
 import { connectToDB } from "@/utils/database";
+import HttpStatus from "http-status";
 import ApiResponse from "@/utils/ApiResponse";
 import mongoose from "mongoose";
 import OrderModel from "@/models/OrderModel";
@@ -110,14 +111,14 @@ class OrderService {
                 if (orders.length === 0)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message: "Not found order",
                         })
                     );
                 else
                     resolve(
                         new ApiResponse({
-                            status: 200,
+                            status: HttpStatus.OK,
                             data: orders[0],
                         })
                     );

@@ -1,16 +1,10 @@
 const validate =
     (schema: any) =>
-    async (
-        params?: object | null,
-        query?: URLSearchParams | null,
-        body?: any
-    ) => {
+    async (params?: object | null, query?: object | null, body?: any) => {
         try {
             await schema.validate({
                 body: body,
-                query: query?.entries()
-                    ? Object.fromEntries(query?.entries())
-                    : undefined,
+                query: query,
                 params: params,
             });
         } catch (error: any) {

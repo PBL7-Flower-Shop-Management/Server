@@ -43,6 +43,24 @@ const AccountSchema = new Schema(
         refreshTokenExpireTime: {
             type: Date,
         },
+        createdAt: {
+            type: Date,
+            required: true,
+        },
+        createdBy: {
+            type: String,
+            required: true,
+        },
+        updatedAt: {
+            type: Date,
+        },
+        updatedBy: {
+            type: String,
+        },
+        isDeleted: {
+            type: Boolean,
+            required: true,
+        },
     },
     {
         toJSON: { virtuals: true },

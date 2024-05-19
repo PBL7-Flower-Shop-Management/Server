@@ -1,4 +1,5 @@
 import { connectToDB } from "@/utils/database";
+import HttpStatus from "http-status";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import AccountModel from "@/models/AccountModel";
@@ -20,7 +21,7 @@ class AuthService {
                 ) {
                     reject(
                         new ApiResponse({
-                            status: 400,
+                            status: HttpStatus.BAD_REQUEST,
                             message: "Email already exists!",
                         })
                     );
@@ -32,7 +33,7 @@ class AuthService {
                 ) {
                     reject(
                         new ApiResponse({
-                            status: 400,
+                            status: HttpStatus.BAD_REQUEST,
                             message: "Username already exists!",
                         })
                     );
@@ -41,11 +42,14 @@ class AuthService {
                     user.password,
                     parseInt(process.env.BCRYPT_SALT!)
                 );
+
+                const currentDate = moment();
+
                 const newUser = await UserModel.create(
                     [
                         {
                             ...user,
-                            createdAt: moment(),
+                            createdAt: currentDate,
                             createdBy: "System",
                             isDeleted: false,
                         },
@@ -53,6 +57,7 @@ class AuthService {
                     { session: session }
                 ).then((res) => res[0]);
                 const authTokens = await this.generateAuthTokens(newUser);
+
                 await AccountModel.create(
                     [
                         {
@@ -65,6 +70,9 @@ class AuthService {
                             refreshToken: authTokens.refreshToken,
                             refreshTokenExpireTime:
                                 authTokens.refreshTokenExpireAt,
+                            createdAt: currentDate,
+                            createdBy: "System",
+                            isDeleted: false,
                         },
                     ],
                     { session: session }
@@ -75,7 +83,7 @@ class AuthService {
 
                 resolve(
                     new ApiResponse({
-                        status: 201,
+                        status: HttpStatus.CREATED,
                         data: { user: newUser, token: authTokens },
                     })
                 );
@@ -98,7 +106,7 @@ class AuthService {
                 if (!account) {
                     reject(
                         new ApiResponse({
-                            status: 400,
+                            status: HttpStatus.BAD_REQUEST,
                             message: "Username or password is wrong!",
                         })
                     );
@@ -111,7 +119,7 @@ class AuthService {
                 if (!passwordMatches) {
                     reject(
                         new ApiResponse({
-                            status: 400,
+                            status: HttpStatus.BAD_REQUEST,
                             message: "Username or password is wrong!",
                         })
                     );
@@ -120,7 +128,7 @@ class AuthService {
                 if (!account.isActived)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message: "Account isn't actived!",
                         })
                     );
@@ -131,7 +139,7 @@ class AuthService {
                 if (user.isDeleted)
                     reject(
                         new ApiResponse({
-                            status: 404,
+                            status: HttpStatus.NOT_FOUND,
                             message: "Account was deleted!",
                         })
                     );
@@ -140,7 +148,7 @@ class AuthService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: { user: user, token: authTokens },
                     })
                 );
@@ -256,7 +264,7 @@ class AuthService {
 
                 resolve(
                     new ApiResponse({
-                        status: 200,
+                        status: HttpStatus.OK,
                         data: { user: user, token: authTokens },
                     })
                 );

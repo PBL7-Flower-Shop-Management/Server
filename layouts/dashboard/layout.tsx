@@ -3,15 +3,9 @@ import { usePathname } from "next/navigation";
 import { styled } from "@mui/material/styles";
 import { SideNav } from "./side-nav";
 import { TopNav } from "./top-nav";
-import { Scrollbar } from "@/components/Scrollbar";
+import ScrollBar from "react-perfect-scrollbar";
 
 const SIDE_NAV_WIDTH = 280;
-
-const ScrollableContainer = styled(Scrollbar)({
-    overflowY: "auto",
-    maxHeight: "100vh",
-    // zIndex: 9999,
-});
 
 const LayoutRoot = styled("div")(({ theme }) => ({
     display: "flex",
@@ -47,12 +41,17 @@ export const Layout = (props: any) => {
     return (
         <>
             <SideNav onClose={() => setOpenNav(false)} open={openNav} />
-            <ScrollableContainer>
+            <ScrollBar
+                style={{
+                    overflowY: "auto",
+                    maxHeight: "100vh",
+                }}
+            >
                 <TopNav onNavOpen={() => setOpenNav(true)} />
                 <LayoutRoot>
                     <LayoutContainer>{children}</LayoutContainer>
                 </LayoutRoot>
-            </ScrollableContainer>
+            </ScrollBar>
         </>
     );
 };

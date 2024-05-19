@@ -264,7 +264,6 @@ const AccountInformation = (props: any) => {
                             {
                                 label: "Chức vụ",
                                 name: "role",
-                                required: true,
                                 select: true,
                                 selectProps: role,
                                 md: 6,
@@ -389,7 +388,11 @@ const AccountInformation = (props: any) => {
                     </Grid>
                 </CardContent>
                 <Divider />
-                <CardActions sx={{ justifyContent: "flex-end" }}>
+                <CardActions
+                    sx={{
+                        justifyContent: "flex-end",
+                    }}
+                >
                     {loadingSkeleton ? (
                         <>
                             <Skeleton
