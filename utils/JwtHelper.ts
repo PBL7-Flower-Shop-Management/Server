@@ -12,11 +12,17 @@ const sign = async (payload: any, secret: any, options?: any) => {
     });
 };
 
-const verify = async (token: any, secret: any): Promise<any | null> => {
+const verify = async (
+    token: any,
+    secret: any,
+    saveError?: any
+): Promise<any | null> => {
     return new Promise((resolve, reject) => {
         jwt.verify(token, secret, (error: any, payload: any) => {
             if (error) {
-                console.log(error);
+                console.log("Verify token get error:\n", error.message);
+                console.log(error.name);
+                if (saveError) saveError.data = error;
                 resolve(null);
             } else {
                 resolve(payload);

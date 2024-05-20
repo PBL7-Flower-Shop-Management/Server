@@ -71,6 +71,157 @@
         }
       }
     },
+    "/api/account/admin-reset-password": {
+      "patch": {
+        "summary": "Reset password by Admin",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "type": "string",
+                    "description": "The account id.",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset password and send new password to account's email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/account/forgot-password": {
+      "patch": {
+        "summary": "Forgot password by User",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The account email.",
+                    "required": true
+                  },
+                  "resetPasswordPageUrl": {
+                    "type": "string",
+                    "format": "url",
+                    "example": "https://example.com/reset-password",
+                    "description": "URL to the reset password page"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sent Forgot password token to user's email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/account/reset-password": {
+      "patch": {
+        "summary": "Reset password by User",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "example@gmail.com",
+                    "description": "The account email.",
+                    "required": true
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The account password.",
+                    "required": true
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "description": "The account confirm password.",
+                    "required": true
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "The reset password token.",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset password by user successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/account": {
       "get": {
         "summary": "Get all account",
@@ -79,13 +230,46 @@
         ],
         "parameters": [
           {
-            "name": "limit",
+            "name": "keyword",
+            "type": "string",
             "in": "query",
-            "description": "Limit of feedback lists",
+            "description": "Search keyword (search by role, name, email and username)"
+          },
+          {
+            "name": "pageNumber",
+            "type": "integer",
+            "in": "query",
+            "description": "Page number",
+            "minimum": 1,
+            "default": 1
+          },
+          {
+            "name": "pageSize",
+            "type": "integer",
+            "in": "query",
+            "description": "Number of items per page",
+            "minimum": 1,
+            "default": 10
+          },
+          {
+            "name": "isExport",
+            "in": "query",
+            "description": "Export data flag",
             "schema": {
-              "type": "integer",
-              "minimum": 1
+              "type": "boolean",
+              "enum": [
+                true,
+                false
+              ],
+              "default": false
             }
+          },
+          {
+            "name": "orderBy",
+            "type": "string",
+            "in": "query",
+            "description": "Field to order by (Fields must be separated by spaces)",
+            "default": "username"
           }
         ],
         "responses": {
@@ -131,7 +315,7 @@
         },
         "responses": {
           "201": {
-            "description": "Create account successfully and return account information",
+            "description": "Create account successfully, return account information and send random password to account's email",
             "content": {
               "application/json": {
                 "schema": {
@@ -1428,6 +1612,59 @@
                       ]
                     }
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/change-password": {
+      "patch": {
+        "summary": "Change password by User (through profile page)",
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "description": "The user's current password.",
+                    "required": true
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "description": "The user's new password.",
+                    "required": true
+                  },
+                  "confirmNewPassword": {
+                    "type": "string",
+                    "description": "The user's confirm new password.",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Change password by user successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the response."
+                    }
+                  }
                 }
               }
             }

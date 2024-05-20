@@ -1,9 +1,8 @@
 import { connectToDB } from "@/utils/database";
 import HttpStatus from "http-status";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import AccountModel from "@/models/AccountModel";
-import { sign } from "@/utils/JwtHelper";
+import { sign, verify } from "@/utils/JwtHelper";
 import moment from "moment";
 import ApiResponse from "@/utils/ApiResponse";
 import UserModel from "@/models/UserModel";
@@ -65,7 +64,6 @@ class AuthService {
                             isActived: true,
                             username: user.username,
                             password: hashedPassword,
-                            token: authTokens.accessToken,
                             tokenExpireTime: authTokens.accessTokenExpiresAt,
                             refreshToken: authTokens.refreshToken,
                             refreshTokenExpireTime:
@@ -97,9 +95,10 @@ class AuthService {
 
     async Login(username: string, password: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
             try {
-                await connectToDB();
-
                 const account = await AccountModel.findOne({
                     username: username,
                 });
@@ -136,7 +135,7 @@ class AuthService {
                 const user = await UserModel.findOne({
                     _id: account.userId,
                 });
-                if (user.isDeleted)
+                if (user.isDeleted || account.isDeleted)
                     reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -146,6 +145,21 @@ class AuthService {
 
                 const authTokens = await this.generateAuthTokens(user);
 
+                await AccountModel.updateOne(
+                    { userId: user._id },
+                    {
+                        $set: {
+                            tokenExpireTime: authTokens.accessTokenExpiresAt,
+                            refreshToken: authTokens.refreshToken,
+                            refreshTokenExpireTime:
+                                authTokens.refreshTokenExpireAt,
+                        },
+                    },
+                    { session: session }
+                );
+
+                await session.commitTransaction();
+                session.endSession();
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
@@ -153,6 +167,8 @@ class AuthService {
                     })
                 );
             } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
                 reject(error);
             }
         });
@@ -182,9 +198,8 @@ class AuthService {
         let accessTokenExpiresAt = loginTime
             .clone()
             .add(process.env.ACCESS_TOKEN_EXPIRATION_MINUTES, "minutes");
-
         const accessToken = await this.generateToken(
-            user._id,
+            user,
             loginTime,
             accessTokenExpiresAt,
             "access"
@@ -210,13 +225,13 @@ class AuthService {
     }
 
     private async generateToken(
-        user_id: any,
+        user: any,
         login_time: any,
         exp: any,
         type: string
     ) {
         const payload = {
-            user_id,
+            user: user,
             login_time: new Date(login_time.valueOf()).toISOString(),
             exp: exp.unix(),
             type,
@@ -281,6 +296,105 @@ class AuthService {
                 await session.commitTransaction();
                 session.endSession();
 
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: { user: user, token: authTokens },
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
+                reject(error);
+            }
+        });
+    }
+
+    async RefreshToken(body: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                let error = {};
+                const checkToken = await verify(
+                    body.token,
+                    process.env.JWT_SECRET,
+                    error
+                );
+                if (!checkToken)
+                    if ((error as any).data.name === "JsonWebTokenError")
+                        reject(
+                            new ApiResponse({
+                                status: HttpStatus.BAD_REQUEST,
+                                message: "Invalid token!",
+                            })
+                        );
+
+                const userToken = await verify(
+                    body.refreshToken,
+                    process.env.JWT_SECRET
+                );
+
+                if (!userToken)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Invalid refresh token!",
+                        })
+                    );
+
+                const user = await UserModel.findOne({
+                    _id: userToken.user,
+                    isDeleted: false,
+                });
+
+                const acc = await AccountModel.findOne({
+                    userId: userToken.user,
+                    isDeleted: false,
+                });
+
+                if (acc.refreshToken !== body.refreshToken)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Invalid refresh token!",
+                        })
+                    );
+
+                if (!user || !acc)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Not found account!",
+                        })
+                    );
+
+                if (!acc.isActived)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account isn't actived!",
+                        })
+                    );
+
+                const authTokens = await this.generateAuthTokens(user);
+
+                await AccountModel.updateOne(
+                    { userId: user._id },
+                    {
+                        $set: {
+                            tokenExpireTime: authTokens.accessTokenExpiresAt,
+                            refreshToken: authTokens.refreshToken,
+                            refreshTokenExpireTime:
+                                authTokens.refreshTokenExpireAt,
+                        },
+                    },
+                    { session: session }
+                );
+
+                await session.commitTransaction();
+                session.endSession();
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,

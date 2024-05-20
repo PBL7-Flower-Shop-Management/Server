@@ -49,8 +49,7 @@ const ForgotPassword = () => {
     const ResetPassword = async () => {
         // if (email !== "") {
         fetch(
-            process.env.NEXT_PUBLIC_SERVER_API_BASE +
-                "/account/forgot-password",
+            process.env.NEXT_PUBLIC_SERVER_API_BASE + "/user/forgot-password",
             {
                 method: "PATCH",
                 headers: {

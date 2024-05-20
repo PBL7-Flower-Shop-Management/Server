@@ -56,22 +56,6 @@ class AccountController {
             throw error;
         }
     }
-
-    async ForgotPassword(body: string) {
-        try {
-            return await AccountService.ForgotPassword(body);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    async ResetPassword(body: string) {
-        try {
-            return await AccountService.ResetPassword(body);
-        } catch (error) {
-            throw error;
-        }
-    }
 }
 
 export default new AccountController();

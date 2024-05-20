@@ -55,6 +55,14 @@ class AuthController {
             throw error;
         }
     }
+
+    async RefreshToken(body: any) {
+        try {
+            return await AuthService.RefreshToken(body);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default new AuthController();

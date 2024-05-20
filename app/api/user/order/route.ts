@@ -1,9 +1,6 @@
 import UserController from "@/controllers/UserController";
+import { auth } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
-import validate from "@/middlewares/YupValidation";
-import TrimRequest from "@/utils/TrimRequest";
-import schemas from "@/validations/UserValidation";
-import { NextApiRequest } from "next";
 
 /**
  * @swagger
@@ -86,20 +83,13 @@ import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * /api/user/{id}/order:
+ * /api/user/order:
  *   get:
- *     summary: Return order by user id
+ *     summary: Return user's order
  *     tags: [User]
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: User id
- *         schema:
- *           type: string
  *     responses:
  *       200:
- *         description: Return order by id
+ *         description: Return user's order successfully
  *         content:
  *           application/json:
  *             schema:
@@ -138,12 +128,11 @@ import { NextApiRequest } from "next";
  *                       image: "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1"
  */
 
-export const GET = async (req: NextApiRequest, { params }: any) => {
+export const GET = async () => {
     try {
-        ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetOrderByUserId)(params);
-        const { id } = params;
-        return await UserController.GetOrderByUserId(id);
+        return await auth(async (userToken: any) => {
+            return await UserController.GetOrderByUserId(userToken.user._id);
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }

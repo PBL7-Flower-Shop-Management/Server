@@ -85,6 +85,16 @@ const schemas = {
             .noUnknown(true, "Unknown field in request body: ${unknown}")
             .strict(),
     }),
+
+    RefreshTokenSchema: yup.object({
+        body: yup.object({
+            token: yup.string().trim().required("Token field is required!"),
+            refreshToken: yup
+                .string()
+                .trim()
+                .required("Refresh token field is required!"),
+        }),
+    }),
 };
 
 export default schemas;

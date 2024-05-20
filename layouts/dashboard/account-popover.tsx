@@ -9,7 +9,7 @@ import {
     Typography,
 } from "@mui/material";
 import { signOut } from "next-auth/react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 // import { useAuth } from "src/hooks/use-auth";
 
 export const AccountPopover = (props: any) => {
@@ -66,7 +66,11 @@ export const AccountPopover = (props: any) => {
                     },
                 }}
             >
-                <MenuItem component={NextLink} href="/profile">
+                <MenuItem
+                    component={NextLink}
+                    href="/profile"
+                    onClick={() => onClose?.()}
+                >
                     Thông tin cá nhân
                 </MenuItem>
                 <MenuItem onClick={handleSignOut}>Đăng xuất</MenuItem>

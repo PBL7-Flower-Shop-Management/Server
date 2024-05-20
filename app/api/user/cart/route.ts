@@ -1,9 +1,6 @@
 import UserController from "@/controllers/UserController";
+import { auth } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
-import validate from "@/middlewares/YupValidation";
-import TrimRequest from "@/utils/TrimRequest";
-import schemas from "@/validations/UserValidation";
-import { NextApiRequest } from "next";
 
 /**
  * @swagger
@@ -40,20 +37,13 @@ import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * /api/user/{id}/cart:
+ * /api/user/cart:
  *   get:
- *     summary: Return cart by user id
+ *     summary: Return user's cart
  *     tags: [User]
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: User id
- *         schema:
- *           type: string
  *     responses:
  *       200:
- *         description: Cart by id
+ *         description: Return user's cart successfully
  *         content:
  *           application/json:
  *             schema:
@@ -82,12 +72,11 @@ import { NextApiRequest } from "next";
  *                   selected: true
  */
 
-export const GET = async (req: NextApiRequest, { params }: any) => {
+export const GET = async () => {
     try {
-        ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetCartByUserId)(params);
-        const { id } = params;
-        return await UserController.GetCartByUserId(id);
+        return await auth(async (userToken: any) => {
+            return await UserController.GetCartByUserId(userToken.user._id);
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }

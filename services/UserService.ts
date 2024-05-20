@@ -5,6 +5,14 @@ import CartModel from "@/models/CartModel";
 import mongoose from "mongoose";
 import OrderModel from "@/models/OrderModel";
 import FavoriteFlowerModel from "@/models/FavoriteFlowerModel";
+import UserModel from "@/models/UserModel";
+import AccountModel from "@/models/AccountModel";
+import moment from "moment";
+import bcrypt from "bcryptjs";
+import AuthService from "./AuthService";
+import { sendMail } from "@/utils/sendMail";
+import { verify } from "@/utils/JwtHelper";
+import IdentificationHistoryModel from "@/models/IdentificationHistoryModel";
 
 class UserService {
     async GetOrderByUserId(userId: string): Promise<ApiResponse> {
@@ -295,6 +303,395 @@ class UserService {
                         new ApiResponse({
                             status: HttpStatus.OK,
                             data: favouriteFlowers,
+                        })
+                    );
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async ChangePassword(body: any, _id: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+
+            try {
+                const account = await AccountModel.findOne({
+                    userId: _id,
+                    isDeleted: false,
+                });
+                if (
+                    !(await UserModel.findOne({
+                        _id: _id,
+                        isDeleted: false,
+                    })) ||
+                    !account
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                let passwordMatches = await bcrypt.compare(
+                    body.password,
+                    account.password
+                );
+                if (!passwordMatches) {
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Old password is not correct!",
+                        })
+                    );
+                }
+
+                const hashedPassword = await bcrypt.hash(
+                    body.newPassword,
+                    parseInt(process.env.BCRYPT_SALT!)
+                );
+
+                await AccountModel.updateOne(
+                    { userId: _id },
+                    {
+                        $set: {
+                            password: hashedPassword,
+                            updatedAt: moment(),
+                            updatedBy: "System",
+                        },
+                    }
+                );
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
+    async ForgotPassword(body: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+
+            try {
+                const user = await UserModel.findOne({
+                    email: body.email,
+                    isDeleted: false,
+                });
+                if (
+                    !user ||
+                    !(await AccountModel.findOne({
+                        userId: user._id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                const resetToken = (
+                    await AuthService.GenerateResetPasswordToken(body.email)
+                ).data;
+
+                // Encode the token
+                const encodedToken =
+                    Buffer.from(resetToken).toString("base64url");
+
+                // Construct the password reset URL
+                const endpointUri = new URL(body.resetPasswordPageUrl);
+                endpointUri.searchParams.append("token", encodedToken);
+
+                const passwordResetUrl = endpointUri.toString();
+
+                // Create the email content
+                const mailText = `Kích vào link sau để thiết lập lại mật khẩu của bạn:\n${passwordResetUrl}`;
+
+                await sendMail({
+                    to: user.email,
+                    subject: "Thiết lập lại mật khẩu",
+                    html: mailText,
+                });
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
+    async ResetPassword(body: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+
+            try {
+                // Decode the token, assuming it's Base64 encoded
+                const decodedToken = Buffer.from(body.token, "base64").toString(
+                    "utf-8"
+                );
+                const verifyToken = await verify(
+                    decodedToken,
+                    process.env.JWT_SECRET
+                );
+                if (!verifyToken)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Token is invalid!",
+                        })
+                    );
+
+                const { email } = verifyToken;
+
+                if (email !== body.email)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "Requested email is invalid for your token!",
+                        })
+                    );
+
+                const user = await UserModel.findOne({
+                    email: email,
+                    isDeleted: false,
+                });
+                if (
+                    !user ||
+                    !(await AccountModel.findOne({
+                        userId: user._id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                const hashedPassword = await bcrypt.hash(
+                    body.password,
+                    parseInt(process.env.BCRYPT_SALT!)
+                );
+
+                await AccountModel.updateOne(
+                    { userId: user._id },
+                    {
+                        $set: {
+                            password: hashedPassword,
+                            updatedAt: moment(),
+                            updatedBy: "System",
+                        },
+                    }
+                );
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
+    async GetProfile(id: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            try {
+                if (
+                    !(await UserModel.findOne({
+                        _id: id,
+                        isDeleted: false,
+                    })) ||
+                    !(await AccountModel.findOne({
+                        userId: id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                const account = await UserModel.aggregate([
+                    {
+                        $match: {
+                            _id: new mongoose.Types.ObjectId(id),
+                            isDeleted: false,
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: "accounts",
+                            localField: "_id",
+                            foreignField: "userId",
+                            as: "acc",
+                        },
+                    },
+                    {
+                        $unwind: "$acc",
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            username: "$acc.username",
+                            avatar: "$avatar",
+                            name: "$name",
+                            citizenId: "$citizenId",
+                            email: "$email",
+                            phoneNumber: "$phoneNumber",
+                            role: "$role",
+                        },
+                    },
+                ]);
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: account[0],
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
+    async EditProfile(user: any, _id: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    !(await UserModel.findOne({
+                        _id: _id,
+                        isDeleted: false,
+                    })) ||
+                    !(await AccountModel.findOne({
+                        userId: _id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                if (
+                    await UserModel.findOne({
+                        _id: { $ne: _id },
+                        email: user.email.toLowerCase(),
+                    })
+                ) {
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Email already exists!",
+                        })
+                    );
+                }
+
+                //update image cloudinary
+
+                const updatedUser = await UserModel.findOneAndUpdate(
+                    { _id: _id },
+                    {
+                        $set: {
+                            ...user,
+                            updatedAt: moment(),
+                            updatedBy: "System",
+                        },
+                    },
+                    { session: session, new: true }
+                );
+
+                await session.commitTransaction();
+                session.endSession();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: updatedUser,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
+                reject(error);
+            }
+        });
+    }
+
+    async GetIdentificationHistory(userId: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await connectToDB();
+
+                const histories = await IdentificationHistoryModel.aggregate([
+                    {
+                        $match: {
+                            userId: new mongoose.Types.ObjectId(userId),
+                            isDeleted: false,
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: "identificationresults",
+                            localField: "_id",
+                            foreignField: "identificationHistoryId",
+                            as: "iResults",
+                        },
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            date: "$date",
+                            inputImage: "$inputImage",
+                            results: {
+                                $map: {
+                                    input: "$iResults",
+                                    in: {
+                                        flowerName: "$$this.flowerName",
+                                        accuracy: "$$this.accuracy",
+                                        image: "$$this.image",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ]);
+
+                if (histories.length === 0)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Not found history",
+                        })
+                    );
+                else
+                    resolve(
+                        new ApiResponse({
+                            status: HttpStatus.OK,
+                            data: histories,
                         })
                     );
             } catch (error) {

@@ -1,16 +1,16 @@
-import AccountController from "@/controllers/AccountController";
+import UserController from "@/controllers/UserController";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
-import schemas from "@/validations/AccountValidation";
+import schemas from "@/validations/UserValidation";
 import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * /api/account/forgot-password:
+ * /api/user/forgot-password:
  *   patch:
  *     summary: Forgot password by User
- *     tags: [Account]
+ *     tags: [User]
  *     requestBody:
  *       required: true
  *       content:
@@ -20,7 +20,7 @@ import { NextApiRequest } from "next";
  *             properties:
  *                email:
  *                  type: string
- *                  description: The account email.
+ *                  description: The user email.
  *                  required: true
  *                resetPasswordPageUrl:
  *                  type: string
@@ -46,7 +46,7 @@ export const PATCH = async (req: NextApiRequest) => {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
         await validate(schemas.ForgotPasswordSchema)(null, null, body);
-        return await AccountController.ForgotPassword(body);
+        return await UserController.ForgotPassword(body);
     } catch (error: any) {
         return ErrorHandler(error);
     }

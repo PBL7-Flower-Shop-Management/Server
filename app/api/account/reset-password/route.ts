@@ -9,7 +9,7 @@ import { NextApiRequest } from "next";
  * @swagger
  * /api/account/reset-password:
  *   patch:
- *     summary: Reset password by User
+ *     summary: Reset password by Admin
  *     tags: [Account]
  *     requestBody:
  *       required: true
@@ -18,26 +18,13 @@ import { NextApiRequest } from "next";
  *           schema:
  *             type: object
  *             properties:
- *                email:
+ *                _id:
  *                  type: string
- *                  example: example@gmail.com
- *                  description: The account email.
- *                  required: true
- *                password:
- *                  type: string
- *                  description: The account password.
- *                  required: true
- *                confirmPassword:
- *                  type: string
- *                  description: The account confirm password.
- *                  required: true
- *                token:
- *                  type: string
- *                  description: The reset password token.
+ *                  description: The account id.
  *                  required: true
  *     responses:
  *       200:
- *         description: Reset password by user successfully
+ *         description: Reset password and send new password to account's email
  *         content:
  *           application/json:
  *             schema:
@@ -52,8 +39,9 @@ export const PATCH = async (req: NextApiRequest) => {
     try {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.ResetPasswordSchema)(null, null, body);
-        return await AccountController.ResetPassword(body);
+        await validate(schemas.AdminResetPasswordSchema)(null, null, body);
+        const { _id: id } = body;
+        return await AccountController.AdminResetPassword(id);
     } catch (error: any) {
         return ErrorHandler(error);
     }

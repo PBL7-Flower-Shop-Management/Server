@@ -31,9 +31,6 @@ const AccountSchema = new Schema(
             required: [true, "Password field is required!"],
             trim: true,
         },
-        token: {
-            type: String,
-        },
         tokenExpireTime: {
             type: Date,
         },

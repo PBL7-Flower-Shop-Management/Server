@@ -10,11 +10,12 @@ import {
     Skeleton,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { format, parse } from "date-fns";
-import { isActive, role } from "@/utils/constants";
+import { parse } from "date-fns";
+import { role } from "@/utils/constants";
 import { LoadingButton } from "@mui/lab";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { ChangePwdDialog } from "./ChangePwdDialog";
 
 const initialState = {
     isFieldDisabled: true,
@@ -61,6 +62,7 @@ const ProfileDetail = (props: any) => {
         canEdit,
     } = props;
     const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
+    const [openChangePwdDialog, setOpenChangePwdDialog] = useState(false);
     const [isClicked, setIsClicked] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [changesMade, setChangesMade] = useState(false);
@@ -243,6 +245,7 @@ const ProfileDetail = (props: any) => {
                             {
                                 label: "Họ và tên",
                                 name: "name",
+                                required: true,
                                 md: 8,
                             },
                             {
@@ -403,6 +406,7 @@ const ProfileDetail = (props: any) => {
                                 disabled={
                                     loadingButtonPicture || loadingButtonDetails
                                 }
+                                onClick={() => setOpenChangePwdDialog(true)}
                             >
                                 Đổi mật khẩu
                             </Button>
@@ -423,6 +427,7 @@ const ProfileDetail = (props: any) => {
                                 disabled={
                                     loadingButtonPicture || loadingButtonDetails
                                 }
+                                onClick={() => setOpenChangePwdDialog(true)}
                             >
                                 Đổi mật khẩu
                             </Button>
@@ -453,6 +458,10 @@ const ProfileDetail = (props: any) => {
                     )}
                 </CardActions>
             </Card>
+            <ChangePwdDialog
+                open={openChangePwdDialog}
+                onClose={() => setOpenChangePwdDialog(false)}
+            />
         </form>
     );
 };

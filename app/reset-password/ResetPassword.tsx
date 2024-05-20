@@ -58,7 +58,7 @@ const ResetPassword = () => {
     const ResetPassword = async () => {
         setIsSubmitting(true);
         fetch(
-            process.env.NEXT_PUBLIC_SERVER_API_BASE + "/account/reset-password",
+            process.env.NEXT_PUBLIC_SERVER_API_BASE + "/user/reset-password",
             {
                 method: "PATCH",
                 headers: {

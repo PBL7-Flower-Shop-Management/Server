@@ -1,9 +1,6 @@
 import UserController from "@/controllers/UserController";
+import { auth } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
-import validate from "@/middlewares/YupValidation";
-import TrimRequest from "@/utils/TrimRequest";
-import schemas from "@/validations/UserValidation";
-import { NextApiRequest } from "next";
 
 /**
  * @swagger
@@ -36,20 +33,13 @@ import { NextApiRequest } from "next";
  *            description: The URL of the image related to the flower.
 
  * @swagger
- * /api/user/{id}/favourite-flower:
+ * /api/user/favourite-flower:
  *   get:
- *     summary: Return favourite flowers by user id
+ *     summary: Return favourite flowers of user
  *     tags: [User]
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: User id
- *         schema:
- *           type: string
  *     responses:
  *       200:
- *         description: Favourite flowers by id
+ *         description: Favourite flowers of user
  *         content:
  *           application/json:
  *             schema:
@@ -78,12 +68,13 @@ import { NextApiRequest } from "next";
  *                   image: "https://happyflower.vn/app/uploads/2019/12/RoseMixBaby-1024x1024.jpg"
  */
 
-export const GET = async (req: NextApiRequest, { params }: any) => {
+export const GET = async () => {
     try {
-        ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetFavouriteFlowerByUserId)(params);
-        const { id } = params;
-        return await UserController.GetFavouriteFlowerByUserId(id);
+        return await auth(async (userToken: any) => {
+            return await UserController.GetFavouriteFlowerByUserId(
+                userToken.user._id
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }

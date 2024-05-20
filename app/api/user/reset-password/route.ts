@@ -1,16 +1,16 @@
-import AccountController from "@/controllers/AccountController";
+import UserController from "@/controllers/UserController";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
-import schemas from "@/validations/AccountValidation";
+import schemas from "@/validations/UserValidation";
 import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * /api/account/admin-reset-password:
+ * /api/user/reset-password:
  *   patch:
- *     summary: Reset password by Admin
- *     tags: [Account]
+ *     summary: Reset password by User
+ *     tags: [User]
  *     requestBody:
  *       required: true
  *       content:
@@ -18,13 +18,26 @@ import { NextApiRequest } from "next";
  *           schema:
  *             type: object
  *             properties:
- *                _id:
+ *                email:
  *                  type: string
- *                  description: The account id.
+ *                  example: example@gmail.com
+ *                  description: The user email.
+ *                  required: true
+ *                password:
+ *                  type: string
+ *                  description: The user password.
+ *                  required: true
+ *                confirmPassword:
+ *                  type: string
+ *                  description: The user confirm password.
+ *                  required: true
+ *                token:
+ *                  type: string
+ *                  description: The reset password token.
  *                  required: true
  *     responses:
  *       200:
- *         description: Reset password and send new password to account's email
+ *         description: Reset password by user successfully
  *         content:
  *           application/json:
  *             schema:
@@ -39,9 +52,8 @@ export const PATCH = async (req: NextApiRequest) => {
     try {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.AdminResetPasswordSchema)(null, null, body);
-        const { _id: id } = body;
-        return await AccountController.AdminResetPassword(id);
+        await validate(schemas.ResetPasswordSchema)(null, null, body);
+        return await UserController.ResetPassword(body);
     } catch (error: any) {
         return ErrorHandler(error);
     }

@@ -1,8 +1,6 @@
-import IdentificationController from "@/controllers/IdentificationController";
+import UserController from "@/controllers/UserController";
+import { auth } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
-import validate from "@/middlewares/YupValidation";
-import TrimRequest from "@/utils/TrimRequest";
-import schemas from "@/validations/IdentificationValidation";
 import { NextApiRequest } from "next";
 
 /**
@@ -48,20 +46,13 @@ import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * /api/identification/history/{userId}:
+ * /api/user/identification:
  *   get:
- *     summary: Return identification history by user id
- *     tags: [Identification]
- *     parameters:
- *       - name: userId
- *         in: path
- *         required: true
- *         description: User id
- *         schema:
- *           type: string
+ *     summary: Return identification histories of user
+ *     tags: [User]
  *     responses:
  *       200:
- *         description: Identification history by id
+ *         description: Identification histories of user
  *         content:
  *           application/json:
  *             schema:
@@ -92,14 +83,13 @@ import { NextApiRequest } from "next";
  *                       image: "https://flowershop.com.vn/wp-content/uploads/2020/09/y-nghia-hoa-loa-ken-8.jpg"
  */
 
-export const GET = async (req: NextApiRequest, { params }: any) => {
+export const GET = async () => {
     try {
-        ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetIdentificationHistoryByUserId)(params);
-        const { userId } = params;
-        return await IdentificationController.GetIdentificationHistoryByUserId(
-            userId
-        );
+        return await auth(async (userToken: any) => {
+            return await UserController.GetIdentificationHistory(
+                userToken.user._id
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }
