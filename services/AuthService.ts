@@ -158,6 +158,25 @@ class AuthService {
         });
     }
 
+    async GenerateResetPasswordToken(email: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const token = await sign({ email }, process.env.JWT_SECRET, {
+                    expiresIn: "5m",
+                });
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: token,
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
     private async generateAuthTokens(user: any) {
         const loginTime = moment();
         let accessTokenExpiresAt = loginTime

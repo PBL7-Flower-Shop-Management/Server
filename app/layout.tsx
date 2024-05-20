@@ -51,7 +51,9 @@ export default function RootLayout({
                                 <ThemeProvider theme={theme}>
                                     <CssBaseline />
                                     {usePathname() === "/login" ||
-                                    usePathname() === "/api-doc" ? (
+                                    usePathname() === "/api-doc" ||
+                                    usePathname() === "/forgot-password" ||
+                                    usePathname() === "/reset-password" ? (
                                         <main className="app">{children}</main>
                                     ) : (
                                         <Layout>

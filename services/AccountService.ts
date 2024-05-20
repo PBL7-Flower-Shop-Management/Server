@@ -8,6 +8,8 @@ import UserModel from "@/models/UserModel";
 import mongoose from "mongoose";
 import { generateRandomPassword, unicodeToAscii } from "@/utils/helper";
 import { sendMail } from "@/utils/sendMail";
+import AuthService from "./AuthService";
+import { verify } from "@/utils/JwtHelper";
 
 class AccountService {
     async GetAllAccount(query: any): Promise<ApiResponse> {
@@ -460,6 +462,8 @@ class AccountService {
                     {
                         $set: {
                             isDeleted: true,
+                            updatedAt: moment(),
+                            updatedBy: "System",
                         },
                     },
                     { session: session, new: true }
@@ -470,6 +474,8 @@ class AccountService {
                     {
                         $set: {
                             isDeleted: true,
+                            updatedAt: moment(),
+                            updatedBy: "System",
                         },
                     },
                     { session: session, new: true }
@@ -486,6 +492,201 @@ class AccountService {
             } catch (error: any) {
                 await session.abortTransaction();
                 session.endSession();
+                reject(error);
+            }
+        });
+    }
+
+    async AdminResetPassword(id: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+
+            try {
+                if (
+                    !(await UserModel.findOne({
+                        _id: id,
+                        isDeleted: false,
+                    })) ||
+                    !(await AccountModel.findOne({
+                        userId: id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                const randomPassword = generateRandomPassword();
+                const hashedPassword = await bcrypt.hash(
+                    randomPassword,
+                    parseInt(process.env.BCRYPT_SALT!)
+                );
+
+                const user = await UserModel.findById(id);
+
+                await AccountModel.updateOne(
+                    { userId: id },
+                    {
+                        $set: {
+                            password: hashedPassword,
+                            updatedAt: moment(),
+                            updatedBy: "System",
+                        },
+                    }
+                );
+
+                await sendMail({
+                    to: user.email,
+                    subject: "Thiết lập lại mật khẩu",
+                    html: `Mật khẩu cho tài khoản của bạn đã được quản trị viên thiết lập lại:<br>
+                        Mật khẩu mới: ${randomPassword}<br>
+                        Hãy đăng nhập vào hệ thống ${process.env.LOGIN_PAGE_URL} và đổi mật khẩu ngay để tránh bị lộ thông tin cá nhân.<br>
+                        Liên hệ với người quản trị nếu bạn gặp bất kì vấn đề gì khi đăng nhập vào hệ thống!<br>`,
+                });
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
+    async ForgotPassword(body: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+
+            try {
+                const user = await UserModel.findOne({
+                    email: body.email,
+                    isDeleted: false,
+                });
+                if (
+                    !user ||
+                    !(await AccountModel.findOne({
+                        userId: user._id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                const resetToken = (
+                    await AuthService.GenerateResetPasswordToken(body.email)
+                ).data;
+
+                // Encode the token
+                const encodedToken =
+                    Buffer.from(resetToken).toString("base64url");
+
+                // Construct the password reset URL
+                const endpointUri = new URL(body.resetPasswordPageUrl);
+                endpointUri.searchParams.append("token", encodedToken);
+
+                const passwordResetUrl = endpointUri.toString();
+
+                // Create the email content
+                const mailText = `Kích vào link sau để thiết lập lại mật khẩu của bạn:\n${passwordResetUrl}`;
+
+                await sendMail({
+                    to: user.email,
+                    subject: "Thiết lập lại mật khẩu",
+                    html: mailText,
+                });
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
+    async ResetPassword(body: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+
+            try {
+                // Decode the token, assuming it's Base64 encoded
+                const decodedToken = Buffer.from(body.token, "base64").toString(
+                    "utf-8"
+                );
+                const verifyToken = await verify(
+                    decodedToken,
+                    process.env.JWT_SECRET
+                );
+                if (!verifyToken)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Token is invalid!",
+                        })
+                    );
+
+                const { email } = verifyToken;
+
+                if (email !== body.email)
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "Requested email is invalid for your token!",
+                        })
+                    );
+
+                const user = await UserModel.findOne({
+                    email: email,
+                    isDeleted: false,
+                });
+                if (
+                    !user ||
+                    !(await AccountModel.findOne({
+                        userId: user._id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                const hashedPassword = await bcrypt.hash(
+                    body.password,
+                    parseInt(process.env.BCRYPT_SALT!)
+                );
+
+                await AccountModel.updateOne(
+                    { userId: user._id },
+                    {
+                        $set: {
+                            password: hashedPassword,
+                            updatedAt: moment(),
+                            updatedBy: "System",
+                        },
+                    }
+                );
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                    })
+                );
+            } catch (error: any) {
                 reject(error);
             }
         });

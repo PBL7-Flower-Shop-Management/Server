@@ -151,7 +151,7 @@ import { NextApiRequest } from "next";
  *             $ref: '#/components/schemas/Account'
  *     responses:
  *       201:
- *         description: Create account successfully and return account information
+ *         description: Create account successfully, return account information and send random password to account's email
  *         content:
  *           application/json:
  *             schema:

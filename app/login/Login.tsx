@@ -74,7 +74,7 @@ const Login = () => {
             password: password,
             redirect: false,
         });
-        if (res && res.error) console.log("error", res.error);
+        if (res && res.error) alert(res.error);
 
         setIsSubmitting(false);
     };
@@ -180,7 +180,7 @@ const Login = () => {
                             <Link
                                 variant="subtitle2"
                                 underline="hover"
-                                href="/forgotpassword"
+                                href="/forgot-password"
                                 sx={{
                                     fontWeight: "bold",
                                     textDecoration: "none",

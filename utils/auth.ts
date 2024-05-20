@@ -29,3 +29,16 @@ export const getProfile = () => {
 export const saveProfile = (profile: any) => {
     localStorage.setItem("profile", JSON.stringify(profile));
 };
+
+export const saveData = (data: any, name: string) => {
+    localStorage.setItem(name, JSON.stringify(data));
+};
+
+export const getData = (name: string) => {
+    const result = localStorage.getItem(name);
+    return result ? JSON.parse(result) : null;
+};
+
+export const clearData = (name: string) => {
+    localStorage.removeItem(name);
+};

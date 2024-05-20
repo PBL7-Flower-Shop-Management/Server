@@ -32,7 +32,17 @@ const Profile = () => {
             setLoadingSkeleton(true);
             try {
                 // const user = JSON.parse(localStorage.getItem("user"));
-                const profile = session?.user;
+                const profile = {
+                    _id: "6648c33bdacda77e9bdad9e6",
+                    username: "HoangG",
+                    avatar: "string",
+                    name: "gewhgo Hoàng",
+                    citizenId: "25445",
+                    email: "nguyenthedanghoan@gmail.com",
+                    phoneNumber: "5435",
+                    role: "Customer",
+                    isActived: true,
+                };
                 setProfile(profile);
             } catch (error: any) {
                 setError(error.message);
