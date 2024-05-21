@@ -121,8 +121,10 @@ import { NextApiRequest } from "next";
  *       - name: orderBy
  *         type: string
  *         in: query
- *         description: Field to order by (Fields must be separated by spaces)
- *         default: username
+ *         description: >
+ *               Fields and sort order to order by (format: <field_name>:<sort_order>, <field_name>:<sort_order>).
+ *               With sort_order = 1 is ascending order and sort_order = -1 is descending order.
+ *         default: username:1
  *     responses:
  *       200:
  *         description: Return all accounts

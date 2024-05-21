@@ -7,8 +7,317 @@ import FlowerCategoryModel from "@/models/FlowerCategoryModel";
 import { connectToDB } from "@/utils/database";
 import ApiResponse from "@/utils/ApiResponse";
 import mongoose from "mongoose";
+import { parseSortString } from "@/utils/helper";
+import moment from "moment";
 
 class FlowerService {
+    async GetAllFlower(query: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await connectToDB();
+
+                query.keyword = query.keyword ?? "";
+                query.pageNumber = query.pageNumber ?? 1;
+                query.pageSize = query.pageSize ?? 10;
+                query.isExport = query.isExport ?? false;
+                query.orderBy = query.orderBy ?? "name:1";
+
+                const orderBy = parseSortString(query.orderBy);
+                if (!orderBy)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "Order by field don't follow valid format!",
+                        })
+                    );
+
+                const flowers = await FlowerModel.find(
+                    {
+                        isDeleted: false,
+                        $or: [
+                            {
+                                name: {
+                                    $regex: query.keyword,
+                                    $options: "i",
+                                },
+                            },
+                            {
+                                habitat: {
+                                    $regex: query.keyword,
+                                    $options: "i",
+                                },
+                            },
+                            {
+                                status: {
+                                    $regex: query.keyword,
+                                    $options: "i",
+                                },
+                            },
+                            {
+                                description: {
+                                    $regex: query.keyword,
+                                    $options: "i",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        _id: 1,
+                        image: {
+                            $cond: [
+                                {
+                                    $ne: ["$imageVideoFiles", null],
+                                },
+                                {
+                                    $arrayElemAt: ["$imageVideoFiles", 0],
+                                },
+                                null,
+                            ],
+                        },
+                        name: 1,
+                        habitat: 1,
+                        unitPrice: 1,
+                        discount: 1,
+                        quantity: 1,
+                        soldQuantity: 1,
+                        status: 1,
+                        description: 1,
+                        createdAt: 1,
+                        createdBy: 1,
+                    }
+                )
+                    .skip(
+                        query.isExport
+                            ? 0
+                            : (query.pageNumber - 1) * query.pageSize
+                    )
+                    .limit(
+                        query.isExport
+                            ? Number.MAX_SAFE_INTEGER
+                            : query.pageSize
+                    )
+                    .collation({ locale: "en", caseLevel: false, strength: 1 })
+                    .sort(orderBy);
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: flowers,
+                    })
+                );
+            } catch (error: any) {
+                return reject(error);
+            }
+        });
+    }
+
+    async CreateFlower(flower: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    await FlowerModel.findOne({
+                        name: flower.name,
+                        isDeleted: false,
+                    })
+                ) {
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Flower name already exists!",
+                        })
+                    );
+                }
+                //upload image cloudinary
+
+                //check category id exists
+                if (flower.category) {
+                    for (const categoryId of flower.category) {
+                        if (
+                            !(await CategoryModel.exists({
+                                _id: categoryId,
+                                isDeleted: false,
+                            }))
+                        )
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.BAD_REQUEST,
+                                    message: `Category id ${categoryId} don't exists!`,
+                                })
+                            );
+                    }
+                }
+
+                const currentDate = moment();
+
+                let newFlower = await FlowerModel.create(
+                    [
+                        {
+                            ...flower,
+                            createdAt: currentDate,
+                            createdBy: flower.createdBy ?? "System",
+                            isDeleted: false,
+                        },
+                    ],
+                    { session: session }
+                ).then((res) => res[0]);
+
+                if (flower.category) {
+                    const flowerCategories = flower.category.map(
+                        (categoryId: string) => ({
+                            flowerId: new mongoose.Types.ObjectId(
+                                newFlower._id as string
+                            ),
+                            categoryId: new mongoose.Types.ObjectId(categoryId),
+                        })
+                    );
+
+                    await FlowerCategoryModel.insertMany(flowerCategories, {
+                        session: session,
+                    });
+                }
+
+                let newObj = newFlower.toObject();
+                newObj.category = flower.category;
+
+                await session.commitTransaction();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.CREATED,
+                        data: newObj,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
+            }
+        });
+    }
+
+    async UpdateFlower(flower: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    !(await FlowerModel.findOne({
+                        _id: flower._id,
+                        isDeleted: false,
+                    }))
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Flower not found!",
+                        })
+                    );
+
+                if (
+                    await FlowerModel.findOne({
+                        _id: { $ne: flower._id },
+                        name: flower.name,
+                        isDeleted: false,
+                    })
+                ) {
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Flower name already exists!",
+                        })
+                    );
+                }
+
+                //update image cloudinary
+
+                //check category id exists
+                if (flower.category) {
+                    for (const categoryId of flower.category) {
+                        if (
+                            !(await CategoryModel.exists({
+                                _id: categoryId,
+                                isDeleted: false,
+                            }))
+                        )
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.BAD_REQUEST,
+                                    message: `Category id ${categoryId} don't exists!`,
+                                })
+                            );
+                    }
+                }
+
+                const updatedFlower = await FlowerModel.findOneAndUpdate(
+                    { _id: flower._id },
+                    {
+                        $set: {
+                            ...flower,
+                            updatedAt: moment(),
+                            updatedBy: flower.updatedBy ?? "System",
+                        },
+                    },
+                    { session: session, new: true }
+                );
+
+                //Remove old categories associated with the flower
+                await FlowerCategoryModel.deleteMany(
+                    {
+                        flowerId: updatedFlower._id,
+                    },
+                    {
+                        session: session,
+                    }
+                );
+
+                if (flower.category) {
+                    //Add new categories associated with the flower
+                    const flowerCategories = flower.category.map(
+                        (categoryId: string) => ({
+                            flowerId: new mongoose.Types.ObjectId(
+                                updatedFlower._id as string
+                            ),
+                            categoryId: new mongoose.Types.ObjectId(categoryId),
+                        })
+                    );
+
+                    await FlowerCategoryModel.insertMany(flowerCategories, {
+                        session: session,
+                    });
+                }
+
+                let updatedObj = updatedFlower.toObject();
+                updatedObj.category = flower.category;
+
+                await session.commitTransaction();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: updatedObj,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
+            }
+        });
+    }
+
     async GetBestSellerFlower(limit?: number): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -260,21 +569,99 @@ class FlowerService {
         return new Promise(async (resolve, reject) => {
             try {
                 await connectToDB();
-                const flower = await FlowerModel.find({ _id: id });
-                if (flower.length === 0)
+
+                const flower = await FlowerModel.findOne(
+                    {
+                        _id: new mongoose.Types.ObjectId(id),
+                        isDeleted: false,
+                    },
+                    // {
+                    //     $lookup: {
+                    //         from: "flowercategories",
+                    //         localField: "_id",
+                    //         foreignField: "flowerId",
+                    //         as: "fc",
+                    //     },
+                    // },
+                    // {
+                    //     $lookup: {
+                    //         from: "categories",
+                    //         let: { categoryId: "$fc.categoryId" },
+                    //         pipeline: [
+                    //             {
+                    //                 $match: {
+                    //                     $expr: {
+                    //                         $and: [
+                    //                             {
+                    //                                 $eq: ["$flowerId", "$$id"],
+                    //                             },
+                    //                             { $eq: ["$isDeleted", false] },
+                    //                         ],
+                    //                     },
+                    //                 },
+                    //             },
+                    //         ],
+                    //         as: "acc",
+                    //     },
+                    // },
+                    // {
+                    //     $unwind: "$acc",
+                    // },
+                    {
+                        _id: 1,
+                        name: 1,
+                        habitat: 1,
+                        growthTime: 1,
+                        care: 1,
+                        unitPrice: 1,
+                        discount: 1,
+                        quantity: 1,
+                        soldQuantity: 1,
+                        status: 1,
+                        description: 1,
+                        imageVideoFiles: 1,
+                        // category: 1,
+                    }
+                );
+
+                if (!flower)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Not found flower",
                         })
                     );
-                else
-                    resolve(
-                        new ApiResponse({
-                            status: HttpStatus.OK,
-                            data: flower[0],
-                        })
-                    );
+
+                const flowerCategories = await FlowerCategoryModel.aggregate([
+                    { $match: { flowerId: flower._id } },
+                    {
+                        $lookup: {
+                            from: "categories",
+                            localField: "categoryId",
+                            foreignField: "_id",
+                            as: "category",
+                        },
+                    },
+                    {
+                        $unwind: "$category",
+                    },
+                    {
+                        $project: {
+                            _id: "$category._id",
+                            categoryName: "$category.categoryName",
+                        },
+                    },
+                ]);
+
+                const obj = flower.toObject();
+                obj.category = flowerCategories;
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: obj,
+                    })
+                );
             } catch (error) {
                 return reject(error);
             }
@@ -357,6 +744,58 @@ class FlowerService {
                     );
             } catch (error) {
                 return reject(error);
+            }
+        });
+    }
+
+    async DeleteFlower(id: string, username: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    !(await FlowerModel.findOne({
+                        _id: id,
+                        isDeleted: false,
+                    }))
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Flower not found!",
+                        })
+                    );
+
+                //delete avatar dianary
+
+                await FlowerModel.findOneAndUpdate(
+                    { _id: id },
+                    {
+                        $set: {
+                            isDeleted: true,
+                            updatedAt: moment(),
+                            updatedBy: username ?? "system",
+                        },
+                    },
+                    { session: session, new: true }
+                );
+
+                await session.commitTransaction();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.NO_CONTENT,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
             }
         });
     }

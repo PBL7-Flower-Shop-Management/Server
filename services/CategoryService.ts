@@ -5,6 +5,7 @@ import CategoryModel from "@/models/CategoryModel";
 import FlowerModel from "@/models/FlowerModel";
 import mongoose from "mongoose";
 import moment from "moment";
+import { parseSortString } from "@/utils/helper";
 
 class CategoryService {
     async GetAllCategory(query: any): Promise<ApiResponse> {
@@ -16,7 +17,17 @@ class CategoryService {
                 query.pageNumber = query.pageNumber ?? 1;
                 query.pageSize = query.pageSize ?? 10;
                 query.isExport = query.isExport ?? false;
-                query.orderBy = query.orderBy ?? "categoryName";
+                query.orderBy = query.orderBy ?? "categoryName:1";
+
+                const orderBy = parseSortString(query.orderBy);
+                if (!orderBy)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "Order by field don't follow valid format!",
+                        })
+                    );
 
                 const categories = await CategoryModel.find(
                     {
@@ -55,7 +66,8 @@ class CategoryService {
                             ? Number.MAX_SAFE_INTEGER
                             : query.pageSize
                     )
-                    .sort(query.orderBy);
+                    .collation({ locale: "en", caseLevel: false, strength: 1 })
+                    .sort(orderBy);
 
                 resolve(
                     new ApiResponse({
@@ -78,6 +90,7 @@ class CategoryService {
                 if (
                     await CategoryModel.findOne({
                         categoryName: category.categoryName,
+                        isDeleted: false,
                     })
                 ) {
                     return reject(
@@ -146,6 +159,7 @@ class CategoryService {
                     await CategoryModel.findOne({
                         _id: { $ne: category._id },
                         categoryName: category.categoryName,
+                        isDeleted: false,
                     })
                 ) {
                     return reject(

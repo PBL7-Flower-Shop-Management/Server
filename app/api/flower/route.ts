@@ -1,70 +1,122 @@
-import CategoryController from "@/controllers/CategoryController";
+import FlowerController from "@/controllers/FlowerController";
 import { auth } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
-import schemas from "@/validations/CategoryValidation";
+import schemas from "@/validations/FlowerValidation";
 import { NextApiRequest } from "next";
 
 /**
  * @swagger
  *  components:
  *    schemas:
- *      Category:
+ *      Flower:
  *        type: object
- *        required:
- *          - categoryName
- *          - image
  *        properties:
- *          categoryName:
+ *          name:
  *            type: string
- *            description: The category name.
- *          image:
+ *            description: The name of the flower.
+ *            required: true
+ *          habitat:
  *            type: string
- *            description: The category avatar.
+ *            description: The habitat of the flower.
+ *          growthTime:
+ *            type: string
+ *            description: The growth time of the flower
+ *          care:
+ *            type: string
+ *            description: The care instructions for the flower.
+ *          unitPrice:
+ *            type: number
+ *            description: The unit price for the flower.
+ *          discount:
+ *            type: integer
+ *            description: The discount percentage for the flower.
+ *          quantity:
+ *            type: integer
+ *            description: The quantity of the flower available.
+ *          soldQuantity:
+ *            type: integer
+ *            description: The quantity of the flower sold.
+ *          imageVideoFiles:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: The URLs of image or video files related to the flower.
  *          description:
  *            type: string
- *            description: The description of category.
+ *            description: The description of the flower.
+ *          category:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: The list of categorie ids of flower
  *
- *      UpdatedCategory:
+ *      UpdatedFlower:
  *        type: object
- *        required:
- *          - _id
- *          - categoryName
- *          - name
  *        properties:
  *          _id:
  *            type: string
- *            description: The category id.
- *          categoryName:
+ *            description: The unique identifier of the flower.
+ *            required: true
+ *          name:
  *            type: string
- *            description: The category name.
- *          image:
+ *            description: The name of the flower.
+ *            required: true
+ *          habitat:
  *            type: string
- *            description: The category avatar.
+ *            description: The habitat of the flower.
+ *          growthTime:
+ *            type: string
+ *            description: The growth time of the flower
+ *          care:
+ *            type: string
+ *            description: The care instructions for the flower.
+ *          unitPrice:
+ *            type: number
+ *            description: The unit price for the flower.
+ *          discount:
+ *            type: integer
+ *            description: The discount percentage for the flower.
+ *          quantity:
+ *            type: integer
+ *            description: The quantity of the flower available.
+ *          soldQuantity:
+ *            type: integer
+ *            description: The quantity of the flower sold.
+ *          imageVideoFiles:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: The URLs of image or video files related to the flower.
  *          description:
  *            type: string
- *            description: The description of category.
+ *            description: The description of the flower.
+ *          category:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: The list of categorie ids of flower
  */
 
 /**
  * @swagger
  * tags:
- *   name: Category
- *   description: The category managing API
+ *   name: Flower
+ *   description: The flower managing API
  */
 
 /**
  * @swagger
- * /api/category:
+ * /api/flower:
  *   get:
- *     summary: Get all categories
- *     tags: [Category]
+ *     summary: Get all flowers
+ *     tags: [Flower]
  *     parameters:
  *       - name: keyword
  *         type: string
  *         in: query
- *         description: Search keyword (search by category name and description)
+ *         description: Search keyword (search by flower name, habitat, status and description)
  *       - name: pageNumber
  *         type: integer
  *         in: query
@@ -90,10 +142,10 @@ import { NextApiRequest } from "next";
  *         description: >
  *               Fields and sort order to order by (format: <field_name>:<sort_order>, <field_name>:<sort_order>).
  *               With sort_order = 1 is ascending order and sort_order = -1 is descending order.
- *         default: categoryName:1
+ *         default: name:1
  *     responses:
  *       200:
- *         description: Return all categories
+ *         description: Return all flowers
  *         content:
  *           application/json:
  *             schema:
@@ -109,17 +161,17 @@ import { NextApiRequest } from "next";
  *                   type: object
  *
  *   post:
- *     summary: Create a new category
- *     tags: [Category]
+ *     summary: Create a new flower
+ *     tags: [Flower]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Category'
+ *             $ref: '#/components/schemas/Flower'
  *     responses:
  *       201:
- *         description: Create category successfully and return category information
+ *         description: Create flower successfully and return flower information
  *         content:
  *           application/json:
  *             schema:
@@ -135,17 +187,17 @@ import { NextApiRequest } from "next";
  *                   type: object
  *
  *   put:
- *     summary: Update a category
- *     tags: [Category]
+ *     summary: Update a flower
+ *     tags: [Flower]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdatedCategory'
+ *             $ref: '#/components/schemas/UpdatedFlower'
  *     responses:
  *       200:
- *         description: Update category successfully and return category information
+ *         description: Update flower successfully and return flower information
  *         content:
  *           application/json:
  *             schema:
@@ -166,8 +218,8 @@ export const GET = async (req: NextApiRequest) => {
         return await auth(async () => {
             let query;
             ({ req, query: query } = TrimRequest.all(req));
-            await validate(schemas.GetAllCategorySchema)(null, query);
-            return await CategoryController.GetAllCategory(query);
+            await validate(schemas.GetAllFlowerSchema)(null, query);
+            return await FlowerController.GetAllFlower(query);
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -179,9 +231,9 @@ export const POST = async (req: NextApiRequest) => {
         return await auth(async (userToken: any) => {
             let body = await new Response(req.body).json();
             ({ req, body: body } = TrimRequest.all(req, null, body));
-            await validate(schemas.CreateCategorySchema)(null, null, body);
+            await validate(schemas.CreateFlowerSchema)(null, null, body);
             body.createdBy = userToken.user.username;
-            return await CategoryController.CreateCategory(body);
+            return await FlowerController.CreateFlower(body);
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -193,9 +245,9 @@ export const PUT = async (req: NextApiRequest) => {
         return await auth(async (userToken: any) => {
             let body = await new Response(req.body).json();
             ({ req, body: body } = TrimRequest.all(req, null, body));
-            await validate(schemas.UpdateCategorySchema)(null, null, body);
+            await validate(schemas.UpdateFlowerSchema)(null, null, body);
             body.updatedBy = userToken.user.username;
-            return await CategoryController.UpdateCategory(body);
+            return await FlowerController.UpdateFlower(body);
         });
     } catch (error: any) {
         return ErrorHandler(error);

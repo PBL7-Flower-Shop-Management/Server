@@ -1,6 +1,30 @@
 import FlowerService from "@/services/FlowerService";
 
 class FlowerController {
+    async GetAllFlower(query: any) {
+        try {
+            return await FlowerService.GetAllFlower(query);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async CreateFlower(body: any) {
+        try {
+            return await FlowerService.CreateFlower(body);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async UpdateFlower(body: any) {
+        try {
+            return await FlowerService.UpdateFlower(body);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async GetBestSellerFlower(query: any) {
         try {
             return await FlowerService.GetBestSellerFlower(query.limit);
@@ -44,6 +68,14 @@ class FlowerController {
     async GetFeedbackOfFlower(id: string) {
         try {
             return await FlowerService.GetFeedbackOfFlower(id);
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
+    async DeleteFlower(id: string, username: string) {
+        try {
+            return await FlowerService.DeleteFlower(id, username);
         } catch (error: any) {
             throw error;
         }

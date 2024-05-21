@@ -37,13 +37,6 @@ import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * tags:
- *   name: Flower
- *   description: The flower managing API
- */
-
-/**
- * @swagger
  * /api/flower/best-seller:
  *   get:
  *     summary: Return the list of all the best seller flowers

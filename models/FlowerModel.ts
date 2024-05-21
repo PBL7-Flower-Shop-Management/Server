@@ -99,7 +99,9 @@ const FlowerSchema = new Schema(
 
 // Pre-save hook to update status based on quantity
 FlowerSchema.pre("save", function (next) {
-    if (this.quantity > 0) {
+    this.quantity = this.quantity ?? 0;
+    this.soldQuantity = this.soldQuantity ?? 0;
+    if (this.quantity - this.soldQuantity > 0) {
         this.status = "Available";
     } else {
         this.status = "Out of stock";

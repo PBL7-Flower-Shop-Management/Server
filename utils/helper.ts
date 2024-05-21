@@ -85,3 +85,16 @@ export const generateRandomPassword = (opts?: any) => {
 
     return chars.join("");
 };
+
+export const parseSortString = (sortString: string) => {
+    try {
+        const sortParams: any = {};
+        sortString.split(",").forEach((part: any) => {
+            const [field, order] = part.split(":");
+            sortParams[field.trim()] = parseInt(order.trim(), 10);
+        });
+        return sortParams;
+    } catch (error) {
+        return null;
+    }
+};

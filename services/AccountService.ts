@@ -6,7 +6,11 @@ import moment from "moment";
 import ApiResponse from "@/utils/ApiResponse";
 import UserModel from "@/models/UserModel";
 import mongoose from "mongoose";
-import { generateRandomPassword, unicodeToAscii } from "@/utils/helper";
+import {
+    generateRandomPassword,
+    parseSortString,
+    unicodeToAscii,
+} from "@/utils/helper";
 import { sendMail } from "@/utils/sendMail";
 
 class AccountService {
@@ -19,7 +23,17 @@ class AccountService {
                 query.pageNumber = query.pageNumber ?? 1;
                 query.pageSize = query.pageSize ?? 10;
                 query.isExport = query.isExport ?? false;
-                query.orderBy = query.orderBy ?? "username";
+                query.orderBy = query.orderBy ?? "username:1";
+
+                const orderBy = parseSortString(query.orderBy);
+                if (!orderBy)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "Order by field don't follow valid format!",
+                        })
+                    );
 
                 const accounts = await UserModel.aggregate([
                     {
@@ -118,7 +132,8 @@ class AccountService {
                             ? Number.MAX_SAFE_INTEGER
                             : query.pageSize
                     )
-                    .sort(query.orderBy);
+                    .collation({ locale: "en", caseLevel: false, strength: 1 })
+                    .sort(orderBy);
 
                 resolve(
                     new ApiResponse({
@@ -171,6 +186,7 @@ class AccountService {
                             if (
                                 await AccountModel.findOne({
                                     username: user.username,
+                                    isDeleted: false,
                                 })
                             ) {
                                 user.username = username + count;
