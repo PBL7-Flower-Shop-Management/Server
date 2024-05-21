@@ -18,7 +18,7 @@ class AuthService {
                 if (
                     await UserModel.findOne({ email: user.email.toLowerCase() })
                 ) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Email already exists!",
@@ -30,7 +30,7 @@ class AuthService {
                         username: user.username.toLowerCase(),
                     })
                 ) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Username already exists!",
@@ -77,7 +77,6 @@ class AuthService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -87,8 +86,12 @@ class AuthService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -103,7 +106,7 @@ class AuthService {
                     username: username,
                 });
                 if (!account) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Username or password is wrong!",
@@ -116,7 +119,7 @@ class AuthService {
                     account.password
                 );
                 if (!passwordMatches) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Username or password is wrong!",
@@ -125,7 +128,7 @@ class AuthService {
                 }
 
                 if (!account.isActived)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account isn't actived!",
@@ -136,7 +139,7 @@ class AuthService {
                     _id: account.userId,
                 });
                 if (user.isDeleted || account.isDeleted)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account was deleted!",
@@ -159,7 +162,6 @@ class AuthService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
@@ -168,8 +170,12 @@ class AuthService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -188,7 +194,7 @@ class AuthService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -294,7 +300,6 @@ class AuthService {
                 const authTokens = await this.generateAuthTokens(user);
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -304,8 +309,12 @@ class AuthService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -324,7 +333,7 @@ class AuthService {
                 );
                 if (!checkToken)
                     if ((error as any).data.name === "JsonWebTokenError")
-                        reject(
+                        return reject(
                             new ApiResponse({
                                 status: HttpStatus.BAD_REQUEST,
                                 message: "Invalid token!",
@@ -337,7 +346,7 @@ class AuthService {
                 );
 
                 if (!userToken)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Invalid refresh token!",
@@ -355,7 +364,7 @@ class AuthService {
                 });
 
                 if (acc.refreshToken !== body.refreshToken)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Invalid refresh token!",
@@ -363,7 +372,7 @@ class AuthService {
                     );
 
                 if (!user || !acc)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Not found account!",
@@ -371,7 +380,7 @@ class AuthService {
                     );
 
                 if (!acc.isActived)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account isn't actived!",
@@ -394,7 +403,6 @@ class AuthService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
@@ -403,8 +411,12 @@ class AuthService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }

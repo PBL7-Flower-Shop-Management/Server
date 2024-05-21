@@ -25,6 +25,26 @@ import { NextApiRequest } from "next";
  *          description:
  *            type: string
  *            description: The description of category.
+ *
+ *      UpdatedCategory:
+ *        type: object
+ *        required:
+ *          - _id
+ *          - categoryName
+ *          - name
+ *        properties:
+ *          _id:
+ *            type: string
+ *            description: The category id.
+ *          categoryName:
+ *            type: string
+ *            description: The category name.
+ *          image:
+ *            type: string
+ *            description: The category avatar.
+ *          description:
+ *            type: string
+ *            description: The description of category.
  */
 
 /**

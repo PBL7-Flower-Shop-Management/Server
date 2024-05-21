@@ -64,7 +64,7 @@ class CategoryService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -80,7 +80,7 @@ class CategoryService {
                         categoryName: category.categoryName,
                     })
                 ) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Category name already exists!",
@@ -104,7 +104,6 @@ class CategoryService {
                 ).then((res) => res[0]);
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -114,8 +113,12 @@ class CategoryService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -132,7 +135,7 @@ class CategoryService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Category not found!",
@@ -145,7 +148,7 @@ class CategoryService {
                         categoryName: category.categoryName,
                     })
                 ) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Category name already exists!",
@@ -168,7 +171,6 @@ class CategoryService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -178,8 +180,12 @@ class CategoryService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -307,7 +313,7 @@ class CategoryService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -408,7 +414,7 @@ class CategoryService {
                     ]);
 
                     if (representCategories.length === 0)
-                        reject(
+                        return reject(
                             new ApiResponse({
                                 status: HttpStatus.NOT_FOUND,
                                 message: "Not found category",
@@ -462,7 +468,96 @@ class CategoryService {
                     );
                 }
             } catch (error) {
-                reject(error);
+                return reject(error);
+            }
+        });
+    }
+
+    async GetCategoryById(id: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            try {
+                const category = await CategoryModel.findOne(
+                    {
+                        _id: id,
+                        isDeleted: false,
+                    },
+                    {
+                        _id: 1,
+                        categoryName: 1,
+                        image: 1,
+                        description: 1,
+                    }
+                );
+
+                if (!category)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Category not found!",
+                        })
+                    );
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: category,
+                    })
+                );
+            } catch (error: any) {
+                return reject(error);
+            }
+        });
+    }
+
+    async DeleteCategory(id: string, username: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    !(await CategoryModel.findOne({
+                        _id: id,
+                        isDeleted: false,
+                    }))
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Category not found!",
+                        })
+                    );
+
+                //delete avatar dianary
+
+                await CategoryModel.findOneAndUpdate(
+                    { _id: id },
+                    {
+                        $set: {
+                            isDeleted: true,
+                            updatedAt: moment(),
+                            updatedBy: username ?? "system",
+                        },
+                    },
+                    { session: session, new: true }
+                );
+
+                await session.commitTransaction();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.NO_CONTENT,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
             }
         });
     }

@@ -109,7 +109,7 @@ class OrderService {
                 ]);
 
                 if (orders.length === 0)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Not found order",
@@ -123,7 +123,7 @@ class OrderService {
                         })
                     );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }

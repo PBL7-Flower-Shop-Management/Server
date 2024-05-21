@@ -4,7 +4,7 @@ const sign = async (payload: any, secret: any, options?: any) => {
     return new Promise((resolve, reject) => {
         jwt.sign(payload, secret, options, (error: any, token: any) => {
             if (error) {
-                reject(error);
+                return reject(error);
             } else {
                 resolve(token);
             }

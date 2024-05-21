@@ -43,6 +43,22 @@ class CategoryController {
             throw error;
         }
     }
+
+    async GetCategoryById(id: string) {
+        try {
+            return await CategoryService.GetCategoryById(id);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async DeleteCategory(id: string, username: string) {
+        try {
+            return await CategoryService.DeleteCategory(id, username);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default new CategoryController();

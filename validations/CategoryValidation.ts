@@ -48,6 +48,15 @@ const schemas = {
     UpdateCategorySchema: yup.object({
         body: yup
             .object({
+                _id: yup
+                    .string()
+                    .trim()
+                    .required()
+                    .test(
+                        "is-objectid",
+                        "Invalid category id format",
+                        (value) => mongoose.Types.ObjectId.isValid(value)
+                    ),
                 categoryName: yup
                     .string()
                     .trim()
@@ -94,6 +103,40 @@ const schemas = {
                 .transform((curr, orig) => (orig === "" ? null : curr))
                 .min(1),
         }),
+    }),
+
+    GetByIdSchema: yup.object({
+        params: yup
+            .object({
+                id: yup
+                    .string()
+                    .trim()
+                    .required()
+                    .test(
+                        "is-objectid",
+                        "Invalid category id format",
+                        (value) => mongoose.Types.ObjectId.isValid(value)
+                    ),
+            })
+            .noUnknown(true, "Unknown field in request params: ${unknown}")
+            .strict(),
+    }),
+
+    DeleteCategorySchema: yup.object({
+        params: yup
+            .object({
+                id: yup
+                    .string()
+                    .trim()
+                    .required()
+                    .test(
+                        "is-objectid",
+                        "Invalid category id format",
+                        (value) => mongoose.Types.ObjectId.isValid(value)
+                    ),
+            })
+            .noUnknown(true, "Unknown field in request params: ${unknown}")
+            .strict(),
     }),
 };
 

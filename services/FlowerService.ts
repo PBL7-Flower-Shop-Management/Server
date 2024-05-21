@@ -77,7 +77,7 @@ class FlowerService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -136,7 +136,7 @@ class FlowerService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -201,7 +201,7 @@ class FlowerService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -251,7 +251,7 @@ class FlowerService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -262,7 +262,7 @@ class FlowerService {
                 await connectToDB();
                 const flower = await FlowerModel.find({ _id: id });
                 if (flower.length === 0)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Not found flower",
@@ -276,7 +276,7 @@ class FlowerService {
                         })
                     );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -342,7 +342,7 @@ class FlowerService {
                     },
                 ]);
                 if (feedbacks.length === 0)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Not found feedback of this flower",
@@ -356,7 +356,7 @@ class FlowerService {
                         })
                     );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }

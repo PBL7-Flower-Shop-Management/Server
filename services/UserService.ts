@@ -108,7 +108,7 @@ class UserService {
                 ]);
 
                 if (orders.length === 0)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Not found order",
@@ -122,7 +122,7 @@ class UserService {
                         })
                     );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -217,7 +217,7 @@ class UserService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -291,7 +291,7 @@ class UserService {
                 ]);
 
                 if (favouriteFlowers.length === 0)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message:
@@ -306,7 +306,7 @@ class UserService {
                         })
                     );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -327,7 +327,7 @@ class UserService {
                     })) ||
                     !account
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -339,7 +339,7 @@ class UserService {
                     account.password
                 );
                 if (!passwordMatches) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Old password is not correct!",
@@ -369,7 +369,7 @@ class UserService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -390,7 +390,7 @@ class UserService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -426,7 +426,7 @@ class UserService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -445,7 +445,7 @@ class UserService {
                     process.env.JWT_SECRET
                 );
                 if (!verifyToken)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Token is invalid!",
@@ -455,7 +455,7 @@ class UserService {
                 const { email } = verifyToken;
 
                 if (email !== body.email)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message:
@@ -474,7 +474,7 @@ class UserService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -503,7 +503,7 @@ class UserService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -522,7 +522,7 @@ class UserService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -568,7 +568,7 @@ class UserService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -589,7 +589,7 @@ class UserService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -602,7 +602,7 @@ class UserService {
                         email: user.email.toLowerCase(),
                     })
                 ) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Email already exists!",
@@ -625,7 +625,6 @@ class UserService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -635,8 +634,12 @@ class UserService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -681,7 +684,7 @@ class UserService {
                 ]);
 
                 if (histories.length === 0)
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Not found history",
@@ -695,7 +698,7 @@ class UserService {
                         })
                     );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }

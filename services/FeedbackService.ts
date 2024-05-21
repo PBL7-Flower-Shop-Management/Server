@@ -41,7 +41,7 @@ class FeedbackService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }

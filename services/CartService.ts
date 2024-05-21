@@ -95,7 +95,7 @@ class CartService {
                     })
                 );
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }

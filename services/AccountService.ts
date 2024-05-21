@@ -127,7 +127,7 @@ class AccountService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -141,7 +141,7 @@ class AccountService {
                 if (
                     await UserModel.findOne({ email: user.email.toLowerCase() })
                 ) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Email already exists!",
@@ -228,7 +228,6 @@ class AccountService {
                 });
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -238,8 +237,12 @@ class AccountService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -260,7 +263,7 @@ class AccountService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -273,7 +276,7 @@ class AccountService {
                         email: user.email.toLowerCase(),
                     })
                 ) {
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
                             message: "Email already exists!",
@@ -296,7 +299,6 @@ class AccountService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -306,8 +308,12 @@ class AccountService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -328,7 +334,7 @@ class AccountService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -348,7 +354,6 @@ class AccountService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -358,8 +363,12 @@ class AccountService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -378,7 +387,7 @@ class AccountService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -425,7 +434,7 @@ class AccountService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
@@ -446,7 +455,7 @@ class AccountService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -480,7 +489,6 @@ class AccountService {
                 );
 
                 await session.commitTransaction();
-                session.endSession();
 
                 resolve(
                     new ApiResponse({
@@ -489,8 +497,12 @@ class AccountService {
                 );
             } catch (error: any) {
                 await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
                 session.endSession();
-                reject(error);
             }
         });
     }
@@ -510,7 +522,7 @@ class AccountService {
                         isDeleted: false,
                     }))
                 )
-                    reject(
+                    return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
@@ -551,7 +563,7 @@ class AccountService {
                     })
                 );
             } catch (error: any) {
-                reject(error);
+                return reject(error);
             }
         });
     }
