@@ -4,8 +4,186 @@ import ApiResponse from "@/utils/ApiResponse";
 import CategoryModel from "@/models/CategoryModel";
 import FlowerModel from "@/models/FlowerModel";
 import mongoose from "mongoose";
+import moment from "moment";
 
 class CategoryService {
+    async GetAllCategory(query: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await connectToDB();
+
+                query.keyword = query.keyword ?? "";
+                query.pageNumber = query.pageNumber ?? 1;
+                query.pageSize = query.pageSize ?? 10;
+                query.isExport = query.isExport ?? false;
+                query.orderBy = query.orderBy ?? "categoryName";
+
+                const categories = await CategoryModel.find(
+                    {
+                        isDeleted: false,
+                        $or: [
+                            {
+                                categoryName: {
+                                    $regex: query.keyword,
+                                    $options: "i",
+                                },
+                            },
+                            {
+                                description: {
+                                    $regex: query.keyword,
+                                    $options: "i",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        _id: 1,
+                        categoryName: 1,
+                        image: 1,
+                        description: 1,
+                        createdAt: "$createdAt",
+                        createdBy: "$createdBy",
+                    }
+                )
+                    .skip(
+                        query.isExport
+                            ? 0
+                            : (query.pageNumber - 1) * query.pageSize
+                    )
+                    .limit(
+                        query.isExport
+                            ? Number.MAX_SAFE_INTEGER
+                            : query.pageSize
+                    )
+                    .sort(query.orderBy);
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: categories,
+                    })
+                );
+            } catch (error: any) {
+                reject(error);
+            }
+        });
+    }
+
+    async CreateCategory(category: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    await CategoryModel.findOne({
+                        categoryName: category.categoryName,
+                    })
+                ) {
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Category name already exists!",
+                        })
+                    );
+                }
+                //upload image cloudinary
+
+                const currentDate = moment();
+
+                const newCategory = await CategoryModel.create(
+                    [
+                        {
+                            ...category,
+                            createdAt: currentDate,
+                            createdBy: category.createdBy ?? "System",
+                            isDeleted: false,
+                        },
+                    ],
+                    { session: session }
+                ).then((res) => res[0]);
+
+                await session.commitTransaction();
+                session.endSession();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.CREATED,
+                        data: newCategory,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
+                reject(error);
+            }
+        });
+    }
+
+    async UpdateCategory(category: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    !(await CategoryModel.findOne({
+                        _id: category._id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Category not found!",
+                        })
+                    );
+
+                if (
+                    await CategoryModel.findOne({
+                        _id: { $ne: category._id },
+                        categoryName: category.categoryName,
+                    })
+                ) {
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Category name already exists!",
+                        })
+                    );
+                }
+
+                //update image cloudinary
+
+                const updatedCategory = await CategoryModel.findOneAndUpdate(
+                    { _id: category._id },
+                    {
+                        $set: {
+                            ...category,
+                            updatedAt: moment(),
+                            updatedBy: category.updatedBy ?? "System",
+                        },
+                    },
+                    { session: session, new: true }
+                );
+
+                await session.commitTransaction();
+                session.endSession();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: updatedCategory,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
+                reject(error);
+            }
+        });
+    }
+
     async GetCategoryWithFlowers(limit?: number): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             try {

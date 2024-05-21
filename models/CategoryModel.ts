@@ -6,13 +6,6 @@ const CategorySchema = new Schema(
             type: String,
             required: [true, "Category name is required!"],
             trim: true,
-            validate: {
-                validator: function (value: any) {
-                    return /^[\w\d\s\/\-]+$/.test(value);
-                },
-                message:
-                    "Category name only contains characters, number, space, slash and dash!",
-            },
         },
         image: {
             type: String,

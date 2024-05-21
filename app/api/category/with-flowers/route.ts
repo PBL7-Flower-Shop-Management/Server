@@ -30,13 +30,6 @@ import { NextApiRequest } from "next";
 
 /**
  * @swagger
- * tags:
- *   name: Category
- *   description: The category managing API
- */
-
-/**
- * @swagger
  * /api/category/with-flowers:
  *   get:
  *     summary: Return the list of all the categories with flowers

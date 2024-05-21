@@ -244,6 +244,74 @@ class AccountService {
         });
     }
 
+    async UpdateAccount(user: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (
+                    !(await UserModel.findOne({
+                        _id: user._id,
+                        isDeleted: false,
+                    })) ||
+                    !(await AccountModel.findOne({
+                        userId: user._id,
+                        isDeleted: false,
+                    }))
+                )
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Account not found!",
+                        })
+                    );
+
+                if (
+                    await UserModel.findOne({
+                        _id: { $ne: user._id },
+                        email: user.email.toLowerCase(),
+                    })
+                ) {
+                    reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Email already exists!",
+                        })
+                    );
+                }
+
+                //update image cloudinary
+
+                const updatedUser = await UserModel.findOneAndUpdate(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            ...user,
+                            updatedAt: moment(),
+                            updatedBy: "System",
+                        },
+                    },
+                    { session: session, new: true }
+                );
+
+                await session.commitTransaction();
+                session.endSession();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.OK,
+                        data: updatedUser,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                session.endSession();
+                reject(error);
+            }
+        });
+    }
+
     async LockUnLockAccount(user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();

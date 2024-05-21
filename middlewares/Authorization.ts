@@ -1,5 +1,6 @@
 import AccountModel from "@/models/AccountModel";
 import ApiResponse from "@/utils/ApiResponse";
+import { connectToDB } from "@/utils/database";
 import { verify } from "@/utils/JwtHelper";
 import httpStatus from "http-status";
 import { headers } from "next/headers";
@@ -24,10 +25,12 @@ const auth = async (next: any) => {
                 message: "Invalid access token",
             });
 
+        await connectToDB();
         const acc = await AccountModel.findOne({
             userId: userToken.user._id,
             isDeleted: false,
         });
+
         if (
             !acc ||
             Math.floor(acc.tokenExpireTime.getTime() / 1000) !== userToken.exp
@@ -53,6 +56,7 @@ const auth = async (next: any) => {
         //         message: "Account has been deleted or locked",
         //     });
 
+        userToken.user.username = acc.username;
         return next(userToken);
     } catch (error) {
         throw error;

@@ -1,15 +1,39 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: [
-            "happyflower.vn",
-            "th.bing.com",
-            "kenh14cdn.com",
-            "product.hstatic.net",
-            "file1.hutech.edu.vn",
-            "media.istockphoto.com",
-            "static.wixstatic.com",
-            "juro.com.vn",
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "happyflower.vn",
+            },
+            {
+                protocol: "https",
+                hostname: "th.bing.com",
+            },
+            {
+                protocol: "https",
+                hostname: "kenh14cdn.com",
+            },
+            {
+                protocol: "https",
+                hostname: "product.hstatic.net",
+            },
+            {
+                protocol: "https",
+                hostname: "file1.hutech.edu.vn",
+            },
+            {
+                protocol: "https",
+                hostname: "media.istockphoto.com",
+            },
+            {
+                protocol: "https",
+                hostname: "static.wixstatic.com",
+            },
+            {
+                protocol: "https",
+                hostname: "juro.com.vn",
+            },
         ],
     },
 };
