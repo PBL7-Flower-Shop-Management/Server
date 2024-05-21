@@ -10,13 +10,16 @@ const OrderSchema = new Schema(
         orderDate: {
             type: Date,
         },
+        shipDate: {
+            type: Date,
+        },
         shipAddress: {
             type: String,
             maxLength: 200,
             trim: true,
             validate: {
                 validator: function (value: any) {
-                    return /^[\w\d\s\/\-]+$/u.test(value);
+                    return /^[\p{L}\d\s\/\-]+$/u.test(value);
                 },
                 message:
                     "Ship address only contains characters, number, space, slash and dash!",

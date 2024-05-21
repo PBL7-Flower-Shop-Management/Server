@@ -57,4 +57,10 @@ export const role = Object.freeze({
     Customer: "Khách hàng",
 });
 
+export const roleMap = {
+    Admin: "Admin",
+    Employee: "Employee",
+    Customer: "Customer",
+};
+
 //value: label

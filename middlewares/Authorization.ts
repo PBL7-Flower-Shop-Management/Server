@@ -65,14 +65,14 @@ const auth = async (next: any) => {
 
 const checkRole = (roles: any[]) => async (userToken: any, next: any) => {
     try {
-        if (!roles.includes(userToken.role)) {
+        if (!roles.includes(userToken.user.role)) {
             return new ApiResponse({
                 status: httpStatus.FORBIDDEN,
                 message: "You do not have access to this route",
             });
         }
 
-        return next(userToken);
+        return next();
     } catch (error) {
         throw error;
     }
