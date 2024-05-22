@@ -57,10 +57,20 @@ export const role = Object.freeze({
     Customer: "Khách hàng",
 });
 
+//server
+
 export const roleMap = {
     Admin: "Admin",
     Employee: "Employee",
     Customer: "Customer",
+};
+
+export const orderStatusMap = {
+    "Pending payment processing": "Pending payment processing",
+    Processing: "Processing",
+    Shipped: "Shipped",
+    Delivered: "Delivered",
+    Cancelled: "Cancelled",
 };
 
 //value: label

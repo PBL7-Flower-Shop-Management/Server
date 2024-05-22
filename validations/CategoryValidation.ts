@@ -138,6 +138,48 @@ const schemas = {
             .noUnknown(true, "Unknown field in request params: ${unknown}")
             .strict(),
     }),
+
+    DeleteCategoriesSchema: yup.object({
+        body: yup
+            .object({
+                categoryIds: yup
+                    .array()
+                    .required("CategoryIds are required")
+                    .test(
+                        "categoryIds-empty",
+                        "CategoryIds can't be empty array",
+                        function (value) {
+                            return value.length !== 0;
+                        }
+                    )
+                    .test(
+                        "categoryIds-valid",
+                        "Invalid category id format in list of category ids",
+                        function (value) {
+                            return (
+                                value.filter(
+                                    (v) =>
+                                        typeof v !== "string" ||
+                                        v.trim() === "" ||
+                                        !mongoose.Types.ObjectId.isValid(v)
+                                ).length === 0
+                            );
+                        }
+                    )
+                    .test(
+                        "categoryIds-distinct",
+                        "There can't be two deleted categories that overlap",
+                        function (value) {
+                            if (value) {
+                                return new Set(value).size === value.length;
+                            }
+                            return true;
+                        }
+                    ),
+            })
+            .noUnknown(true, "Unknown field in request body: ${unknown}")
+            .strict(),
+    }),
 };
 
 export default schemas;

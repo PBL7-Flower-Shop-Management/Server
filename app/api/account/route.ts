@@ -1,6 +1,8 @@
 import AccountController from "@/controllers/AccountController";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AccountValidation";
 import { NextApiRequest } from "next";
@@ -229,14 +231,41 @@ import { NextApiRequest } from "next";
  *                   description: The data length.
  *                 data:
  *                   type: object
+ *
+ *
+ *   delete:
+ *     summary: Delete multiple accounts
+ *     tags: [Account]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accountIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: The list of deleted account ids
+ *     responses:
+ *       204:
+ *         description: Delete accounts successfully
  */
 
 export const GET = async (req: NextApiRequest) => {
     try {
-        let query;
-        ({ req, query: query } = TrimRequest.all(req));
-        await validate(schemas.GetAllAccountSchema)(null, query);
-        return await AccountController.GetAllAccount(query);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let query;
+                    ({ req, query: query } = TrimRequest.all(req));
+                    await validate(schemas.GetAllAccountSchema)(null, query);
+                    return await AccountController.GetAllAccount(query);
+                }
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -244,10 +273,21 @@ export const GET = async (req: NextApiRequest) => {
 
 export const POST = async (req: NextApiRequest) => {
     try {
-        let body = await new Response(req.body).json();
-        ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.CreateAccountSchema)(null, null, body);
-        return await AccountController.CreateAccount(body);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.CreateAccountSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    return await AccountController.CreateAccount(body);
+                }
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -270,6 +310,22 @@ export const PATCH = async (req: NextApiRequest) => {
         ({ req, body: body } = TrimRequest.all(req, null, body));
         await validate(schemas.LockUnLockAccountSchema)(null, null, body);
         return await AccountController.LockUnLockAccount(body);
+    } catch (error: any) {
+        return ErrorHandler(error);
+    }
+};
+
+export const DELETE = async (req: NextApiRequest) => {
+    try {
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin])(userToken, async () => {
+                let body = await new Response(req.body).json();
+                ({ req, body: body } = TrimRequest.all(req, null, body));
+                await validate(schemas.DeleteAccountsSchema)(null, null, body);
+                body.updatedBy = userToken.user.username;
+                return await AccountController.DeleteAccounts(body);
+            });
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }

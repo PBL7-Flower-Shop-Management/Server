@@ -1,7 +1,8 @@
 import FlowerController from "@/controllers/FlowerController";
-import { auth } from "@/middlewares/Authorization";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/FlowerValidation";
 import { NextApiRequest } from "next";
@@ -97,6 +98,7 @@ import { NextApiRequest } from "next";
  *            items:
  *              type: string
  *            description: The list of categorie ids of flower
+ *
  */
 
 /**
@@ -211,6 +213,26 @@ import { NextApiRequest } from "next";
  *                   description: The data length.
  *                 data:
  *                   type: object
+ *
+ *
+ *   delete:
+ *     summary: Delete multiple flowers
+ *     tags: [Flower]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               flowerIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: The list of deleted flower ids
+ *     responses:
+ *       204:
+ *         description: Delete flowers successfully
  */
 
 export const GET = async (req: NextApiRequest) => {
@@ -248,6 +270,29 @@ export const PUT = async (req: NextApiRequest) => {
             await validate(schemas.UpdateFlowerSchema)(null, null, body);
             body.updatedBy = userToken.user.username;
             return await FlowerController.UpdateFlower(body);
+        });
+    } catch (error: any) {
+        return ErrorHandler(error);
+    }
+};
+
+export const DELETE = async (req: NextApiRequest) => {
+    try {
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.DeleteFlowersSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.updatedBy = userToken.user.username;
+                    return await FlowerController.DeleteFlowers(body);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);

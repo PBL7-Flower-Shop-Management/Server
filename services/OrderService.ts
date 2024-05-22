@@ -9,6 +9,7 @@ import UserModel from "@/models/UserModel";
 import AccountModel from "@/models/AccountModel";
 import FlowerModel from "@/models/FlowerModel";
 import OrderDetailModel from "@/models/OrderDetailModel";
+import { orderStatusMap } from "@/utils/constants";
 
 class OrderService {
     async GetAllOrder(query: any): Promise<ApiResponse> {
@@ -243,12 +244,12 @@ class OrderService {
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
-                if (
-                    !(await OrderModel.findOne({
-                        _id: order._id,
-                        isDeleted: false,
-                    }))
-                )
+                const orderDb = await OrderModel.findOne({
+                    _id: order._id,
+                    isDeleted: false,
+                });
+
+                if (!orderDb)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -256,8 +257,20 @@ class OrderService {
                         })
                     );
 
-                //check flower id exists
+                if (
+                    orderDb.status === orderStatusMap.Delivered ||
+                    orderDb.status === orderStatusMap.Cancelled
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "Order can't be updated because it had been delivered or cancelled!",
+                        })
+                    );
+
                 if (order.orderDetails) {
+                    //check flower id exists
                     for (let orderDetail of order.orderDetails) {
                         const flower = await FlowerModel.findOne({
                             _id: orderDetail.flowerId,
@@ -428,6 +441,111 @@ class OrderService {
                 );
             } catch (error) {
                 return reject(error);
+            }
+        });
+    }
+
+    async DeleteOrder(id: string, username: string): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                const orderDb = await OrderModel.findOne({
+                    _id: id,
+                    isDeleted: false,
+                });
+
+                if (!orderDb)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Order not found!",
+                        })
+                    );
+
+                if (
+                    orderDb.status !== orderStatusMap.Delivered &&
+                    orderDb.status !== orderStatusMap.Cancelled
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "Order can only be deleted once it has been delivered or cancelled!",
+                        })
+                    );
+
+                await OrderModel.findOneAndUpdate(
+                    { _id: id },
+                    {
+                        $set: {
+                            isDeleted: true,
+                            updatedAt: moment(),
+                            updatedBy: username ?? "system",
+                        },
+                    },
+                    { session: session, new: true }
+                );
+
+                await session.commitTransaction();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.NO_CONTENT,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
+            }
+        });
+    }
+
+    async DeleteOrders(body: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                const objectIds = body.orderIds.map(
+                    (id: string) => new mongoose.Types.ObjectId(id)
+                );
+
+                const currentDate = moment();
+
+                await OrderModel.updateMany(
+                    { _id: { $in: objectIds } },
+                    {
+                        $set: {
+                            isDeleted: true,
+                            updatedAt: currentDate,
+                            updatedBy: body.updatedBy ?? "System",
+                        },
+                    },
+                    { session: session }
+                );
+
+                await session.commitTransaction();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.NO_CONTENT,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
             }
         });
     }

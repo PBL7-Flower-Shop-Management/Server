@@ -86,12 +86,15 @@ const schemas = {
                         "Invalid flower id format in list of products",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) =>
-                                        typeof v.flowerId !== "string" ||
-                                        !mongoose.Types.ObjectId.isValid(
-                                            v.flowerId
-                                        )
+                                return (
+                                    value.filter(
+                                        (v) =>
+                                            typeof v.flowerId !== "string" ||
+                                            v.flowerId.trim() === "" ||
+                                            !mongoose.Types.ObjectId.isValid(
+                                                v.flowerId
+                                            )
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -102,10 +105,13 @@ const schemas = {
                         "Invalid number of flowers's number format",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) =>
-                                        typeof v.numberOfFlowers !== "number" ||
-                                        !isIntegerNumber(v.numberOfFlowers)
+                                return (
+                                    value.filter(
+                                        (v) =>
+                                            typeof v.numberOfFlowers !==
+                                                "number" ||
+                                            !isIntegerNumber(v.numberOfFlowers)
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -116,8 +122,10 @@ const schemas = {
                         "Number of flowers must be greater than 0",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) => Number(v.numberOfFlowers) <= 0
+                                return (
+                                    value.filter(
+                                        (v) => Number(v.numberOfFlowers) <= 0
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -184,12 +192,15 @@ const schemas = {
                         "Invalid flower id format in list of products",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) =>
-                                        typeof v.flowerId !== "string" ||
-                                        !mongoose.Types.ObjectId.isValid(
-                                            v.flowerId
-                                        )
+                                return (
+                                    value.filter(
+                                        (v) =>
+                                            typeof v.flowerId !== "string" ||
+                                            v.flowerId.trim() === "" ||
+                                            !mongoose.Types.ObjectId.isValid(
+                                                v.flowerId
+                                            )
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -200,10 +211,13 @@ const schemas = {
                         "Invalid number of flowers's number format",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) =>
-                                        typeof v.numberOfFlowers !== "number" ||
-                                        !isIntegerNumber(v.numberOfFlowers)
+                                return (
+                                    value.filter(
+                                        (v) =>
+                                            typeof v.numberOfFlowers !==
+                                                "number" ||
+                                            !isIntegerNumber(v.numberOfFlowers)
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -214,8 +228,10 @@ const schemas = {
                         "Number of flowers must be greater than 0",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) => Number(v.numberOfFlowers) <= 0
+                                return (
+                                    value.filter(
+                                        (v) => Number(v.numberOfFlowers) <= 0
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -226,7 +242,7 @@ const schemas = {
             .strict(),
     }),
 
-    GetOrderDetail: yup.object({
+    GetOrderDetailSchema: yup.object({
         params: yup.object({
             id: yup
                 .string()
@@ -236,6 +252,63 @@ const schemas = {
                     mongoose.Types.ObjectId.isValid(value)
                 ),
         }),
+    }),
+
+    DeleteOrderSchema: yup.object({
+        params: yup
+            .object({
+                id: yup
+                    .string()
+                    .trim()
+                    .required()
+                    .test("is-objectid", "Invalid order id format", (value) =>
+                        mongoose.Types.ObjectId.isValid(value)
+                    ),
+            })
+            .noUnknown(true, "Unknown field in request params: ${unknown}")
+            .strict(),
+    }),
+
+    DeleteOrdersSchema: yup.object({
+        body: yup
+            .object({
+                orderIds: yup
+                    .array()
+                    .required("OrderIds are required")
+                    .test(
+                        "orderIds-empty",
+                        "OrderIds can't be empty array",
+                        function (value) {
+                            return value.length !== 0;
+                        }
+                    )
+                    .test(
+                        "orderIds-valid",
+                        "Invalid order id format in list of order ids",
+                        function (value) {
+                            return (
+                                value.filter(
+                                    (v) =>
+                                        typeof v !== "string" ||
+                                        v.trim() === "" ||
+                                        !mongoose.Types.ObjectId.isValid(v)
+                                ).length === 0
+                            );
+                        }
+                    )
+                    .test(
+                        "orderIds-distinct",
+                        "There can't be two deleted orders that overlap",
+                        function (value) {
+                            if (value) {
+                                return new Set(value).size === value.length;
+                            }
+                            return true;
+                        }
+                    ),
+            })
+            .noUnknown(true, "Unknown field in request body: ${unknown}")
+            .strict(),
     }),
 };
 

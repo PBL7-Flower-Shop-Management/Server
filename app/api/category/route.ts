@@ -1,7 +1,8 @@
 import CategoryController from "@/controllers/CategoryController";
-import { auth } from "@/middlewares/Authorization";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/CategoryValidation";
 import { NextApiRequest } from "next";
@@ -159,6 +160,25 @@ import { NextApiRequest } from "next";
  *                   description: The data length.
  *                 data:
  *                   type: object
+ *
+ *   delete:
+ *     summary: Delete multiple categories
+ *     tags: [Category]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               categoryIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: The list of deleted category ids
+ *     responses:
+ *       204:
+ *         description: Delete categories successfully
  */
 
 export const GET = async (req: NextApiRequest) => {
@@ -196,6 +216,29 @@ export const PUT = async (req: NextApiRequest) => {
             await validate(schemas.UpdateCategorySchema)(null, null, body);
             body.updatedBy = userToken.user.username;
             return await CategoryController.UpdateCategory(body);
+        });
+    } catch (error: any) {
+        return ErrorHandler(error);
+    }
+};
+
+export const DELETE = async (req: NextApiRequest) => {
+    try {
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.DeleteCategoriesSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.updatedBy = userToken.user.username;
+                    return await CategoryController.DeleteCategories(body);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);

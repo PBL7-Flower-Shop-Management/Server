@@ -80,6 +80,14 @@ class FlowerController {
             throw error;
         }
     }
+
+    async DeleteFlowers(body: any) {
+        try {
+            return await FlowerService.DeleteFlowers(body);
+        } catch (error: any) {
+            throw error;
+        }
+    }
 }
 
 export default new FlowerController();

@@ -59,6 +59,14 @@ class CategoryController {
             throw error;
         }
     }
+
+    async DeleteCategories(body: any) {
+        try {
+            return await CategoryService.DeleteCategories(body);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default new CategoryController();

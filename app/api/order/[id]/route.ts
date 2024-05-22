@@ -36,6 +36,20 @@ import { NextApiRequest } from "next";
  *                   description: The number of order results.
  *                 data:
  *                   type: object
+ *
+ *   delete:
+ *     summary: Delete an order
+ *     tags: [Order]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: Order id
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Delete order successfully
  */
 
 export const GET = async (req: NextApiRequest, { params }: any) => {
@@ -45,10 +59,26 @@ export const GET = async (req: NextApiRequest, { params }: any) => {
                 userToken,
                 async () => {
                     ({ params: params } = TrimRequest.all(req, params));
-                    await validate(schemas.GetOrderDetail)(params);
+                    await validate(schemas.GetOrderDetailSchema)(params);
                     const { id } = params;
                     return await OrderController.GetOrderDetail(id);
                 }
+            );
+        });
+    } catch (error: any) {
+        return ErrorHandler(error);
+    }
+};
+
+export const DELETE = async (req: NextApiRequest, { params }: any) => {
+    try {
+        return await auth(async (userToken: any) => {
+            ({ params: params } = TrimRequest.all(req, params));
+            await validate(schemas.DeleteOrderSchema)(params);
+            const { id } = params;
+            return await OrderController.DeleteOrder(
+                id,
+                userToken.user.username
             );
         });
     } catch (error: any) {

@@ -12,7 +12,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import vi from "date-fns/locale/vi";
 import { ConfigProvider } from "antd";
-import { CacheProvider } from "@emotion/react";
 import viVN from "antd/lib/locale/vi_VN";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,7 +28,13 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
-                <link rel="icon" href="/assets/images/logo.svg" />
+                <link
+                    rel="icon"
+                    type="image/png"
+                    sizes="32x32"
+                    href="/images/flower-icon.png"
+                />
+                {/* <link rel="icon" href="" /> */}
             </head>
             <body className={inter.className}>
                 <LocalizationProvider

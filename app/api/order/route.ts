@@ -1,7 +1,8 @@
 import OrderController from "@/controllers/OrderController";
-import { auth } from "@/middlewares/Authorization";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/OrderValidation";
 import { NextApiRequest } from "next";
@@ -235,6 +236,25 @@ import { NextApiRequest } from "next";
  *                   description: The data length.
  *                 data:
  *                   type: object
+ *
+ *   delete:
+ *     summary: Delete multiple orders
+ *     tags: [Order]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               orderIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: The list of deleted order ids
+ *     responses:
+ *       204:
+ *         description: Delete orders successfully
  */
 
 export const GET = async (req: NextApiRequest) => {
@@ -272,6 +292,29 @@ export const PUT = async (req: NextApiRequest) => {
             await validate(schemas.UpdateOrderSchema)(null, null, body);
             body.updatedBy = userToken.user.username;
             return await OrderController.UpdateOrder(body);
+        });
+    } catch (error: any) {
+        return ErrorHandler(error);
+    }
+};
+
+export const DELETE = async (req: NextApiRequest) => {
+    try {
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.DeleteOrdersSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.updatedBy = userToken.user.username;
+                    return await OrderController.DeleteOrders(body);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);

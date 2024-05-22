@@ -49,6 +49,14 @@ class AccountController {
         }
     }
 
+    async DeleteAccounts(body: any) {
+        try {
+            return await AccountService.DeleteAccounts(body);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async AdminResetPassword(id: string) {
         try {
             return await AccountService.AdminResetPassword(id);

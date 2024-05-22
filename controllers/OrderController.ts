@@ -32,6 +32,22 @@ class OrderController {
             throw error;
         }
     }
+
+    async DeleteOrder(id: string, username: string) {
+        try {
+            return await OrderService.DeleteOrder(id, username);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async DeleteOrders(body: any) {
+        try {
+            return await OrderService.DeleteOrders(body);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default new OrderController();

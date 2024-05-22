@@ -180,6 +180,48 @@ const schemas = {
             .noUnknown(true, "Unknown field in request body: ${unknown}")
             .strict(),
     }),
+
+    DeleteAccountsSchema: yup.object({
+        body: yup
+            .object({
+                accountIds: yup
+                    .array()
+                    .required("AccountIds are required")
+                    .test(
+                        "accountIds-empty",
+                        "AccountIds can't be empty array",
+                        function (value) {
+                            return value.length !== 0;
+                        }
+                    )
+                    .test(
+                        "accountIds-valid",
+                        "Invalid account id format in list of account ids",
+                        function (value) {
+                            return (
+                                value.filter(
+                                    (v) =>
+                                        typeof v !== "string" ||
+                                        v.trim() === "" ||
+                                        !mongoose.Types.ObjectId.isValid(v)
+                                ).length === 0
+                            );
+                        }
+                    )
+                    .test(
+                        "accountIds-distinct",
+                        "There can't be two deleted accounts that overlap",
+                        function (value) {
+                            if (value) {
+                                return new Set(value).size === value.length;
+                            }
+                            return true;
+                        }
+                    ),
+            })
+            .noUnknown(true, "Unknown field in request body: ${unknown}")
+            .strict(),
+    }),
 };
 
 export default schemas;

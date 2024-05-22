@@ -25,7 +25,7 @@ class UserController {
         }
     }
 
-    async ForgotPassword(body: string) {
+    async ForgotPassword(body: any) {
         try {
             return await UserService.ForgotPassword(body);
         } catch (error) {
@@ -33,7 +33,7 @@ class UserController {
         }
     }
 
-    async ResetPassword(body: string) {
+    async ResetPassword(body: any) {
         try {
             return await UserService.ResetPassword(body);
         } catch (error) {
@@ -41,7 +41,7 @@ class UserController {
         }
     }
 
-    async ChangePassword(body: string, _id: string) {
+    async ChangePassword(body: any, _id: string) {
         try {
             return await UserService.ChangePassword(body, _id);
         } catch (error) {

@@ -523,6 +523,62 @@ class AccountService {
         });
     }
 
+    async DeleteAccounts(body: any): Promise<ApiResponse> {
+        return new Promise(async (resolve, reject) => {
+            await connectToDB();
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                //delete avatar dianary
+                const objectIds = body.accountIds.map(
+                    (id: string) => new mongoose.Types.ObjectId(id)
+                );
+
+                const currentDate = moment();
+
+                await AccountModel.updateMany(
+                    { userId: { $in: objectIds } },
+                    {
+                        $set: {
+                            isDeleted: true,
+                            updatedAt: currentDate,
+                            updatedBy: body.updatedBy ?? "System",
+                        },
+                    },
+                    { session: session }
+                );
+
+                await UserModel.updateMany(
+                    { _id: { $in: objectIds } },
+                    {
+                        $set: {
+                            isDeleted: true,
+                            updatedAt: currentDate,
+                            updatedBy: body.updatedBy ?? "System",
+                        },
+                    },
+                    { session: session }
+                );
+
+                await session.commitTransaction();
+
+                resolve(
+                    new ApiResponse({
+                        status: HttpStatus.NO_CONTENT,
+                    })
+                );
+            } catch (error: any) {
+                await session.abortTransaction();
+                return reject(error);
+            } finally {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
+            }
+        });
+    }
+
     async AdminResetPassword(id: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();

@@ -28,7 +28,6 @@ const auth = async (next: any) => {
         await connectToDB();
         const acc = await AccountModel.findOne({
             userId: userToken.user._id,
-            isDeleted: false,
         });
 
         if (
@@ -38,6 +37,13 @@ const auth = async (next: any) => {
             return new ApiResponse({
                 status: httpStatus.UNAUTHORIZED,
                 message: "Invalid access token",
+            });
+
+        if (acc.isDeleted || !acc.isActived)
+            return new ApiResponse({
+                status: httpStatus.FORBIDDEN,
+                message:
+                    "The account has been deleted or has not been activated",
             });
 
         // if (

@@ -71,8 +71,13 @@ const schemas = {
                         "Invalid category id format in list of category ids",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) => !mongoose.Types.ObjectId.isValid(v)
+                                return (
+                                    value.filter(
+                                        (v) =>
+                                            typeof v !== "string" ||
+                                            v.trim() === "" ||
+                                            !mongoose.Types.ObjectId.isValid(v)
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -144,10 +149,13 @@ const schemas = {
                         "Invalid category id format in list of category ids",
                         function (value) {
                             if (value) {
-                                return !value.find(
-                                    (v) =>
-                                        typeof v !== "string" ||
-                                        !mongoose.Types.ObjectId.isValid(v)
+                                return (
+                                    value.filter(
+                                        (v) =>
+                                            typeof v !== "string" ||
+                                            v.trim() === "" ||
+                                            !mongoose.Types.ObjectId.isValid(v)
+                                    ).length === 0
                                 );
                             }
                             return true;
@@ -246,6 +254,48 @@ const schemas = {
                     mongoose.Types.ObjectId.isValid(value)
                 ),
         }),
+    }),
+
+    DeleteFlowersSchema: yup.object({
+        body: yup
+            .object({
+                flowerIds: yup
+                    .array()
+                    .required("FlowerIds are required")
+                    .test(
+                        "flowerIds-empty",
+                        "FlowerIds can't be empty array",
+                        function (value) {
+                            return value.length !== 0;
+                        }
+                    )
+                    .test(
+                        "flowerIds-valid",
+                        "Invalid flower id format in list of flower ids",
+                        function (value) {
+                            return (
+                                value.filter(
+                                    (v) =>
+                                        typeof v !== "string" ||
+                                        v.trim() === "" ||
+                                        !mongoose.Types.ObjectId.isValid(v)
+                                ).length === 0
+                            );
+                        }
+                    )
+                    .test(
+                        "flowerIds-distinct",
+                        "There can't be two deleted flowers that overlap",
+                        function (value) {
+                            if (value) {
+                                return new Set(value).size === value.length;
+                            }
+                            return true;
+                        }
+                    ),
+            })
+            .noUnknown(true, "Unknown field in request body: ${unknown}")
+            .strict(),
     }),
 };
 
