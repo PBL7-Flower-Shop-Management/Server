@@ -672,6 +672,18 @@ class FlowerService {
         return new Promise(async (resolve, reject) => {
             try {
                 await connectToDB();
+                const flower = await FlowerModel.findOne({
+                    _id: id,
+                    isDeleted: false,
+                });
+                if (!flower)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.NOT_FOUND,
+                            message: "Not found flower",
+                        })
+                    );
+
                 const feedbacks = await OrderDetailModel.aggregate([
                     {
                         $match: {
@@ -681,8 +693,8 @@ class FlowerService {
                     {
                         $lookup: {
                             from: "comments",
-                            localField: "orderId",
-                            foreignField: "orderId",
+                            localField: "_id",
+                            foreignField: "orderDetailId",
                             as: "comments",
                         },
                     },

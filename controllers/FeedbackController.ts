@@ -33,17 +33,9 @@ class FeedbackController {
         }
     }
 
-    async GetFeedbackById(id: string) {
+    async UpdateFeedbackLike(body: any, userId: string) {
         try {
-            return await FeedbackService.GetFeedbackById(id);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    async DeleteFeedback(id: string, username: string) {
-        try {
-            return await FeedbackService.DeleteFeedback(id, username);
+            return await FeedbackService.UpdateFeedbackLike(body, userId);
         } catch (error) {
             throw error;
         }

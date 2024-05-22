@@ -181,9 +181,9 @@ import { NextApiRequest } from "next";
  *                  type: string
  *                  description: The feedback id.
  *                  required: true
- *                numberOfLikes:
- *                  type: number
- *                  default: 0
+ *                isLike:
+ *                  type: boolean
+ *                  default: false
  *                  description: The number of likes of feedback.
  *     responses:
  *       200:
@@ -234,20 +234,13 @@ export const POST = async (req: NextApiRequest) => {
 export const PUT = async (req: NextApiRequest) => {
     try {
         return await auth(async (userToken: any) => {
-            return await checkRole([roleMap.Admin, roleMap.Employee])(
-                userToken,
-                async () => {
-                    let body = await new Response(req.body).json();
-                    ({ req, body: body } = TrimRequest.all(req, null, body));
-                    await validate(schemas.UpdateFeedbackSchema)(
-                        null,
-                        null,
-                        body
-                    );
-                    body.updatedBy = userToken.user.username;
-                    return await FeedbackController.UpdateFeedback(body);
-                }
-            );
+            return await checkRole([roleMap.Customer])(userToken, async () => {
+                let body = await new Response(req.body).json();
+                ({ req, body: body } = TrimRequest.all(req, null, body));
+                await validate(schemas.UpdateFeedbackSchema)(null, null, body);
+                body.updatedBy = userToken.user.username;
+                return await FeedbackController.UpdateFeedback(body);
+            });
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -266,7 +259,10 @@ export const PATCH = async (req: NextApiRequest) => {
                     body
                 );
                 body.updatedBy = userToken.user.username;
-                return await FeedbackController.UpdateFeedbackLike(body);
+                return await FeedbackController.UpdateFeedbackLike(
+                    body,
+                    userToken.user._id
+                );
             });
         });
     } catch (error: any) {

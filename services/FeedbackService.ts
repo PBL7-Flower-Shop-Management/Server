@@ -8,6 +8,8 @@ import { parseSortString } from "@/utils/helper";
 import OrderModel from "@/models/OrderModel";
 import OrderDetailModel from "@/models/OrderDetailModel";
 import AccountModel from "@/models/AccountModel";
+import { orderStatusMap } from "@/utils/constants";
+import UserLikeCommentModel from "@/models/UserLikeCommentModel";
 
 class FeedbackService {
     async GetRecentFeedback(limit?: number): Promise<ApiResponse> {
@@ -203,6 +205,15 @@ class FeedbackService {
                         })
                     );
 
+                if (order.status !== orderStatusMap.Delivered)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "You can't feedback for undelivered order!",
+                        })
+                    );
+
                 const user = await AccountModel.findOne({
                     userId: order.orderUserId,
                     isDeleted: false,
@@ -267,12 +278,10 @@ class FeedbackService {
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
-                if (
-                    !(await CommentModel.findOne({
-                        _id: feedback._id,
-                        isDeleted: false,
-                    }))
-                )
+                const feedbackDb = await CommentModel.findOne({
+                    _id: feedback._id,
+                });
+                if (!feedbackDb)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -280,20 +289,61 @@ class FeedbackService {
                         })
                     );
 
-                if (
-                    await CommentModel.findOne({
-                        _id: { $ne: feedback._id },
-                        feedbackName: feedback.feedbackName,
-                        isDeleted: false,
-                    })
-                ) {
+                const orderdetail = await OrderDetailModel.findOne({
+                    _id: feedbackDb.orderDetailId,
+                });
+                if (!orderdetail)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
-                            message: "Feedback name already exists!",
+                            message: "Order don't exist!",
                         })
                     );
-                }
+
+                const order = await OrderModel.findOne({
+                    _id: orderdetail.orderId,
+                    isDeleted: false,
+                });
+                if (!order)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Order don't exist!",
+                        })
+                    );
+
+                if (order.status !== orderStatusMap.Delivered)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "You can't feedback for undelivered order!",
+                        })
+                    );
+
+                const user = await AccountModel.findOne({
+                    userId: order.orderUserId,
+                    isDeleted: false,
+                    isActived: true,
+                });
+
+                if (!user)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "Order user don't exist or haven't been actived account!",
+                        })
+                    );
+
+                if (user.username !== feedback.updatedBy)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "You don't have access to update feedback for order of other user!",
+                        })
+                    );
 
                 //update image cloudinary
 
@@ -302,8 +352,7 @@ class FeedbackService {
                     {
                         $set: {
                             ...feedback,
-                            updatedAt: moment(),
-                            updatedBy: feedback.updatedBy ?? "System",
+                            commentDate: moment(),
                         },
                     },
                     { session: session, new: true }
@@ -329,55 +378,17 @@ class FeedbackService {
         });
     }
 
-    async GetFeedbackById(id: string): Promise<ApiResponse> {
-        return new Promise(async (resolve, reject) => {
-            await connectToDB();
-            try {
-                const feedback = await CommentModel.findOne(
-                    {
-                        _id: id,
-                        isDeleted: false,
-                    },
-                    {
-                        _id: 1,
-                        feedbackName: 1,
-                        image: 1,
-                        description: 1,
-                    }
-                );
-
-                if (!feedback)
-                    return reject(
-                        new ApiResponse({
-                            status: HttpStatus.NOT_FOUND,
-                            message: "Feedback not found!",
-                        })
-                    );
-
-                resolve(
-                    new ApiResponse({
-                        status: HttpStatus.OK,
-                        data: feedback,
-                    })
-                );
-            } catch (error: any) {
-                return reject(error);
-            }
-        });
-    }
-
-    async DeleteFeedback(id: string, username: string): Promise<ApiResponse> {
+    async UpdateFeedbackLike(body: any, userId: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
-                if (
-                    !(await CommentModel.findOne({
-                        _id: id,
-                        isDeleted: false,
-                    }))
-                )
+                body.isLike = body.isLike ?? false;
+                const feedbackDb = await CommentModel.findOne({
+                    _id: body._id,
+                });
+                if (!feedbackDb)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -385,25 +396,92 @@ class FeedbackService {
                         })
                     );
 
-                //delete avatar dianary
+                // const orderdetail = await OrderDetailModel.findOne({
+                //     _id: feedbackDb.orderDetailId,
+                // });
+                // if (!orderdetail)
+                //     return reject(
+                //         new ApiResponse({
+                //             status: HttpStatus.BAD_REQUEST,
+                //             message: "Order of feedback don't exist!",
+                //         })
+                //     );
 
-                await CommentModel.findOneAndUpdate(
-                    { _id: id },
+                // const order = await OrderModel.findOne({
+                //     _id: orderdetail.orderId,
+                //     isDeleted: false,
+                // });
+                // if (!order)
+                //     return reject(
+                //         new ApiResponse({
+                //             status: HttpStatus.BAD_REQUEST,
+                //             message: "Order of feedback don't exist!",
+                //         })
+                //     );
+
+                // if (order.orderUserId.toString() === userId)
+                //     return reject(
+                //         new ApiResponse({
+                //             status: HttpStatus.FORBIDDEN,
+                //             message: "You can't like your feedback!",
+                //         })
+                //     );
+
+                if (
+                    body.isLike ===
+                    Boolean(
+                        await UserLikeCommentModel.exists({
+                            userId: userId,
+                            commentId: feedbackDb._id,
+                        })
+                    )
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "You had liked/disliked on this feedback before!",
+                        })
+                    );
+
+                //update image cloudinary
+
+                const updatedFeedback = await CommentModel.findOneAndUpdate(
+                    { _id: body._id },
                     {
                         $set: {
-                            isDeleted: true,
-                            updatedAt: moment(),
-                            updatedBy: username ?? "system",
+                            numberOfLikes: body.isLike
+                                ? feedbackDb.numberOfLikes + 1
+                                : feedbackDb.numberOfLikes > 0
+                                ? feedbackDb.numberOfLikes - 1
+                                : 0,
                         },
                     },
                     { session: session, new: true }
                 );
 
+                if (body.isLike)
+                    await UserLikeCommentModel.create(
+                        [
+                            {
+                                userId: userId,
+                                commentId: feedbackDb._id,
+                            },
+                        ],
+                        { session: session }
+                    );
+                else
+                    await UserLikeCommentModel.deleteOne({
+                        userId: userId,
+                        commentId: feedbackDb._id,
+                    });
+
                 await session.commitTransaction();
 
                 resolve(
                     new ApiResponse({
-                        status: HttpStatus.NO_CONTENT,
+                        status: HttpStatus.OK,
+                        data: updatedFeedback,
                     })
                 );
             } catch (error: any) {
