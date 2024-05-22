@@ -12,9 +12,10 @@ import {
     unicodeToAscii,
 } from "@/utils/helper";
 import { sendMail } from "@/utils/sendMail";
+import { roleMap } from "@/utils/constants";
 
 class AccountService {
-    async GetAllAccount(query: any): Promise<ApiResponse> {
+    async GetAllAccount(query: any, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             try {
                 await connectToDB();
@@ -39,6 +40,10 @@ class AccountService {
                     {
                         $match: {
                             isDeleted: false,
+                            role:
+                                userRole === roleMap.Employee
+                                    ? roleMap.Customer
+                                    : undefined,
                         },
                     },
                     {
@@ -147,12 +152,24 @@ class AccountService {
         });
     }
 
-    async CreateAccount(user: any): Promise<ApiResponse> {
+    async CreateAccount(user: any, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                if (
+                    userRole === roleMap.Employee &&
+                    user.role !== roleMap.Customer
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "You only have access to create account for customer!",
+                        })
+                    );
+
                 if (
                     await UserModel.findOne({ email: user.email.toLowerCase() })
                 ) {
@@ -263,17 +280,19 @@ class AccountService {
         });
     }
 
-    async UpdateAccount(user: any): Promise<ApiResponse> {
+    async UpdateAccount(user: any, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                const userDb = await UserModel.findOne({
+                    _id: user._id,
+                    isDeleted: false,
+                });
+
                 if (
-                    !(await UserModel.findOne({
-                        _id: user._id,
-                        isDeleted: false,
-                    })) ||
+                    !userDb ||
                     !(await AccountModel.findOne({
                         userId: user._id,
                         isDeleted: false,
@@ -283,6 +302,18 @@ class AccountService {
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
+                        })
+                    );
+
+                if (
+                    userRole === roleMap.Employee &&
+                    userDb.role !== roleMap.Customer
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "You only have access to edit customer information!",
                         })
                     );
 
@@ -334,17 +365,19 @@ class AccountService {
         });
     }
 
-    async LockUnLockAccount(user: any): Promise<ApiResponse> {
+    async LockUnLockAccount(user: any, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                const userDb = await UserModel.findOne({
+                    _id: user._id,
+                    isDeleted: false,
+                });
+
                 if (
-                    !(await UserModel.findOne({
-                        _id: user._id,
-                        isDeleted: false,
-                    })) ||
+                    !userDb ||
                     !(await AccountModel.findOne({
                         userId: user._id,
                         isDeleted: false,
@@ -354,6 +387,18 @@ class AccountService {
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
+                        })
+                    );
+
+                if (
+                    userRole === roleMap.Employee &&
+                    userDb.role !== roleMap.Customer
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "You only have access to lock/unlock customer account!",
                         })
                     );
 
@@ -389,15 +434,17 @@ class AccountService {
         });
     }
 
-    async GetAccountById(id: string): Promise<ApiResponse> {
+    async GetAccountById(id: string, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             try {
+                const userDb = await UserModel.findOne({
+                    _id: id,
+                    isDeleted: false,
+                });
+
                 if (
-                    !(await UserModel.findOne({
-                        _id: id,
-                        isDeleted: false,
-                    })) ||
+                    !userDb ||
                     !(await AccountModel.findOne({
                         userId: id,
                         isDeleted: false,
@@ -407,6 +454,18 @@ class AccountService {
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
+                        })
+                    );
+
+                if (
+                    userRole === roleMap.Employee &&
+                    userDb.role !== roleMap.Customer
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "You only have access to get customer information!",
                         })
                     );
 
@@ -455,17 +514,19 @@ class AccountService {
         });
     }
 
-    async DeleteAccount(id: string): Promise<ApiResponse> {
+    async DeleteAccount(id: string, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                const userDb = await UserModel.findOne({
+                    _id: id,
+                    isDeleted: false,
+                });
+
                 if (
-                    !(await UserModel.findOne({
-                        _id: id,
-                        isDeleted: false,
-                    })) ||
+                    !userDb ||
                     !(await AccountModel.findOne({
                         userId: id,
                         isDeleted: false,
@@ -475,6 +536,17 @@ class AccountService {
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account not found!",
+                        })
+                    );
+
+                if (
+                    userRole === roleMap.Employee &&
+                    userDb.role !== roleMap.Customer
+                )
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message: "You only have access to delete customer!",
                         })
                     );
 
@@ -523,12 +595,30 @@ class AccountService {
         });
     }
 
-    async DeleteAccounts(body: any): Promise<ApiResponse> {
+    async DeleteAccounts(body: any, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                if (userRole === roleMap.Employee) {
+                    for (const id of body.accountIds) {
+                        const userDb = await UserModel.findOne({
+                            _id: id,
+                            isDeleted: false,
+                        });
+
+                        if (userDb && userDb.role !== roleMap.Customer)
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.FORBIDDEN,
+                                    message:
+                                        "You only have access to delete customer account!",
+                                })
+                            );
+                    }
+                }
+
                 //delete avatar dianary
                 const objectIds = body.accountIds.map(
                     (id: string) => new mongoose.Types.ObjectId(id)

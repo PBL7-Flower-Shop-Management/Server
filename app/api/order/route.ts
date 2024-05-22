@@ -259,11 +259,16 @@ import { NextApiRequest } from "next";
 
 export const GET = async (req: NextApiRequest) => {
     try {
-        return await auth(async () => {
-            let query;
-            ({ req, query: query } = TrimRequest.all(req));
-            await validate(schemas.GetAllOrderSchema)(null, query);
-            return await OrderController.GetAllOrder(query);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let query;
+                    ({ req, query: query } = TrimRequest.all(req));
+                    await validate(schemas.GetAllOrderSchema)(null, query);
+                    return await OrderController.GetAllOrder(query);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -277,7 +282,7 @@ export const POST = async (req: NextApiRequest) => {
             ({ req, body: body } = TrimRequest.all(req, null, body));
             await validate(schemas.CreateOrderSchema)(null, null, body);
             body.createdBy = userToken.user.username;
-            return await OrderController.CreateOrder(body);
+            return await OrderController.CreateOrder(body, userToken.user.role);
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -291,7 +296,7 @@ export const PUT = async (req: NextApiRequest) => {
             ({ req, body: body } = TrimRequest.all(req, null, body));
             await validate(schemas.UpdateOrderSchema)(null, null, body);
             body.updatedBy = userToken.user.username;
-            return await OrderController.UpdateOrder(body);
+            return await OrderController.UpdateOrder(body, userToken.user.role);
         });
     } catch (error: any) {
         return ErrorHandler(error);

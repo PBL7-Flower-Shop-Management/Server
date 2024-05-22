@@ -1,6 +1,7 @@
 import UserController from "@/controllers/UserController";
-import { auth } from "@/middlewares/Authorization";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
+import { roleMap } from "@/utils/constants";
 
 /**
  * @swagger
@@ -75,7 +76,9 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 export const GET = async () => {
     try {
         return await auth(async (userToken: any) => {
-            return await UserController.GetCartByUserId(userToken.user._id);
+            return await checkRole([roleMap.Customer])(userToken, async () => {
+                return await UserController.GetCartByUserId(userToken.user._id);
+            });
         });
     } catch (error: any) {
         return ErrorHandler(error);

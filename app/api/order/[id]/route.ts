@@ -55,15 +55,10 @@ import { NextApiRequest } from "next";
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
         return await auth(async (userToken: any) => {
-            return await checkRole([roleMap.Admin, roleMap.Employee])(
-                userToken,
-                async () => {
-                    ({ params: params } = TrimRequest.all(req, params));
-                    await validate(schemas.GetOrderDetailSchema)(params);
-                    const { id } = params;
-                    return await OrderController.GetOrderDetail(id);
-                }
-            );
+            ({ params: params } = TrimRequest.all(req, params));
+            await validate(schemas.GetOrderDetailSchema)(params);
+            const { id } = params;
+            return await OrderController.GetOrderDetail(id, userToken.user);
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -73,12 +68,17 @@ export const GET = async (req: NextApiRequest, { params }: any) => {
 export const DELETE = async (req: NextApiRequest, { params }: any) => {
     try {
         return await auth(async (userToken: any) => {
-            ({ params: params } = TrimRequest.all(req, params));
-            await validate(schemas.DeleteOrderSchema)(params);
-            const { id } = params;
-            return await OrderController.DeleteOrder(
-                id,
-                userToken.user.username
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    ({ params: params } = TrimRequest.all(req, params));
+                    await validate(schemas.DeleteOrderSchema)(params);
+                    const { id } = params;
+                    return await OrderController.DeleteOrder(
+                        id,
+                        userToken.user.username
+                    );
+                }
             );
         });
     } catch (error: any) {

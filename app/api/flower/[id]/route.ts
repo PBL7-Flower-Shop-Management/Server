@@ -1,7 +1,8 @@
 import FlowerController from "@/controllers/FlowerController";
-import { auth } from "@/middlewares/Authorization";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/FlowerValidation";
 import { NextApiRequest } from "next";
@@ -65,12 +66,17 @@ export const GET = async (req: NextApiRequest, { params }: any) => {
 export const DELETE = async (req: NextApiRequest, { params }: any) => {
     try {
         return await auth(async (userToken: any) => {
-            ({ params: params } = TrimRequest.all(req, params));
-            await validate(schemas.DeleteFlowerSchema)(params);
-            const { id } = params;
-            return await FlowerController.DeleteFlower(
-                id,
-                userToken.user.username
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    ({ params: params } = TrimRequest.all(req, params));
+                    await validate(schemas.DeleteFlowerSchema)(params);
+                    const { id } = params;
+                    return await FlowerController.DeleteFlower(
+                        id,
+                        userToken.user.username
+                    );
+                }
             );
         });
     } catch (error: any) {

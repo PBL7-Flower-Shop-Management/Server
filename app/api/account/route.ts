@@ -262,7 +262,10 @@ export const GET = async (req: NextApiRequest) => {
                     let query;
                     ({ req, query: query } = TrimRequest.all(req));
                     await validate(schemas.GetAllAccountSchema)(null, query);
-                    return await AccountController.GetAllAccount(query);
+                    return await AccountController.GetAllAccount(
+                        query,
+                        userToken.user.role
+                    );
                 }
             );
         });
@@ -284,7 +287,10 @@ export const POST = async (req: NextApiRequest) => {
                         null,
                         body
                     );
-                    return await AccountController.CreateAccount(body);
+                    return await AccountController.CreateAccount(
+                        body,
+                        userToken.user.role
+                    );
                 }
             );
         });
@@ -295,10 +301,24 @@ export const POST = async (req: NextApiRequest) => {
 
 export const PUT = async (req: NextApiRequest) => {
     try {
-        let body = await new Response(req.body).json();
-        ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.UpdateAccountSchema)(null, null, body);
-        return await AccountController.UpdateAccount(body);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.UpdateAccountSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    return await AccountController.UpdateAccount(
+                        body,
+                        userToken.user.role
+                    );
+                }
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -306,10 +326,24 @@ export const PUT = async (req: NextApiRequest) => {
 
 export const PATCH = async (req: NextApiRequest) => {
     try {
-        let body = await new Response(req.body).json();
-        ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.LockUnLockAccountSchema)(null, null, body);
-        return await AccountController.LockUnLockAccount(body);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.LockUnLockAccountSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    return await AccountController.LockUnLockAccount(
+                        body,
+                        userToken.user.role
+                    );
+                }
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -318,13 +352,23 @@ export const PATCH = async (req: NextApiRequest) => {
 export const DELETE = async (req: NextApiRequest) => {
     try {
         return await auth(async (userToken: any) => {
-            return await checkRole([roleMap.Admin])(userToken, async () => {
-                let body = await new Response(req.body).json();
-                ({ req, body: body } = TrimRequest.all(req, null, body));
-                await validate(schemas.DeleteAccountsSchema)(null, null, body);
-                body.updatedBy = userToken.user.username;
-                return await AccountController.DeleteAccounts(body);
-            });
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.DeleteAccountsSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.updatedBy = userToken.user.username;
+                    return await AccountController.DeleteAccounts(
+                        body,
+                        userToken.user.role
+                    );
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);

@@ -1,57 +1,57 @@
 import AccountService from "@/services/AccountService";
 
 class AccountController {
-    async GetAllAccount(query: any) {
+    async GetAllAccount(query: any, userRole: string) {
         try {
-            return await AccountService.GetAllAccount(query);
+            return await AccountService.GetAllAccount(query, userRole);
         } catch (error) {
             throw error;
         }
     }
 
-    async CreateAccount(body: any) {
+    async CreateAccount(body: any, userRole: string) {
         try {
-            return await AccountService.CreateAccount(body);
+            return await AccountService.CreateAccount(body, userRole);
         } catch (error) {
             throw error;
         }
     }
 
-    async UpdateAccount(body: any) {
+    async UpdateAccount(body: any, userRole: string) {
         try {
-            return await AccountService.UpdateAccount(body);
+            return await AccountService.UpdateAccount(body, userRole);
         } catch (error) {
             throw error;
         }
     }
 
-    async LockUnLockAccount(body: any) {
+    async LockUnLockAccount(body: any, userRole: string) {
         try {
-            return await AccountService.LockUnLockAccount(body);
+            return await AccountService.LockUnLockAccount(body, userRole);
         } catch (error) {
             throw error;
         }
     }
 
-    async GetAccountById(id: string) {
+    async GetAccountById(id: string, userRole: string) {
         try {
-            return await AccountService.GetAccountById(id);
+            return await AccountService.GetAccountById(id, userRole);
         } catch (error) {
             throw error;
         }
     }
 
-    async DeleteAccount(id: string) {
+    async DeleteAccount(id: string, userRole: string) {
         try {
-            return await AccountService.DeleteAccount(id);
+            return await AccountService.DeleteAccount(id, userRole);
         } catch (error) {
             throw error;
         }
     }
 
-    async DeleteAccounts(body: any) {
+    async DeleteAccounts(body: any, userRole: string) {
         try {
-            return await AccountService.DeleteAccounts(body);
+            return await AccountService.DeleteAccounts(body, userRole);
         } catch (error) {
             throw error;
         }

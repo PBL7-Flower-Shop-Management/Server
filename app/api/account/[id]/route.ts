@@ -1,6 +1,8 @@
 import AccountController from "@/controllers/AccountController";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AccountValidation";
 import { NextApiRequest } from "next";
@@ -52,10 +54,20 @@ import { NextApiRequest } from "next";
 
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
-        ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.GetByIdSchema)(params);
-        const { id } = params;
-        return await AccountController.GetAccountById(id);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    ({ params: params } = TrimRequest.all(req, params));
+                    await validate(schemas.GetByIdSchema)(params);
+                    const { id } = params;
+                    return await AccountController.GetAccountById(
+                        id,
+                        userToken.user.role
+                    );
+                }
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -63,10 +75,20 @@ export const GET = async (req: NextApiRequest, { params }: any) => {
 
 export const DELETE = async (req: NextApiRequest, { params }: any) => {
     try {
-        ({ params: params } = TrimRequest.all(req, params));
-        await validate(schemas.DeleteAccountSchema)(params);
-        const { id } = params;
-        return await AccountController.DeleteAccount(id);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    ({ params: params } = TrimRequest.all(req, params));
+                    await validate(schemas.DeleteAccountSchema)(params);
+                    const { id } = params;
+                    return await AccountController.DeleteAccount(
+                        id,
+                        userToken.user.role
+                    );
+                }
+            );
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }

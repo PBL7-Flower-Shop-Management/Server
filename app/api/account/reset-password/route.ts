@@ -1,6 +1,8 @@
 import AccountController from "@/controllers/AccountController";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AccountValidation";
 import { NextApiRequest } from "next";
@@ -37,11 +39,19 @@ import { NextApiRequest } from "next";
 
 export const PATCH = async (req: NextApiRequest) => {
     try {
-        let body = await new Response(req.body).json();
-        ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.AdminResetPasswordSchema)(null, null, body);
-        const { _id: id } = body;
-        return await AccountController.AdminResetPassword(id);
+        return await auth(async (userToken: any) => {
+            return await checkRole([roleMap.Admin])(userToken, async () => {
+                let body = await new Response(req.body).json();
+                ({ req, body: body } = TrimRequest.all(req, null, body));
+                await validate(schemas.AdminResetPasswordSchema)(
+                    null,
+                    null,
+                    body
+                );
+                const { _id: id } = body;
+                return await AccountController.AdminResetPassword(id);
+            });
+        });
     } catch (error: any) {
         return ErrorHandler(error);
     }

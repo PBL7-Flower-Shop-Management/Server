@@ -183,12 +183,10 @@ import { NextApiRequest } from "next";
 
 export const GET = async (req: NextApiRequest) => {
     try {
-        return await auth(async () => {
-            let query;
-            ({ req, query: query } = TrimRequest.all(req));
-            await validate(schemas.GetAllCategorySchema)(null, query);
-            return await CategoryController.GetAllCategory(query);
-        });
+        let query;
+        ({ req, query: query } = TrimRequest.all(req));
+        await validate(schemas.GetAllCategorySchema)(null, query);
+        return await CategoryController.GetAllCategory(query);
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -197,11 +195,20 @@ export const GET = async (req: NextApiRequest) => {
 export const POST = async (req: NextApiRequest) => {
     try {
         return await auth(async (userToken: any) => {
-            let body = await new Response(req.body).json();
-            ({ req, body: body } = TrimRequest.all(req, null, body));
-            await validate(schemas.CreateCategorySchema)(null, null, body);
-            body.createdBy = userToken.user.username;
-            return await CategoryController.CreateCategory(body);
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.CreateCategorySchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.createdBy = userToken.user.username;
+                    return await CategoryController.CreateCategory(body);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -211,11 +218,20 @@ export const POST = async (req: NextApiRequest) => {
 export const PUT = async (req: NextApiRequest) => {
     try {
         return await auth(async (userToken: any) => {
-            let body = await new Response(req.body).json();
-            ({ req, body: body } = TrimRequest.all(req, null, body));
-            await validate(schemas.UpdateCategorySchema)(null, null, body);
-            body.updatedBy = userToken.user.username;
-            return await CategoryController.UpdateCategory(body);
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.UpdateCategorySchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.updatedBy = userToken.user.username;
+                    return await CategoryController.UpdateCategory(body);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);

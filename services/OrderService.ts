@@ -9,7 +9,7 @@ import UserModel from "@/models/UserModel";
 import AccountModel from "@/models/AccountModel";
 import FlowerModel from "@/models/FlowerModel";
 import OrderDetailModel from "@/models/OrderDetailModel";
-import { orderStatusMap } from "@/utils/constants";
+import { orderStatusMap, roleMap } from "@/utils/constants";
 
 class OrderService {
     async GetAllOrder(query: any): Promise<ApiResponse> {
@@ -137,21 +137,23 @@ class OrderService {
         });
     }
 
-    async CreateOrder(order: any): Promise<ApiResponse> {
+    async CreateOrder(order: any, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                const userDb = await AccountModel.findOne({
+                    userId: order.orderUserId,
+                    isDeleted: false,
+                });
+
                 if (
                     !(await UserModel.findOne({
                         _id: order.orderUserId,
                         isDeleted: false,
                     })) ||
-                    !(await AccountModel.findOne({
-                        userId: order.orderUserId,
-                        isDeleted: false,
-                    }))
+                    !userDb
                 ) {
                     return reject(
                         new ApiResponse({
@@ -161,8 +163,19 @@ class OrderService {
                     );
                 }
 
-                //check flower id exists
+                if (userRole === roleMap.Customer) {
+                    if (userDb.username !== order.createdBy)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.FORBIDDEN,
+                                message:
+                                    "You don't have access to create order for other user!",
+                            })
+                        );
+                }
+
                 if (order.orderDetails) {
+                    //check flower id exists
                     for (let orderDetail of order.orderDetails) {
                         const flower = await FlowerModel.findOne({
                             _id: orderDetail.flowerId,
@@ -238,7 +251,7 @@ class OrderService {
         });
     }
 
-    async UpdateOrder(order: any): Promise<ApiResponse> {
+    async UpdateOrder(order: any, userRole: string): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
@@ -256,6 +269,36 @@ class OrderService {
                             message: "Order not found!",
                         })
                     );
+
+                if (userRole === roleMap.Customer) {
+                    const userDb = await AccountModel.findOne({
+                        userId: orderDb.orderUserId,
+                        isDeleted: false,
+                    });
+
+                    if (
+                        !(await UserModel.findOne({
+                            _id: orderDb.orderUserId,
+                            isDeleted: false,
+                        })) ||
+                        !userDb
+                    )
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.NOT_FOUND,
+                                message: "Order user not found!",
+                            })
+                        );
+
+                    if (userDb.username !== order.updatedBy)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.FORBIDDEN,
+                                message:
+                                    "You don't have access to update order of other user!",
+                            })
+                        );
+                }
 
                 if (
                     orderDb.status === orderStatusMap.Delivered ||
@@ -376,7 +419,7 @@ class OrderService {
         });
     }
 
-    async GetOrderDetail(orderId: string): Promise<ApiResponse> {
+    async GetOrderDetail(orderId: string, user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             try {
                 await connectToDB();
@@ -398,6 +441,7 @@ class OrderService {
                     },
                     {
                         $project: {
+                            orderUserId: 1,
                             orderDate: 1,
                             shipDate: 1,
                             shipAddress: 1,
@@ -419,6 +463,26 @@ class OrderService {
                             message: "Not found order",
                         })
                     );
+
+                const userDb = await AccountModel.findOne({
+                    userId: orders[0].orderUserId,
+                });
+
+                if (!userDb) orders[0].username = "";
+                else {
+                    if (user.role === roleMap.Customer) {
+                        if (user.username !== userDb.username)
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.FORBIDDEN,
+                                    message:
+                                        "You don't have access to view order detail of other user",
+                                })
+                            );
+                    } else orders[0].username = userDb.username;
+                }
+
+                orders[0].orderUserId = undefined;
 
                 for (let i = 0; i < orders[0].orderDetails.length; i++) {
                     let orderDetail = orders[0].orderDetails[i];
@@ -520,7 +584,15 @@ class OrderService {
                 const currentDate = moment();
 
                 await OrderModel.updateMany(
-                    { _id: { $in: objectIds } },
+                    {
+                        _id: { $in: objectIds },
+                        status: {
+                            $in: [
+                                orderStatusMap.Delivered,
+                                orderStatusMap.Cancelled,
+                            ],
+                        },
+                    },
                     {
                         $set: {
                             isDeleted: true,

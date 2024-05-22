@@ -251,11 +251,20 @@ export const GET = async (req: NextApiRequest) => {
 export const POST = async (req: NextApiRequest) => {
     try {
         return await auth(async (userToken: any) => {
-            let body = await new Response(req.body).json();
-            ({ req, body: body } = TrimRequest.all(req, null, body));
-            await validate(schemas.CreateFlowerSchema)(null, null, body);
-            body.createdBy = userToken.user.username;
-            return await FlowerController.CreateFlower(body);
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.CreateFlowerSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.createdBy = userToken.user.username;
+                    return await FlowerController.CreateFlower(body);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -265,11 +274,20 @@ export const POST = async (req: NextApiRequest) => {
 export const PUT = async (req: NextApiRequest) => {
     try {
         return await auth(async (userToken: any) => {
-            let body = await new Response(req.body).json();
-            ({ req, body: body } = TrimRequest.all(req, null, body));
-            await validate(schemas.UpdateFlowerSchema)(null, null, body);
-            body.updatedBy = userToken.user.username;
-            return await FlowerController.UpdateFlower(body);
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    let body = await new Response(req.body).json();
+                    ({ req, body: body } = TrimRequest.all(req, null, body));
+                    await validate(schemas.UpdateFlowerSchema)(
+                        null,
+                        null,
+                        body
+                    );
+                    body.updatedBy = userToken.user.username;
+                    return await FlowerController.UpdateFlower(body);
+                }
+            );
         });
     } catch (error: any) {
         return ErrorHandler(error);

@@ -1,7 +1,8 @@
 import CategoryController from "@/controllers/CategoryController";
-import { auth } from "@/middlewares/Authorization";
+import { auth, checkRole } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/CategoryValidation";
 import { NextApiRequest } from "next";
@@ -53,12 +54,10 @@ import { NextApiRequest } from "next";
 
 export const GET = async (req: NextApiRequest, { params }: any) => {
     try {
-        return await auth(async () => {
-            ({ params: params } = TrimRequest.all(req, params));
-            await validate(schemas.GetByIdSchema)(params);
-            const { id } = params;
-            return await CategoryController.GetCategoryById(id);
-        });
+        ({ params: params } = TrimRequest.all(req, params));
+        await validate(schemas.GetByIdSchema)(params);
+        const { id } = params;
+        return await CategoryController.GetCategoryById(id);
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -67,12 +66,17 @@ export const GET = async (req: NextApiRequest, { params }: any) => {
 export const DELETE = async (req: NextApiRequest, { params }: any) => {
     try {
         return await auth(async (userToken: any) => {
-            ({ params: params } = TrimRequest.all(req, params));
-            await validate(schemas.DeleteCategorySchema)(params);
-            const { id } = params;
-            return await CategoryController.DeleteCategory(
-                id,
-                userToken.user.username
+            return await checkRole([roleMap.Admin, roleMap.Employee])(
+                userToken,
+                async () => {
+                    ({ params: params } = TrimRequest.all(req, params));
+                    await validate(schemas.DeleteCategorySchema)(params);
+                    const { id } = params;
+                    return await CategoryController.DeleteCategory(
+                        id,
+                        userToken.user.username
+                    );
+                }
             );
         });
     } catch (error: any) {
