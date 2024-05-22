@@ -10,6 +10,7 @@ export async function middleware(request: NextRequest, _next: NextFetchEvent) {
         "/reset-password",
         "/api/auth",
         "/_next",
+        "/api-doc",
     ];
     const protectedPaths = ["/admin", "/employee", "/customer"];
     let matchesCommonsPath = commonPaths.find((path) =>

@@ -7,34 +7,6 @@ import { NextApiRequest } from "next";
 
 /**
  * @swagger
- *  components:
- *    schemas:
- *      Feedback:
- *        type: object
- *        properties:
- *          _id:
- *            type: string
- *            description: The unique identifier of the flower.
- *          content:
- *            type: string
- *            description: The content of the feedback.
- *          numberOfStars:
- *            type: number
- *            description: The total number of stars of feedback user for the product.
- *          feedbackBy:
- *            type: string
- *            description: Feedback user name
- */
-
-/**
- * @swagger
- * tags:
- *   name: Feedback
- *   description: The feedback managing API
- */
-
-/**
- * @swagger
  * /api/feedback/recently:
  *   get:
  *     summary: Return the list of all the recent feedback
@@ -62,16 +34,6 @@ import { NextApiRequest } from "next";
  *                   description: The data length.
  *                 data:
  *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Feedback'
- *               example:
- *                 status: success
- *                 total: 1
- *                 data:
- *                   - _id: "6630456bfc13ae1b64a24111"
- *                     content: "Sản phẩm okela!"
- *                     numberOfStars: 4.5
- *                     feedbackBy: "Nguyễn Thế Đăng Hoan"
  */
 
 export const GET = async (req: NextApiRequest) => {

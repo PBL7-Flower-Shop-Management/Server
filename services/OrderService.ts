@@ -146,6 +146,7 @@ class OrderService {
                 const userDb = await AccountModel.findOne({
                     userId: order.orderUserId,
                     isDeleted: false,
+                    isActived: true,
                 });
 
                 if (
@@ -158,7 +159,8 @@ class OrderService {
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
-                            message: "Order user don't exist!",
+                            message:
+                                "Order user don't exist or haven't been actived account!",
                         })
                     );
                 }
@@ -274,6 +276,7 @@ class OrderService {
                     const userDb = await AccountModel.findOne({
                         userId: orderDb.orderUserId,
                         isDeleted: false,
+                        isActived: true,
                     });
 
                     if (
@@ -286,7 +289,8 @@ class OrderService {
                         return reject(
                             new ApiResponse({
                                 status: HttpStatus.NOT_FOUND,
-                                message: "Order user not found!",
+                                message:
+                                    "Order user don't exist or haven't been actived account!",
                             })
                         );
 
