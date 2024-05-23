@@ -106,7 +106,7 @@ const ForgotPassword = () => {
                         <Typography
                             sx={{ fontStyle: "italic", fontFamily: "initial" }}
                         >
-                            Enter your account's email to reset password!
+                            {"Enter your account's email to reset password!"}
                         </Typography>
                         <TextField
                             name="email"

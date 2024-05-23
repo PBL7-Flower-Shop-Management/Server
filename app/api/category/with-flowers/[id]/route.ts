@@ -2,7 +2,7 @@ import CategoryController from "@/controllers/CategoryController";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import schemas from "@/validations/CategoryValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 import TrimRequest from "@/utils/TrimRequest";
 
 /**
@@ -61,7 +61,7 @@ import TrimRequest from "@/utils/TrimRequest";
  *                            "https://th.bing.com/th/id/OIP.WijcKwJiY-TL-qj6UwNovwHaFv?rs=1&pid=ImgDetMain"
  */
 
-export const GET = async (req: NextApiRequest, { params }: any) => {
+export const GET = async (req: NextRequest, { params }: any) => {
     try {
         let query;
         ({ req, params, query: query } = TrimRequest.all(req, params));

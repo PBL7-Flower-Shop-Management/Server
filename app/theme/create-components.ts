@@ -1,16 +1,20 @@
 import {
+    Components,
     createTheme,
     filledInputClasses,
     inputLabelClasses,
     outlinedInputClasses,
     paperClasses,
     tableCellClasses,
+    Theme,
 } from "@mui/material";
 
 // Used only to create transitions
 const muiTheme = createTheme();
 
-export function createComponents(config: any) {
+export function createComponents(
+    config: any
+): Components<Omit<Theme, "components">> {
     const { palette } = config;
 
     return {

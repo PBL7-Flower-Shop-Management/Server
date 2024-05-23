@@ -3,7 +3,7 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/FeedbackValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -36,7 +36,7 @@ import { NextApiRequest } from "next";
  *                   type: array
  */
 
-export const GET = async (req: NextApiRequest) => {
+export const GET = async (req: NextRequest) => {
     try {
         let query;
         ({ req, query: query } = TrimRequest.all(req));

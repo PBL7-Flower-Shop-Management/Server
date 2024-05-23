@@ -4,7 +4,7 @@ import validate from "@/middlewares/YupValidation";
 import ApiResponse from "@/utils/ApiResponse";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AuthValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -160,7 +160,7 @@ import { NextApiRequest } from "next";
  *                     refreshTokenExpireAt: "2024-05-14T07:58:52.870Z"
  */
 
-export const POST = async (req: NextApiRequest) => {
+export const POST = async (req: NextRequest) => {
     try {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));

@@ -285,23 +285,23 @@ const AccountInformation = (props: any) => {
                                     </Skeleton>
                                 ) : field.datePicker ? (
                                     <DatePicker
-                                        error={
-                                            !!(
-                                                formik.touched[field.name] &&
-                                                formik.errors[field.name]
-                                            )
-                                        }
-                                        fullWidth
-                                        helperText={
-                                            formik.touched[field.name] &&
-                                            formik.errors[field.name]
-                                        }
+                                        // error={
+                                        //     !!(
+                                        //         formik.touched[field.name] &&
+                                        //         formik.errors[field.name]
+                                        //     )
+                                        // }
+                                        // fullWidth
+                                        // helperText={
+                                        //     formik.touched[field.name] &&
+                                        //     formik.errors[field.name]
+                                        // }
                                         disabled={
                                             isFieldDisabled || field.disabled
                                         }
                                         label={field.label}
                                         name={field.name}
-                                        onBlur={formik.handleBlur}
+                                        // onBlur={formik.handleBlur}
                                         onChange={(date: any) => {
                                             setChangesMade(true);
                                             formik.setFieldValue(
@@ -309,23 +309,23 @@ const AccountInformation = (props: any) => {
                                                 date
                                             );
                                         }}
-                                        type={field.name}
+                                        // type={field.name}
                                         value={formik.values[field.name]}
-                                        renderInput={(params: any) => (
-                                            <TextField
-                                                {...params}
-                                                fullWidth
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                }}
-                                                required={
-                                                    field.required || false
-                                                }
-                                                onKeyDown={(e) =>
-                                                    e.preventDefault()
-                                                }
-                                            />
-                                        )}
+                                        // renderInput={(params: any) => (
+                                        //     <TextField
+                                        //         {...params}
+                                        //         fullWidth
+                                        //         InputLabelProps={{
+                                        //             shrink: true,
+                                        //         }}
+                                        //         required={
+                                        //             field.required || false
+                                        //         }
+                                        //         onKeyDown={(e) =>
+                                        //             e.preventDefault()
+                                        //         }
+                                        //     />
+                                        // )}
                                         maxDate={new Date()} // Assuming current date is the maximum allowed
                                     />
                                 ) : (
@@ -337,10 +337,10 @@ const AccountInformation = (props: any) => {
                                             )
                                         }
                                         fullWidth
-                                        helperText={
-                                            formik.touched[field.name] &&
-                                            formik.errors[field.name]
-                                        }
+                                        // helperText={
+                                        //     formik.touched[field.name] &&
+                                        //     formik.errors[field.name]
+                                        // }
                                         disabled={
                                             isFieldDisabled || field.disabled
                                         }
@@ -478,11 +478,10 @@ const AccountInformation = (props: any) => {
                             </Button>
                             <Button
                                 variant="contained"
-                                onClick={
-                                    isFieldDisabled
-                                        ? handleClick
-                                        : formik.handleSubmit
-                                }
+                                onClick={() => {
+                                    if (isFieldDisabled) handleClick();
+                                    else formik.handleSubmit();
+                                }}
                                 disabled={
                                     loadingButtonPicture || loadingButtonDetails
                                 }

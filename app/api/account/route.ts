@@ -5,7 +5,7 @@ import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AccountValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -253,7 +253,7 @@ import { NextApiRequest } from "next";
  *         description: Delete accounts successfully
  */
 
-export const GET = async (req: NextApiRequest) => {
+export const GET = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
@@ -274,7 +274,7 @@ export const GET = async (req: NextApiRequest) => {
     }
 };
 
-export const POST = async (req: NextApiRequest) => {
+export const POST = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
@@ -299,7 +299,7 @@ export const POST = async (req: NextApiRequest) => {
     }
 };
 
-export const PUT = async (req: NextApiRequest) => {
+export const PUT = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
@@ -324,7 +324,7 @@ export const PUT = async (req: NextApiRequest) => {
     }
 };
 
-export const PATCH = async (req: NextApiRequest) => {
+export const PATCH = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
@@ -349,7 +349,7 @@ export const PATCH = async (req: NextApiRequest) => {
     }
 };
 
-export const DELETE = async (req: NextApiRequest) => {
+export const DELETE = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(

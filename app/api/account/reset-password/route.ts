@@ -5,7 +5,7 @@ import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AccountValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -37,7 +37,7 @@ import { NextApiRequest } from "next";
  *                   description: The status of the response.
  */
 
-export const PATCH = async (req: NextApiRequest) => {
+export const PATCH = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Admin])(userToken, async () => {

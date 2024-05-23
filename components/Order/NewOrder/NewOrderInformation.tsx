@@ -124,78 +124,78 @@ const NewOrderInformation = (props: any) => {
                                 </Skeleton>
                             ) : field.dateTimePicker ? (
                                 <DateTimePicker
-                                    error={
-                                        !!(
-                                            formik.touched[field.name] &&
-                                            formik.errors[field.name]
-                                        )
-                                    }
-                                    fullWidth
-                                    helperText={
-                                        formik.touched[field.name] &&
-                                        formik.errors[field.name]
-                                    }
+                                    // error={
+                                    //     !!(
+                                    //         formik.touched[field.name] &&
+                                    //         formik.errors[field.name]
+                                    //     )
+                                    // }
+                                    // fullWidth
+                                    // helperText={
+                                    //     formik.touched[field.name] &&
+                                    //     formik.errors[field.name]
+                                    // }
                                     label={field.label}
                                     name={field.name}
-                                    onBlur={formik.handleBlur}
+                                    // onBlur={formik.handleBlur}
                                     onChange={(date) => {
                                         formik.setFieldValue(field.name, date);
                                     }}
-                                    type={field.name}
+                                    // type={field.name}
                                     value={formik.values[field.name] || null}
                                     disabled={
                                         isFieldDisabled ||
                                         field.disabled ||
                                         isFieldDisabled
                                     }
-                                    renderInput={(params: any) => (
-                                        <TextField
-                                            {...params}
-                                            fullWidth
-                                            InputLabelProps={{ shrink: true }}
-                                            required={field.required || false}
-                                            onKeyDown={(e) =>
-                                                e.preventDefault()
-                                            }
-                                        />
-                                    )}
+                                    // renderInput={(params: any) => (
+                                    //     <TextField
+                                    //         {...params}
+                                    //         fullWidth
+                                    //         InputLabelProps={{ shrink: true }}
+                                    //         required={field.required || false}
+                                    //         onKeyDown={(e) =>
+                                    //             e.preventDefault()
+                                    //         }
+                                    //     />
+                                    // )}
                                     maxDate={new Date()}
                                     timeSteps={{ minutes: 1 }}
                                     sx={{ width: "100%" }}
                                 />
                             ) : field.datePicker ? (
                                 <DatePicker
-                                    error={
-                                        !!(
-                                            formik.touched[field.name] &&
-                                            formik.errors[field.name]
-                                        )
-                                    }
-                                    fullWidth
-                                    helperText={
-                                        formik.touched[field.name] &&
-                                        formik.errors[field.name]
-                                    }
+                                    // error={
+                                    //     !!(
+                                    //         formik.touched[field.name] &&
+                                    //         formik.errors[field.name]
+                                    //     )
+                                    // }
+                                    // fullWidth
+                                    // helperText={
+                                    //     formik.touched[field.name] &&
+                                    //     formik.errors[field.name]
+                                    // }
                                     label={field.label}
                                     name={field.name}
-                                    onBlur={formik.handleBlur}
+                                    // onBlur={formik.handleBlur}
                                     onChange={(date) => {
                                         formik.setFieldValue(field.name, date);
                                     }}
-                                    type={field.name}
+                                    // type={field.name}
                                     value={formik.values[field.name] || null}
                                     disabled={isFieldDisabled || field.disabled}
-                                    renderInput={(params: any) => (
-                                        <TextField
-                                            {...params}
-                                            fullWidth
-                                            InputLabelProps={{ shrink: true }}
-                                            required={field.required || false}
-                                            onKeyDown={(e) =>
-                                                e.preventDefault()
-                                            }
-                                        />
-                                    )}
+                                    // renderInput={(params: any) => (
+                                    //     <TextField
+                                    //         {...params}
+                                    //         fullWidth
+                                    //         InputLabelProps={{ shrink: true }}
+                                    //         required={field.required || false}
+                                    //         onKeyDown={(e) =>
+                                    //             e.preventDefault()
+                                    //         }
+                                    //     />
+                                    // )}
                                     maxDate={new Date()} // Assuming current date is the maximum allowed
                                 />
                             ) : field.autoComplete ? (
@@ -204,8 +204,8 @@ const NewOrderInformation = (props: any) => {
                                     multiple
                                     autoHighlight={true}
                                     disabled={isFieldDisabled || field.disabled}
-                                    name={field.name}
-                                    label={field.label}
+                                    // name={field.name}
+                                    // label={field.label}
                                     disablePortal
                                     fullWidth
                                     options={categories}
@@ -213,23 +213,33 @@ const NewOrderInformation = (props: any) => {
                                         value ? option.categoryName : ""
                                     }
                                     renderTags={(value, getTagProps) =>
-                                        value.map((option: any, index) => (
-                                            <Chip
-                                                variant="outlined"
-                                                avatar={
-                                                    <Avatar
-                                                        src={option.image}
+                                        value.map(
+                                            (option: any, index: number) => (
+                                                <Box key={index}>
+                                                    <Chip
+                                                        variant="outlined"
+                                                        avatar={
+                                                            <Avatar
+                                                                src={
+                                                                    option.image
+                                                                }
+                                                            />
+                                                        }
+                                                        label={
+                                                            option.categoryName
+                                                        }
+                                                        {...getTagProps({
+                                                            index,
+                                                        })}
+                                                        // sx={{
+                                                        //     color: "black",
+                                                        //     backgroundColor:
+                                                        //         "white",
+                                                        // }}
                                                     />
-                                                }
-                                                label={option.categoryName}
-                                                {...getTagProps({ index })}
-                                                // sx={{
-                                                //     color: "black",
-                                                //     backgroundColor:
-                                                //         "white",
-                                                // }}
-                                            />
-                                        ))
+                                                </Box>
+                                            )
+                                        )
                                     }
                                     // isOptionEqualToValue={(option, value) => {
                                     //     if (value === null || value === undefined) {

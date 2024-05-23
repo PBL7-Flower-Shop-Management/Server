@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest, _next: NextFetchEvent) {
         "/api/auth",
         "/_next",
         "/api-doc",
+        "/api",
     ];
     const protectedPaths = ["/admin", "/employee", "/customer"];
     let matchesCommonsPath = commonPaths.find((path) =>

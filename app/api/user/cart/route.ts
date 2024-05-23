@@ -6,7 +6,7 @@ import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/CartValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -148,7 +148,7 @@ export const GET = async () => {
     }
 };
 
-export const POST = async (req: NextApiRequest) => {
+export const POST = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {
@@ -166,7 +166,7 @@ export const POST = async (req: NextApiRequest) => {
     }
 };
 
-export const PUT = async (req: NextApiRequest) => {
+export const PUT = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {
@@ -184,7 +184,7 @@ export const PUT = async (req: NextApiRequest) => {
     }
 };
 
-export const DELETE = async (req: NextApiRequest) => {
+export const DELETE = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {

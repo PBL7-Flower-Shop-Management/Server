@@ -5,7 +5,7 @@ import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/OrderValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -52,7 +52,7 @@ import { NextApiRequest } from "next";
  *         description: Delete order successfully
  */
 
-export const GET = async (req: NextApiRequest, { params }: any) => {
+export const GET = async (req: NextRequest, { params }: any) => {
     try {
         return await auth(async (userToken: any) => {
             ({ params: params } = TrimRequest.all(req, params));
@@ -65,7 +65,7 @@ export const GET = async (req: NextApiRequest, { params }: any) => {
     }
 };
 
-export const DELETE = async (req: NextApiRequest, { params }: any) => {
+export const DELETE = async (req: NextRequest, { params }: any) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(

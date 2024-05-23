@@ -1,7 +1,7 @@
 import UserController from "@/controllers/UserController";
 import { auth } from "@/middlewares/Authorization";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger

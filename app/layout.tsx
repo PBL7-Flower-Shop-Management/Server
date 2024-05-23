@@ -24,6 +24,7 @@ export default function RootLayout({
     session: any;
 }>) {
     const theme = createTheme();
+    const pathname = usePathname();
 
     return (
         <html lang="en">
@@ -55,10 +56,10 @@ export default function RootLayout({
                             <CookiesProvider>
                                 <ThemeProvider theme={theme}>
                                     <CssBaseline />
-                                    {usePathname() === "/login" ||
-                                    usePathname() === "/api-doc" ||
-                                    usePathname() === "/forgot-password" ||
-                                    usePathname() === "/reset-password" ? (
+                                    {pathname === "/login" ||
+                                    pathname === "/api-doc" ||
+                                    pathname === "/forgot-password" ||
+                                    pathname === "/reset-password" ? (
                                         <main className="app">{children}</main>
                                     ) : (
                                         <Layout>

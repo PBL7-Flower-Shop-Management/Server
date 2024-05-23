@@ -1,4 +1,4 @@
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 // Trim all string properties of an object
 function trimStringProperties(obj: any) {
@@ -55,11 +55,7 @@ const trimURLSearchParams = (searchParams: URLSearchParams) => {
 // };
 
 // trimRequest middleware: trim all request object: body, params, query
-const all = (
-    req: NextApiRequest,
-    params?: URLSearchParams | null,
-    body?: any
-) => {
+const all = (req: NextRequest, params?: URLSearchParams | null, body?: any) => {
     let query = undefined;
     if (body) {
         trimStringProperties(body);
@@ -80,7 +76,7 @@ const body = (body: any) => {
     return body;
 };
 
-const query = (req: NextApiRequest) => {
+const query = (req: NextRequest) => {
     if (req.url) {
         trimURLSearchParams(new URL(req.url).searchParams);
     }

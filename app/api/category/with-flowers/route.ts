@@ -3,7 +3,7 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/CategoryValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -78,7 +78,7 @@ import { NextApiRequest } from "next";
  *                            "https://th.bing.com/th/id/OIP.WijcKwJiY-TL-qj6UwNovwHaFv?rs=1&pid=ImgDetMain"
  */
 
-export const GET = async (req: NextApiRequest) => {
+export const GET = async (req: NextRequest) => {
     try {
         let query;
         ({ req, query: query } = TrimRequest.all(req));

@@ -5,7 +5,7 @@ import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/CartValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -25,7 +25,7 @@ import { NextApiRequest } from "next";
  *         description: Delete cart successfully
  */
 
-export const DELETE = async (req: NextApiRequest, { params }: any) => {
+export const DELETE = async (req: NextRequest, { params }: any) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {

@@ -2,7 +2,7 @@ import { common } from "@mui/material/colors";
 import { alpha } from "@mui/material/styles";
 import { error, indigo, info, neutral, success, warning } from "./colors";
 
-export function createPalette() {
+export function createPalette(): any {
     return {
         action: {
             active: neutral[500],

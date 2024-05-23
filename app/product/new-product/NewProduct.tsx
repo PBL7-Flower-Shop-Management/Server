@@ -13,6 +13,7 @@ import {
     Breadcrumbs,
     Link,
     Button,
+    Snackbar,
 } from "@mui/material";
 import NextLink from "next/link";
 import { useFormik } from "formik";
@@ -539,68 +540,90 @@ const NewProduct = () => {
                             <div>
                                 {success && (
                                     <Collapse in={open}>
-                                        <Alert
-                                            variant="outlined"
+                                        <Snackbar
                                             open={open}
-                                            severity="success"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="success"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                        router.push("/product");
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
+                                            autoHideDuration={6000}
+                                            onClose={() => setOpen(false)}
+                                            anchorOrigin={{
+                                                vertical: "top",
+                                                horizontal: "center",
                                             }}
                                         >
-                                            <Typography
-                                                color="success"
-                                                variant="subtitle2"
+                                            <Alert
+                                                variant="outlined"
+                                                severity="success"
+                                                action={
+                                                    <IconButton
+                                                        aria-label="close"
+                                                        color="success"
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setOpen(false);
+                                                            router.push(
+                                                                "/product"
+                                                            );
+                                                        }}
+                                                    >
+                                                        <CloseIcon fontSize="inherit" />
+                                                    </IconButton>
+                                                }
+                                                sx={{
+                                                    mt: 2,
+                                                    borderRadius: "12px",
+                                                }}
                                             >
-                                                {success}
-                                            </Typography>
-                                        </Alert>
+                                                <Typography
+                                                    color="success"
+                                                    variant="subtitle2"
+                                                >
+                                                    {success}
+                                                </Typography>
+                                            </Alert>
+                                        </Snackbar>
                                     </Collapse>
                                 )}
                                 {error && (
                                     <Collapse in={open}>
-                                        <Alert
-                                            variant="outlined"
+                                        <Snackbar
                                             open={open}
-                                            severity="error"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                        router.push("/product");
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
+                                            autoHideDuration={6000}
+                                            onClose={() => setOpen(false)}
+                                            anchorOrigin={{
+                                                vertical: "top",
+                                                horizontal: "center",
                                             }}
                                         >
-                                            <Typography
-                                                color="error"
-                                                variant="subtitle2"
+                                            <Alert
+                                                variant="outlined"
+                                                severity="error"
+                                                action={
+                                                    <IconButton
+                                                        aria-label="close"
+                                                        color="error"
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setOpen(false);
+                                                            router.push(
+                                                                "/product"
+                                                            );
+                                                        }}
+                                                    >
+                                                        <CloseIcon fontSize="inherit" />
+                                                    </IconButton>
+                                                }
+                                                sx={{
+                                                    mt: 2,
+                                                    borderRadius: "12px",
+                                                }}
                                             >
-                                                {error}
-                                            </Typography>
-                                        </Alert>
+                                                <Typography
+                                                    color="error"
+                                                    variant="subtitle2"
+                                                >
+                                                    {error}
+                                                </Typography>
+                                            </Alert>
+                                        </Snackbar>
                                     </Collapse>
                                 )}
                             </div>

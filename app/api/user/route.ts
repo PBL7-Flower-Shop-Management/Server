@@ -4,7 +4,7 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/UserValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -80,7 +80,7 @@ export const GET = async () => {
     }
 };
 
-export const PUT = async (req: NextApiRequest) => {
+export const PUT = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             let body = await new Response(req.body).json();

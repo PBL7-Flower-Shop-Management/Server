@@ -160,17 +160,17 @@ const ProductImages = (props: any) => {
             }
         } else if (file.type.startsWith("video/")) {
             fmData.append("Files", file);
-            fmData.append("NumberImagesEachSecond", 2);
+            fmData.append("NumberImagesEachSecond", "2");
 
-            let result = await auth.refreshToken();
-            if (!result.isSuccessfully) {
-                throw new Error(result.data);
-            }
+            // let result = await auth.refreshToken();
+            // if (!result.isSuccessfully) {
+            //     throw new Error(result.data);
+            // }
 
             const config = {
                 headers: {
                     "content-type": "multipart/form-data",
-                    Authorization: `Bearer ${result.data}`,
+                    // Authorization: `Bearer ${result.data}`,
                 },
                 onUploadProgress: (event: any) => {
                     const percent = Math.floor(
@@ -395,10 +395,10 @@ const ProductImages = (props: any) => {
                                             )
                                         }
                                         fullWidth
-                                        helperText={
-                                            formik.touched[field.name] &&
-                                            formik.errors[field.name]
-                                        }
+                                        // helperText={
+                                        //     formik.touched[field.name] &&
+                                        //     formik.errors[field.name]
+                                        // }
                                         label={field.label}
                                         name={field.name}
                                         onBlur={formik.handleBlur}

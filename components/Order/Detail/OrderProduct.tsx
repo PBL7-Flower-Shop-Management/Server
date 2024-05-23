@@ -268,7 +268,7 @@ const OrderProduct = (props: any) => {
                                 </SvgIcon>
                             }
                             shape="circle"
-                            onClick={formik.handleSubmit}
+                            onClick={() => formik.handleSubmit()}
                         />
                     </Tooltip>
                     <Tooltip title="Hủy">
@@ -421,8 +421,8 @@ const OrderProduct = (props: any) => {
                                                         isFieldDisabled ||
                                                         field.disabled
                                                     }
-                                                    name={field.name}
-                                                    label={field.label}
+                                                    // name={field.name}
+                                                    // label={field.label}
                                                     disablePortal
                                                     fullWidth
                                                     options={options}
@@ -551,14 +551,14 @@ const OrderProduct = (props: any) => {
                                                                     ]
                                                                 )
                                                             }
-                                                            helperText={
-                                                                formik.touched[
-                                                                    field.name
-                                                                ] &&
-                                                                formik.errors[
-                                                                    field.name
-                                                                ]
-                                                            }
+                                                            // helperText={
+                                                            //     formik.touched[
+                                                            //         field.name
+                                                            //     ] &&
+                                                            //     formik.errors[
+                                                            //         field.name
+                                                            //     ]
+                                                            // }
                                                             disabled={
                                                                 isFieldDisabled ||
                                                                 field.disabled
@@ -582,28 +582,28 @@ const OrderProduct = (props: any) => {
                                                 />
                                             ) : field.dateTimePicker ? (
                                                 <DateTimePicker
-                                                    error={
-                                                        !!(
-                                                            formik.touched[
-                                                                field.name
-                                                            ] &&
-                                                            formik.errors[
-                                                                field.name
-                                                            ]
-                                                        )
-                                                    }
-                                                    fullWidth
-                                                    helperText={
-                                                        formik.touched[
-                                                            field.name
-                                                        ] &&
-                                                        formik.errors[
-                                                            field.name
-                                                        ]
-                                                    }
+                                                    // error={
+                                                    //     !!(
+                                                    //         formik.touched[
+                                                    //             field.name
+                                                    //         ] &&
+                                                    //         formik.errors[
+                                                    //             field.name
+                                                    //         ]
+                                                    //     )
+                                                    // }
+                                                    // fullWidth
+                                                    // helperText={
+                                                    //     formik.touched[
+                                                    //         field.name
+                                                    //     ] &&
+                                                    //     formik.errors[
+                                                    //         field.name
+                                                    //     ]
+                                                    // }
                                                     label={field.label}
                                                     name={field.name}
-                                                    onBlur={formik.handleBlur}
+                                                    // onBlur={formik.handleBlur}
                                                     onChange={(date) => {
                                                         setChangesMade(true);
                                                         formik.setFieldValue(
@@ -611,7 +611,7 @@ const OrderProduct = (props: any) => {
                                                             date
                                                         );
                                                     }}
-                                                    type={field.name}
+                                                    // type={field.name}
                                                     value={
                                                         formik.values[
                                                             field.name
@@ -621,28 +621,28 @@ const OrderProduct = (props: any) => {
                                                         isFieldDisabled ||
                                                         field.disabled
                                                     }
-                                                    renderInput={(
-                                                        params: any
-                                                    ) => (
-                                                        <TextField
-                                                            {...params}
-                                                            disabled={
-                                                                isFieldDisabled ||
-                                                                field.disabled
-                                                            }
-                                                            fullWidth
-                                                            InputLabelProps={{
-                                                                shrink: true,
-                                                            }}
-                                                            required={
-                                                                field.required ||
-                                                                false
-                                                            }
-                                                            onKeyDown={(e) =>
-                                                                e.preventDefault()
-                                                            }
-                                                        />
-                                                    )}
+                                                    // renderInput={(
+                                                    //     params: any
+                                                    // ) => (
+                                                    //     <TextField
+                                                    //         {...params}
+                                                    //         disabled={
+                                                    //             isFieldDisabled ||
+                                                    //             field.disabled
+                                                    //         }
+                                                    //         fullWidth
+                                                    //         InputLabelProps={{
+                                                    //             shrink: true,
+                                                    //         }}
+                                                    //         required={
+                                                    //             field.required ||
+                                                    //             false
+                                                    //         }
+                                                    //         onKeyDown={(e) =>
+                                                    //             e.preventDefault()
+                                                    //         }
+                                                    //     />
+                                                    // )}
                                                     maxDate={new Date()}
                                                 />
                                             ) : (
@@ -658,14 +658,14 @@ const OrderProduct = (props: any) => {
                                                         )
                                                     }
                                                     fullWidth
-                                                    helperText={
-                                                        formik.touched[
-                                                            field.name
-                                                        ] &&
-                                                        formik.errors[
-                                                            field.name
-                                                        ]
-                                                    }
+                                                    // helperText={
+                                                    //     formik.touched[
+                                                    //         field.name
+                                                    //     ] &&
+                                                    //     formik.errors[
+                                                    //         field.name
+                                                    //     ]
+                                                    // }
                                                     label={field.label}
                                                     name={field.name}
                                                     onBlur={formik.handleBlur}

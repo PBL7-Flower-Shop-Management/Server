@@ -3,7 +3,7 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/FlowerValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -80,7 +80,7 @@ import { NextApiRequest } from "next";
  *                     stars: 0.8
  */
 
-export const GET = async (req: NextApiRequest) => {
+export const GET = async (req: NextRequest) => {
     try {
         let query;
         ({ req, query: query } = TrimRequest.all(req));

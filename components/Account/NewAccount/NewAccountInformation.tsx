@@ -71,38 +71,38 @@ export const NewAccountInformation = (props: any) => {
                                 </Skeleton>
                             ) : field.datePicker ? (
                                 <DatePicker
-                                    error={
-                                        !!(
-                                            formik.touched[field.name] &&
-                                            formik.errors[field.name]
-                                        )
-                                    }
-                                    fullWidth
-                                    helperText={
-                                        formik.touched[field.name] &&
-                                        formik.errors[field.name]
-                                    }
+                                    // error={
+                                    //     !!(
+                                    //         formik.touched[field.name] &&
+                                    //         formik.errors[field.name]
+                                    //     )
+                                    // }
+                                    // fullWidth
+                                    // helperText={
+                                    //     formik.touched[field.name] &&
+                                    //     formik.errors[field.name]
+                                    // }
                                     disabled={isFieldDisabled || field.disabled}
                                     label={field.label}
                                     name={field.name}
-                                    onBlur={formik.handleBlur}
+                                    // onBlur={formik.handleBlur}
                                     onChange={(date) => {
                                         // dispatch({ type: "UPDATE_USER" });
                                         formik.setFieldValue("birthday", date);
                                     }}
-                                    type={field.name}
+                                    // type={field.name}
                                     value={formik.values[field.name]}
-                                    renderInput={(params: any) => (
-                                        <TextField
-                                            {...params}
-                                            fullWidth
-                                            InputLabelProps={{ shrink: true }}
-                                            required={field.required || false}
-                                            onKeyDown={(e) =>
-                                                e.preventDefault()
-                                            }
-                                        />
-                                    )}
+                                    // renderInput={(params: any) => (
+                                    //     <TextField
+                                    //         {...params}
+                                    //         fullWidth
+                                    //         InputLabelProps={{ shrink: true }}
+                                    //         required={field.required || false}
+                                    //         onKeyDown={(e) =>
+                                    //             e.preventDefault()
+                                    //         }
+                                    //     />
+                                    // )}
                                     maxDate={new Date()} // Assuming current date is the maximum allowed
                                 />
                             ) : (

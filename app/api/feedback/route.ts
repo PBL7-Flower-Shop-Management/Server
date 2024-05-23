@@ -5,7 +5,7 @@ import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/FeedbackValidation";
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 
 /**
  * @swagger
@@ -204,7 +204,7 @@ import { NextApiRequest } from "next";
  *
  */
 
-export const GET = async (req: NextApiRequest) => {
+export const GET = async (req: NextRequest) => {
     try {
         let query;
         ({ req, query: query } = TrimRequest.all(req));
@@ -215,7 +215,7 @@ export const GET = async (req: NextApiRequest) => {
     }
 };
 
-export const POST = async (req: NextApiRequest) => {
+export const POST = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {
@@ -231,7 +231,7 @@ export const POST = async (req: NextApiRequest) => {
     }
 };
 
-export const PUT = async (req: NextApiRequest) => {
+export const PUT = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {
@@ -247,7 +247,7 @@ export const PUT = async (req: NextApiRequest) => {
     }
 };
 
-export const PATCH = async (req: NextApiRequest) => {
+export const PATCH = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {
