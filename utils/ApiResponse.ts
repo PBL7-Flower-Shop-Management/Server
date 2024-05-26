@@ -5,10 +5,12 @@ class ApiResponse extends NextResponse {
     constructor({
         status,
         message,
+        total,
         data,
     }: {
         status: number;
         message?: string | null;
+        total?: number | null;
         data?: any | null;
     }) {
         const isSuccess = `${status}`.startsWith("2");
@@ -24,7 +26,11 @@ class ApiResponse extends NextResponse {
                       {
                           status: requestStatus,
                           message: message,
-                          total: data ? data.length ?? 1 : undefined,
+                          total: total
+                              ? total
+                              : data
+                              ? data.length ?? 1
+                              : undefined,
                           data: data,
                       },
                       null,

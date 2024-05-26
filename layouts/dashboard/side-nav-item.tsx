@@ -1,9 +1,11 @@
 import NextLink from "next/link";
 import PropTypes from "prop-types";
 import { Box, ButtonBase } from "@mui/material";
+import { useLoadingContext } from "@/contexts/LoadingContext";
 
 export const SideNavItem = (props: any) => {
     const { active = false, disabled, external, icon, path, title } = props;
+    const { setLoading } = useLoadingContext();
 
     const linkProps = path
         ? external
@@ -39,6 +41,7 @@ export const SideNavItem = (props: any) => {
                     },
                 }}
                 {...linkProps}
+                onClick={() => setLoading(true)}
             >
                 {icon && (
                     <Box

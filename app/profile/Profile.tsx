@@ -17,6 +17,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useSession } from "next-auth/react";
 import { ProfileAvatar } from "@/components/Profile/ProfileAvatar";
 import ProfileDetail from "@/components/Profile/ProfileDetail";
+import { zIndexLevel } from "@/utils/constants";
 
 const Profile = () => {
     const [profile, setProfile] = useState<any>();
@@ -216,7 +217,7 @@ const Profile = () => {
                                 position: "fixed",
                                 bottom: "0",
                                 right: "0",
-                                zIndex: "1000",
+                                zIndex: zIndexLevel.four,
                                 mb: 2,
                                 mr: 2,
                             }}

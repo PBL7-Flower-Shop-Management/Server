@@ -12,15 +12,18 @@ import {
 import ShowPwdPhoto from "@/public/images/showPwd.png";
 import HidePwdPhoto from "@/public/images/hidePwd.png";
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { zIndexLevel } from "@/utils/constants";
+import { showToast } from "../Toast";
 
 export const ChangePwdDialog = ({ open, onClose }: any) => {
     const [password, setPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
     const [isShowPwd, setIsShowPwd] = useState(false);
-    const { data: session } = useSession();
     const router = useRouter();
 
     const handleChange = (event: any) => {
@@ -42,40 +45,30 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
         }
     };
 
-    const handleConfirm = () => {
-        fetch(
-            process.env.NEXT_PUBLIC_SERVER_API_BASE + "/user/change-password",
+    const handleConfirm = async () => {
+        const response = await FetchApi(
+            UrlConfig.user.changePassword,
+            "PATCH",
+            true,
             {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${session?.user.accessToken}`,
-                },
-                body: JSON.stringify({
-                    password: password,
-                    newPassword: newPassword,
-                    confirmNewPassword: confirmNewPassword,
-                }),
+                password: password,
+                newPassword: newPassword,
+                confirmNewPassword: confirmNewPassword,
             }
-        )
-            .then(async (res) => {
-                if (!res.ok) {
-                    alert((await res.json()).message);
-                } else return res.json();
-            })
-            .then(async (response) => {
-                if (response) {
-                    console.log(response);
-                    onClose();
-                    alert("Change your password successfully! Let's login");
-                    await signOut({ redirect: false });
-                    router.push("/login");
-                }
-            })
-            .catch((error) => {
-                alert("Error, check console to view!");
-                console.log(error);
-            });
+        );
+        if (response.canRefreshToken === false)
+            showToast(response.message, "warning");
+        else if (response.succeeded) {
+            onClose();
+            showToast(
+                "Change your password successfully! Let's login",
+                "success"
+            );
+            await signOut({ redirect: false });
+            router.push("/login");
+        } else {
+            showToast(response.message, "error");
+        }
     };
 
     const handleClearAll = () => {
@@ -114,7 +107,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                             <Button
                                 sx={{
                                     position: "absolute",
-                                    zIndex: 10,
+                                    zIndex: zIndexLevel.one,
                                     right: 2,
                                     alignSelf: "center",
                                     borderRadius: 100,
@@ -147,7 +140,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                             <Button
                                 sx={{
                                     position: "absolute",
-                                    zIndex: 10,
+                                    zIndex: zIndexLevel.one,
                                     right: 2,
                                     alignSelf: "center",
                                     borderRadius: 100,
@@ -180,7 +173,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                             <Button
                                 sx={{
                                     position: "absolute",
-                                    zIndex: 10,
+                                    zIndex: zIndexLevel.one,
                                     right: 2,
                                     alignSelf: "center",
                                     borderRadius: 100,
@@ -202,7 +195,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
             </DialogContent>
             <DialogActions>
                 <Button
-                    onClick={handleConfirm}
+                    onClick={async () => await handleConfirm()}
                     color="success"
                     variant="outlined"
                     sx={{ fontFamily: "sans-serif" }}

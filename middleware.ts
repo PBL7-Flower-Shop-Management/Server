@@ -8,7 +8,6 @@ export async function middleware(request: NextRequest, _next: NextFetchEvent) {
         "/login",
         "/forgot-password",
         "/reset-password",
-        "/api/auth",
         "/_next",
         "/api-doc",
         "/api",
@@ -21,7 +20,7 @@ export async function middleware(request: NextRequest, _next: NextFetchEvent) {
         pathname.startsWith(path)
     );
     const token = await getToken({ req: request });
-    if (!token) {
+    if (!token || token.error) {
         if (!matchesCommonsPath) {
             const url = new URL(`/login`, request.url);
             // url.searchParams.set("callbackUrl", encodeURI(request.url));

@@ -22,6 +22,9 @@ import ShowPwdPhoto from "@/public/images/showPwd.png";
 import HidePwdPhoto from "@/public/images/hidePwd.png";
 import Image from "next/image";
 import useResponsive from "@/hooks/useResponsive";
+import { saveToken } from "@/utils/auth";
+import { zIndexLevel } from "@/utils/constants";
+import { showToast } from "@/components/Toast";
 
 const StyledRoot = styled("div")(({ theme }) => ({
     [theme.breakpoints.up("md")]: {
@@ -51,7 +54,7 @@ const StyledContent = styled("form")(({ theme }) => ({
 }));
 
 const Login = () => {
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
     const router = useRouter();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -74,13 +77,14 @@ const Login = () => {
             password: password,
             redirect: false,
         });
-        if (res && res.error) alert(res.error);
+        if (res && res.error) showToast(res.error, "error");
 
         setIsSubmitting(false);
     };
 
     const mdUp = useResponsive("up", "md");
     if (session) {
+        saveToken(session);
         router.push("/");
     }
     return (
@@ -145,7 +149,7 @@ const Login = () => {
                                 <Button
                                     sx={{
                                         position: "absolute",
-                                        zIndex: 10,
+                                        zIndex: zIndexLevel.one,
                                         right: 2,
                                         alignSelf: "center",
                                         borderRadius: 100,

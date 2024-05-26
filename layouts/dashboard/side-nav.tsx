@@ -7,6 +7,7 @@ import { items } from "./config";
 import { SideNavItem } from "./side-nav-item";
 import Image from "next/image";
 import ScrollBar from "react-perfect-scrollbar";
+import { zIndexLevel } from "@/utils/constants";
 // import { useAuth } from "src/hooks/use-auth";
 
 export const SideNav = (props: any) => {
@@ -135,7 +136,8 @@ export const SideNav = (props: any) => {
                     width: 280,
                 },
             }}
-            sx={{ zIndex: (theme) => theme.zIndex.appBar + 100 }}
+            // sx={{ zIndex: (theme) => theme.zIndex.appBar + 100 }}
+            sx={{ zIndex: zIndexLevel.two }}
             variant="temporary"
         >
             {content}

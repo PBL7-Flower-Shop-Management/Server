@@ -43,7 +43,7 @@ const auth = async (next: any) => {
             return new ApiResponse({
                 status: httpStatus.FORBIDDEN,
                 message:
-                    "The account has been deleted or has not been activated",
+                    "Your account has been deleted or has not been activated",
             });
 
         // if (

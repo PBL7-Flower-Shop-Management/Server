@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { removeItems } from "@/utils/auth";
 // import Logo from "@/components/Logo";
 
 const Nav = ({ show }: any) => {
@@ -12,6 +13,7 @@ const Nav = ({ show }: any) => {
     async function logout() {
         // await router.push("/");
         await signOut();
+        await removeItems();
     }
     return (
         <aside

@@ -17,6 +17,10 @@ import Head from "next/head";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { clearData, getData } from "@/utils/auth";
+import UrlConfig from "@/config/UrlConfig";
+import { FetchApi } from "@/utils/FetchApi";
+import { zIndexLevel } from "@/utils/constants";
+import { showToast } from "@/components/Toast";
 
 const StyledRoot = styled("div")(({ theme }) => ({
     [theme.breakpoints.up("md")]: {
@@ -57,39 +61,30 @@ const ResetPassword = () => {
 
     const ResetPassword = async () => {
         setIsSubmitting(true);
-        fetch(
-            process.env.NEXT_PUBLIC_SERVER_API_BASE + "/user/reset-password",
+        const response = await FetchApi(
+            UrlConfig.user.resetPassword,
+            "PATCH",
+            false,
             {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: getData("reset_email"),
-                    password: password,
-                    confirmPassword: confirmPassword,
-                    token: token,
-                }),
+                email: getData("reset_email"),
+                password: password,
+                confirmPassword: confirmPassword,
+                token: token,
             }
-        )
-            .then(async (res) => {
-                if (!res.ok) {
-                    alert((await res.json()).message);
-                } else return res.json();
-            })
-            .then((response) => {
-                if (response) {
-                    console.log(response);
-                    clearData("reset_email");
-                    alert("Reset your password successfully! Let's login");
-                    router.push("/login");
-                }
-            })
-            .catch((error) => {
-                alert("Error, check console to view!");
-                console.log(error);
-            });
+        );
         setIsSubmitting(false);
+        if (response.canRefreshToken === false)
+            showToast(response.message, "warning");
+        else if (response.succeeded) {
+            clearData("reset_email");
+            showToast(
+                "Reset your password successfully! Let's login",
+                "success"
+            );
+            router.push("/login");
+        } else {
+            showToast(response.message, "error");
+        }
     };
 
     return (
@@ -128,7 +123,7 @@ const ResetPassword = () => {
                                 <Button
                                     sx={{
                                         position: "absolute",
-                                        zIndex: 10,
+                                        zIndex: zIndexLevel.one,
                                         right: 2,
                                         alignSelf: "center",
                                         borderRadius: 100,
@@ -162,7 +157,7 @@ const ResetPassword = () => {
                                 <Button
                                     sx={{
                                         position: "absolute",
-                                        zIndex: 10,
+                                        zIndex: zIndexLevel.one,
                                         right: 2,
                                         alignSelf: "center",
                                         borderRadius: 100,

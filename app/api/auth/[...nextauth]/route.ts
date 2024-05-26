@@ -7,9 +7,8 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/db";
 import { Adapter } from "next-auth/adapters";
 import CredentialsProvider from "next-auth/providers/credentials";
-import axios from "axios";
 import UrlConfig from "@/config/UrlConfig";
-import ApiResponse from "@/utils/ApiResponse";
+import { FetchApi } from "@/utils/FetchApi";
 
 const handler = NextAuth({
     providers: [
@@ -18,26 +17,25 @@ const handler = NextAuth({
             credentials: {},
             authorize: async (credentials) => {
                 const { username, password } = credentials as any;
-                return await axios
-                    .post(UrlConfig.authentication.login, {
+                const response = await FetchApi(
+                    UrlConfig.authentication.login,
+                    "POST",
+                    false,
+                    {
                         username: username,
                         password: password,
-                    })
-                    .then((res) => {
-                        if (res.status === 200)
-                            return {
-                                ...res.data.data.user,
-                                ...res.data.data.token,
-                            };
-                        // This is the object that will be encoded in JWT
-                        //  wrong credentials
-                        else {
-                            throw res.data;
-                        }
-                    })
-                    .catch((err: any) => {
-                        throw err.response.data;
-                    });
+                    }
+                );
+
+                if (response.succeeded) {
+                    // saveToken(response);
+                    return {
+                        ...response.data.user,
+                        ...response.data.token,
+                    };
+                } else {
+                    throw new Error(response.message || "Invalid credentials");
+                }
             },
         }),
         // // OAuth authentication providers...
@@ -83,7 +81,6 @@ const handler = NextAuth({
         strategy: "jwt",
     },
     // pages: {
-    //     signIn: "/",
     // },
     adapter: MongoDBAdapter(clientPromise) as Adapter,
 });

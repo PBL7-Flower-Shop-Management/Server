@@ -1,3 +1,8 @@
+import { addMinutes, isAfter } from "date-fns";
+import Cookies from "js-cookie";
+import { FetchApi } from "./FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+
 export const LocalStorageEventTarget = new EventTarget();
 
 export const saveAccessToken = (access_token: string) => {
@@ -41,4 +46,95 @@ export const getData = (name: string) => {
 
 export const clearData = (name: string) => {
     localStorage.removeItem(name);
+};
+
+export const refreshToken: any = async () => {
+    let token = Cookies.get("token");
+    let refreshToken = Cookies.get("refreshToken");
+    const storedTokenExpiryTime = Cookies.get("tokenExpiryTime");
+    const storedRefreshTokenExpiryTime = Cookies.get("refreshTokenExpiryTime");
+    try {
+        if (
+            !token ||
+            !refreshToken ||
+            !storedTokenExpiryTime ||
+            !storedRefreshTokenExpiryTime
+        ) {
+            console.error("Missing necessary field to refresh token!");
+            return {
+                isSuccessfully: false,
+                data: `Lỗi khi refresh token! Vui lòng đăng nhập lại!`,
+            };
+        }
+        let tokenExpiryTime = new Date(storedTokenExpiryTime);
+        if (
+            tokenExpiryTime != null &&
+            !isAfter(tokenExpiryTime, addMinutes(new Date(), 3)) //refresh trc khi hết hạn 3 phút
+        ) {
+            let refreshTokenExpiryTime = new Date(storedRefreshTokenExpiryTime);
+
+            if (
+                refreshTokenExpiryTime != null &&
+                refreshTokenExpiryTime > new Date()
+            ) {
+                const response = await FetchApi(
+                    UrlConfig.authentication.refreshToken,
+                    "POST",
+                    false,
+                    { token: token, refreshToken: refreshToken }
+                );
+                if (response.succeeded) {
+                    saveToken(response.data);
+                    return {
+                        isSuccessfully: true,
+                        data: response.data.token.accessToken,
+                    };
+                } else {
+                    return {
+                        isSuccessfully: false,
+                        data: `Refresh token thất bại: ${response.message}`,
+                    };
+                }
+            } else {
+                removeItems();
+                return {
+                    isSuccessfully: false,
+                    data: "Refresh token hết hạn! Vui lòng đăng nhập lại!",
+                };
+            }
+        }
+        return { isSuccessfully: true, data: token };
+    } catch (error) {
+        console.error("Lỗi khi refresh token:", error);
+        return {
+            isSuccessfully: false,
+            data: `Lỗi khi refresh token: ${error}`,
+        };
+    }
+};
+
+export const saveToken = (response: any) => {
+    const token = response.token?.accessToken ?? response.user?.accessToken;
+    const refreshToken =
+        response.token?.refreshToken ?? response.user?.refreshToken;
+    const tokenExpiryTime =
+        response.token?.accessTokenExpiresAt ??
+        response.user?.accessTokenExpiresAt;
+    const refreshTokenExpiryTime =
+        response.token?.refreshTokenExpireAt ??
+        response.user?.refreshTokenExpireAt;
+
+    Cookies.set("token", token, { expires: new Date(refreshTokenExpiryTime) });
+    Cookies.set("refreshToken", refreshToken, {
+        expires: new Date(refreshTokenExpiryTime),
+    });
+    Cookies.set("tokenExpiryTime", tokenExpiryTime);
+    Cookies.set("refreshTokenExpiryTime", refreshTokenExpiryTime);
+};
+
+export const removeItems = () => {
+    Cookies.remove("token");
+    Cookies.remove("tokenExpiryTime");
+    Cookies.remove("refreshToken");
+    Cookies.remove("refreshTokenExpiryTime");
 };

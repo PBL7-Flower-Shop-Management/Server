@@ -6,7 +6,11 @@ const schemas = {
     GetAllOrderSchema: yup.object({
         query: yup
             .object({
-                keyword: yup.string().trim().nullable(),
+                keyword: yup
+                    .string()
+                    .trim()
+                    .nullable()
+                    .transform((curr, orig) => (orig === "" ? null : curr)),
                 pageNumber: yup
                     .number()
                     .integer()

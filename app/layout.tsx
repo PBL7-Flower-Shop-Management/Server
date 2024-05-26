@@ -1,6 +1,5 @@
 "use client";
 import { SessionProvider } from "next-auth/react";
-import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import { CookiesProvider } from "react-cookie";
 import { ThemeProvider } from "@mui/material/styles";
@@ -13,8 +12,9 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import vi from "date-fns/locale/vi";
 import { ConfigProvider } from "antd";
 import viVN from "antd/lib/locale/vi_VN";
-
-const inter = Inter({ subsets: ["latin"] });
+import { LoadingProvider } from "@/contexts/LoadingContext";
+import { zIndexLevel } from "@/utils/constants";
+import Toast from "@/components/Toast";
 
 export default function RootLayout({
     children,
@@ -37,7 +37,7 @@ export default function RootLayout({
                 />
                 {/* <link rel="icon" href="" /> */}
             </head>
-            <body className={inter.className}>
+            <body>
                 <LocalizationProvider
                     dateAdapter={AdapterDateFns}
                     adapterLocale={vi}
@@ -47,7 +47,7 @@ export default function RootLayout({
                         theme={{
                             components: {
                                 Image: {
-                                    zIndexPopupBase: 1300,
+                                    zIndexPopupBase: zIndexLevel.five,
                                 },
                             },
                         }}
@@ -56,18 +56,23 @@ export default function RootLayout({
                             <CookiesProvider>
                                 <ThemeProvider theme={theme}>
                                     <CssBaseline />
-                                    {pathname === "/login" ||
-                                    pathname === "/api-doc" ||
-                                    pathname === "/forgot-password" ||
-                                    pathname === "/reset-password" ? (
-                                        <main className="app">{children}</main>
-                                    ) : (
-                                        <Layout>
+                                    <Toast />
+                                    <LoadingProvider>
+                                        {pathname === "/login" ||
+                                        pathname === "/api-doc" ||
+                                        pathname === "/forgot-password" ||
+                                        pathname === "/reset-password" ? (
                                             <main className="app">
                                                 {children}
                                             </main>
-                                        </Layout>
-                                    )}
+                                        ) : (
+                                            <Layout>
+                                                <main className="app">
+                                                    {children}
+                                                </main>
+                                            </Layout>
+                                        )}
+                                    </LoadingProvider>
                                 </ThemeProvider>
                             </CookiesProvider>
                         </SessionProvider>

@@ -33,6 +33,7 @@ import moment from "moment-timezone";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { zIndexLevel } from "@/utils/constants";
 
 export const CategoryTable = (props: any) => {
     const {
@@ -55,14 +56,14 @@ export const CategoryTable = (props: any) => {
         position: "sticky",
         right: 0,
         background: theme.palette.background.paper,
-        zIndex: 10,
+        zIndex: zIndexLevel.one,
     }));
 
     const StickyLeftTableCell = styled(TableCell)(({ theme }) => ({
         position: "sticky",
         left: 0,
         background: theme.palette.background.paper,
-        zIndex: 10,
+        zIndex: zIndexLevel.one,
     }));
 
     const handleDeleteConfirm = () => {

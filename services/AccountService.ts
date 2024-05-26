@@ -36,14 +36,13 @@ class AccountService {
                         })
                     );
 
-                const accounts = await UserModel.aggregate([
+                const results = await UserModel.aggregate([
                     {
                         $match: {
                             isDeleted: false,
-                            role:
-                                userRole === roleMap.Employee
-                                    ? roleMap.Customer
-                                    : undefined,
+                            ...(userRole === roleMap.Employee && {
+                                role: roleMap.Customer,
+                            }),
                         },
                     },
                     {
@@ -126,24 +125,44 @@ class AccountService {
                             createdBy: "$createdBy",
                         },
                     },
+                    {
+                        $facet: {
+                            // Paginated results
+                            paginatedResults: [
+                                {
+                                    $skip: query.isExport
+                                        ? 0
+                                        : (query.pageNumber - 1) *
+                                          query.pageSize,
+                                },
+                                {
+                                    $limit: query.isExport
+                                        ? Number.MAX_SAFE_INTEGER
+                                        : query.pageSize,
+                                },
+                            ],
+                            // Count of all documents that match the criteria
+                            totalCount: [{ $count: "totalCount" }],
+                        },
+                    },
                 ])
-                    .skip(
-                        query.isExport
-                            ? 0
-                            : (query.pageNumber - 1) * query.pageSize
-                    )
-                    .limit(
-                        query.isExport
-                            ? Number.MAX_SAFE_INTEGER
-                            : query.pageSize
-                    )
                     .collation({ locale: "en", caseLevel: false, strength: 1 })
                     .sort(orderBy);
+
+                const total =
+                    results.length > 0
+                        ? results[0].totalCount.length > 0
+                            ? results[0].totalCount[0].totalCount
+                            : 0
+                        : 0;
+                const paginatedResults =
+                    results.length > 0 ? results[0].paginatedResults : [];
 
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: accounts,
+                        total: total,
+                        data: paginatedResults,
                     })
                 );
             } catch (error: any) {
@@ -256,7 +275,9 @@ class AccountService {
                     html: `Tài khoản của bạn đã được tạo trên hệ thống:<br>
                         Tên đăng nhập: ${user.username}<br>
                         Mật khẩu: ${randomPassword}<br>
-                        Hãy đăng nhập vào hệ thống ${process.env.LOGIN_PAGE_URL} và đổi mật khẩu ngay để tránh bị lộ thông tin cá nhân.<br>
+                        Hãy đăng nhập vào hệ thống ${
+                            process.env.NEXT_PUBLIC_HOST_URL + "/login"
+                        } và đổi mật khẩu ngay để tránh bị lộ thông tin cá nhân.<br>
                         Liên hệ với người quản trị nếu bạn gặp bất kì vấn đề gì khi đăng nhập vào hệ thống!<br>`,
                 });
 
@@ -505,7 +526,7 @@ class AccountService {
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: account,
+                        data: account[0],
                     })
                 );
             } catch (error: any) {
@@ -715,7 +736,9 @@ class AccountService {
                     subject: "Thiết lập lại mật khẩu",
                     html: `Mật khẩu cho tài khoản của bạn đã được quản trị viên thiết lập lại:<br>
                         Mật khẩu mới: ${randomPassword}<br>
-                        Hãy đăng nhập vào hệ thống ${process.env.LOGIN_PAGE_URL} và đổi mật khẩu ngay để tránh bị lộ thông tin cá nhân.<br>
+                        Hãy đăng nhập vào hệ thống ${
+                            process.env.NEXT_PUBLIC_HOST_URL + "/login"
+                        } và đổi mật khẩu ngay để tránh bị lộ thông tin cá nhân.<br>
                         Liên hệ với người quản trị nếu bạn gặp bất kì vấn đề gì khi đăng nhập vào hệ thống!<br>`,
                 });
 

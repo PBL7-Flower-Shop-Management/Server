@@ -1,4 +1,15 @@
-import { ChipPropsColorOverrides } from "@mui/material";
+export const zIndexLevel = {
+    one: 10,
+    two: 15,
+    three: 20,
+    four: 25,
+    five: 30,
+    six: 35,
+    seven: 40,
+    eight: 45,
+    nine: 50,
+    ten: 100,
+};
 
 export const productStatus: { [key: string]: string } = {
     Available: "Có sẵn",

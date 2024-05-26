@@ -26,7 +26,7 @@ import PencilSquareIcon from "@mui/icons-material/ModeEditOutlined";
 import EyeIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import TrashIcon from "@mui/icons-material/DeleteOutline";
 import { alpha, styled } from "@mui/material/styles";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Stack } from "@mui/system";
 import Chip from "@mui/material/Chip";
 import { isValidUrl } from "@/utils/helper";
@@ -34,6 +34,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment-timezone";
+import { zIndexLevel } from "@/utils/constants";
 
 export const AccountTable = (props: any) => {
     const {
@@ -44,57 +45,60 @@ export const AccountTable = (props: any) => {
         page = 0,
         rowsPerPage = 0,
         onDeleteAccount,
-        isFetching,
+        reload,
     } = props;
     const router = useRouter();
 
-    const [openDeletePopup, setOpenDeletePopup] = React.useState(false);
-    const [selectedId, setSelectedId] = React.useState("");
-    const [selected, setSelected] = React.useState<readonly number[]>([]);
+    const [openDeletePopup, setOpenDeletePopup] = useState(false);
+    const [selectedId, setSelectedId] = useState<any>(null);
+    const [selected, setSelected] = useState<readonly string[]>([]);
+    const [doDeleteOne, setDoDeleteOne] = useState(false);
 
     const StickyTableCell = styled(TableCell)(({ theme }) => ({
         position: "sticky",
         right: 0,
         background: theme.palette.background.paper,
-        zIndex: 10,
+        zIndex: zIndexLevel.one,
     }));
 
     const StickyLeftTableCell = styled(TableCell)(({ theme }) => ({
         position: "sticky",
         left: 0,
         background: theme.palette.background.paper,
-        zIndex: 10,
+        zIndex: zIndexLevel.one,
     }));
 
     const handleDeleteConfirm = () => {
-        onDeleteAccount(selectedId);
+        console.log(selectedId);
+        onDeleteAccount(doDeleteOne ? selectedId : selected);
         setOpenDeletePopup(false);
     };
 
     const handleDeleteCancel = () => {
         setOpenDeletePopup(false);
-        setSelectedId("");
+        setSelectedId(null);
     };
 
-    const handleDeleteClick = (id: any) => {
+    const handleDeleteClick = (id?: string) => {
         setOpenDeletePopup(true);
-        setSelectedId(id);
+        if (id) setSelectedId(id);
+        setDoDeleteOne(id !== undefined);
     };
 
     const handleSelectAllClick = (
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         if (event.target.checked) {
-            const newSelected = items.map((n: any) => n.userId);
+            const newSelected = items.map((n: any) => n._id);
             setSelected(newSelected);
             return;
         }
         setSelected([]);
     };
 
-    const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
+    const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
         const selectedIndex = selected.indexOf(id);
-        let newSelected: readonly number[] = [];
+        let newSelected: readonly string[] = [];
 
         if (selectedIndex === -1) {
             newSelected = newSelected.concat(selected, id);
@@ -111,7 +115,9 @@ export const AccountTable = (props: any) => {
         setSelected(newSelected);
     };
 
-    const isSelected = (id: number) => selected.indexOf(id) !== -1;
+    const isSelected = (id: string) => selected.indexOf(id) !== -1;
+
+    useEffect(() => setSelected([]), [reload]);
 
     return (
         <Box>
@@ -142,16 +148,16 @@ export const AccountTable = (props: any) => {
                         )}
                         {selected.length > 0 && (
                             <Tooltip title="Delete">
-                                <IconButton>
+                                <IconButton onClick={() => handleDeleteClick()}>
                                     <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
                         )}
                     </Toolbar>
                 )}
-                <TableContainer sx={{ maxHeight: 1200 }}>
+                <TableContainer sx={{ maxHeight: 400 }}>
                     <Box sx={{ minWidth: 800 }}>
-                        <Table stickyHeader>
+                        <Table>
                             <TableHead>
                                 <TableRow>
                                     <StickyLeftTableCell>
@@ -198,27 +204,24 @@ export const AccountTable = (props: any) => {
                             <TableBody>
                                 {items.map((account: any, index: any) => {
                                     const isItemSelected = isSelected(
-                                        account.userId
+                                        account._id
                                     );
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
                                     return (
                                         <TableRow
                                             hover
-                                            key={account.userId}
+                                            key={account._id}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             selected={isItemSelected}
                                             onClick={(event) =>
-                                                handleClick(
-                                                    event,
-                                                    account.userId
-                                                )
+                                                handleClick(event, account._id)
                                             }
                                             onDoubleClick={() =>
                                                 router.push(
                                                     `/account/${encodeURIComponent(
-                                                        account.userId
+                                                        account._id
                                                     )}`
                                                 )
                                             }
@@ -240,18 +243,14 @@ export const AccountTable = (props: any) => {
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                <Image
-                                                    src={
-                                                        isValidUrl(
-                                                            account.avatar
-                                                        )
-                                                            ? account.avatar
-                                                            : undefined
-                                                    }
-                                                    alt="avatar"
-                                                    width={100}
-                                                    height={100}
-                                                />
+                                                {isValidUrl(account.avatar) && (
+                                                    <Image
+                                                        src={account.avatar}
+                                                        alt="avatar"
+                                                        width={100}
+                                                        height={100}
+                                                    />
+                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 {account.name}
@@ -313,7 +312,7 @@ export const AccountTable = (props: any) => {
                                                                 NextLink
                                                             }
                                                             href={`/account/${encodeURIComponent(
-                                                                account.userId
+                                                                account._id
                                                             )}                                                            
                                                           `}
                                                         >
@@ -332,20 +331,8 @@ export const AccountTable = (props: any) => {
                                                                 NextLink
                                                             }
                                                             href={`/account/${encodeURIComponent(
-                                                                account.userId
+                                                                account._id
                                                             )}?edit=1`}
-                                                            // href={{
-                                                            //     pathname:
-                                                            //         "/account/[id]",
-                                                            //     query: {
-                                                            //         id: encodeURIComponent(
-                                                            //             account.userId
-                                                            //         ),
-                                                            //         name: encodeURIComponent(
-                                                            //             account.name
-                                                            //         ),
-                                                            //     },
-                                                            // }}
                                                         >
                                                             <SvgIcon
                                                                 color="warning"
@@ -360,7 +347,7 @@ export const AccountTable = (props: any) => {
                                                         <IconButton
                                                             onClick={() =>
                                                                 handleDeleteClick(
-                                                                    account.userId
+                                                                    account._id
                                                                 )
                                                             }
                                                         >
@@ -393,7 +380,9 @@ export const AccountTable = (props: any) => {
                 <Dialog open={openDeletePopup} onClose={handleDeleteCancel}>
                     <DialogTitle>Xác nhận xóa tài khoản</DialogTitle>
                     <DialogContent>
-                        Bạn có chắc chắn muốn xóa tài khoản này?
+                        {doDeleteOne
+                            ? "Bạn có chắc chắn muốn xóa tài khoản này không?"
+                            : "Bạn có chắc chắn muốn xoá những tài khoản đã chọn không?"}
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleDeleteCancel} color="primary">
@@ -417,5 +406,5 @@ AccountTable.propTypes = {
     page: PropTypes.number,
     rowsPerPage: PropTypes.number,
     onDeleteAccount: PropTypes.func,
-    isFetching: PropTypes.bool,
+    reload: PropTypes.bool,
 };

@@ -1,3 +1,4 @@
+import { zIndexLevel } from "@/utils/constants";
 import {
     Components,
     createTheme,
@@ -136,7 +137,7 @@ export function createComponents(
                     position: "fixed",
                     top: 0,
                     width: "100%",
-                    zIndex: 2000,
+                    zIndex: zIndexLevel.six,
                 },
                 "&.MuiFormLabel-asterisk": {
                     color: palette.error.main,
@@ -432,6 +433,13 @@ export function createComponents(
                         marginBottom: "12px",
                         marginTop: "10px",
                     },
+                },
+            },
+        },
+        MuiDrawer: {
+            styleOverrides: {
+                paper: {
+                    zIndex: zIndexLevel.two,
                 },
             },
         },

@@ -24,7 +24,7 @@ const trimURLSearchParams = (searchParams: URLSearchParams) => {
 
         // Convert value to the appropriate type
         let convertedValue;
-        if (!isNaN(Number(trimmedValue))) {
+        if (trimmedValue !== "" && !isNaN(Number(trimmedValue))) {
             convertedValue = Number(trimmedValue);
         } else if (
             trimmedValue.toLowerCase() === "true" ||

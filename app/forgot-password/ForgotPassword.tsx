@@ -12,6 +12,9 @@ import Head from "next/head";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { saveData } from "@/utils/auth";
+import UrlConfig from "@/config/UrlConfig";
+import { FetchApi } from "@/utils/FetchApi";
+import { showToast } from "@/components/Toast";
 
 const StyledRoot = styled("div")(({ theme }) => ({
     [theme.breakpoints.up("md")]: {
@@ -47,40 +50,29 @@ const ForgotPassword = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const ResetPassword = async () => {
-        // if (email !== "") {
-        fetch(
-            process.env.NEXT_PUBLIC_SERVER_API_BASE + "/user/forgot-password",
+        setIsSubmitting(true);
+        const response = await FetchApi(
+            UrlConfig.user.forgotPassword,
+            "PATCH",
+            false,
             {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: email,
-                    resetPasswordPageUrl:
-                        process.env.NEXT_PUBLIC_RESET_PWD_PAGE_URL,
-                }),
+                email: email,
+                resetPasswordPageUrl:
+                    process.env.NEXT_PUBLIC_HOST_URL + "/reset-password",
             }
-        )
-            .then(async (res) => {
-                if (!res.ok) {
-                    alert((await res.json()).message);
-                } else return res.json();
-            })
-            .then((response) => {
-                if (response) {
-                    console.log(response);
-                    saveData(email, "reset_email");
-                    alert(
-                        "We sent reset password link to your email! Please check email and follow by instruction!"
-                    );
-                }
-            })
-            .catch((error) => {
-                alert("Error, check console to view!");
-                console.log(error);
-            });
-        // }
+        );
+        setIsSubmitting(false);
+        if (response.canRefreshToken === false)
+            showToast(response.message, "warning");
+        else if (response.succeeded) {
+            saveData(email, "reset_email");
+            showToast(
+                "We sent reset password link to your email! Please check email and follow by instruction!",
+                "success"
+            );
+        } else {
+            showToast(response.message, "error");
+        }
     };
 
     return (

@@ -1,7 +1,7 @@
 "use client";
 import Head from "next/head";
 import NextLink from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     Alert,
     Box,
@@ -21,6 +21,9 @@ import { useSearchParams } from "next/navigation";
 import AccountInformation from "@/components/Account/Detail/AccountInformation";
 import { AccountAvatar } from "@/components/Account/Detail/AccountAvatar";
 import { isValidUrl } from "@/utils/helper";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { showToast } from "@/components/Toast";
 
 const AccountDetail = ({ params }: any) => {
     const [account, setAccount] = useState<any>(null);
@@ -30,43 +33,38 @@ const AccountDetail = ({ params }: any) => {
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
     const [open, setOpen] = useState(true);
+    const alreadyRun = useRef(false);
 
     const searchParams = useSearchParams();
     const accountId = params?.id;
     const accountName = searchParams.get("name");
     const canEdit = searchParams.get("edit") === "1";
 
-    const getAccount = useCallback(async () => {
+    const getAccount = async () => {
         setLoadingSkeleton(true);
         setError("");
-        try {
-            // const account = await accountsApi.getAccountById(
-            //     accountId,
-            //     auth
-            // );
-            const account = {
-                userId: "663f3e3680056378c19e8957",
-                isActived: true,
-                username: "danghoann",
-                name: "Dang Hoan",
-                citizenId: "456789",
-                email: "danghoan77777@gmail.com",
-                phoneNumber: "98765",
-                role: "Customer",
-                avatar: "https://th.bing.com/th/id/OIP.ebPexDgG2kic7e_ubIhaqgHaEK?rs=1&pid=ImgDetMain",
-                createdAt: "2024-04-30T10:00:00Z",
-                createdBy: "Admin",
-            };
-            setAccount(account);
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
+
+        const response = await FetchApi(
+            UrlConfig.account.getById.replace("{id}", accountId),
+            "GET",
+            true
+        );
+
+        if (response.canRefreshToken === false)
+            showToast(response.message, "warning");
+        else if (response.succeeded) {
+            setAccount(response.data);
             setLoadingSkeleton(false);
+        } else {
+            showToast(response.message, "error");
         }
-    }, []);
+    };
 
     useEffect(() => {
-        getAccount();
+        if (!alreadyRun.current) {
+            alreadyRun.current = true;
+            getAccount();
+        }
     }, []);
 
     const updateDetails = useCallback(
@@ -89,7 +87,7 @@ const AccountDetail = ({ params }: any) => {
                 // console.log(updated);
                 // await accountsApi.editAccount(updated, auth);
                 // getAccount();
-                setSuccess("Cập nhật thông tin chi tiết tội phạm thành công.");
+                setSuccess("Cập nhật thông tin chi tiết tài khoản thành công.");
                 setError("");
             } catch (error: any) {
                 setError(error.message);

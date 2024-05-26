@@ -19,6 +19,7 @@ import { alpha } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
 import { usePopover } from "@/hooks/usePopover";
 import { AccountPopover } from "./account-popover";
+import { zIndexLevel } from "@/utils/constants";
 
 const SIDE_NAV_WIDTH = 280;
 const TOP_NAV_HEIGHT = 64;
@@ -47,7 +48,8 @@ export const TopNav = (props: any) => {
                     width: {
                         lg: `calc(100% - ${SIDE_NAV_WIDTH}px)`,
                     },
-                    zIndex: (theme) => theme.zIndex.appBar,
+                    // zIndex: (theme) => theme.zIndex.appBar,
+                    zIndex: zIndexLevel.two,
                 }}
             >
                 <Stack
