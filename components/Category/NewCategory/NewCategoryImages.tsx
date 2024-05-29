@@ -2,72 +2,32 @@ import {
     Avatar,
     Badge,
     Box,
-    Button,
     Card,
-    CardActions,
     CardContent,
     Divider,
-    Grid,
     IconButton,
     Skeleton,
     Typography,
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
-import { LoadingButton } from "@mui/lab";
 import { useEffect, useState, useRef } from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
+import defaultAvatar from "@/public/images/default_avatar.png";
 
 export const NewCategoryAvatar = (props: any) => {
     const {
-        formik,
         loadingSkeleton,
         loadingButtonDetails,
-        loadingButtonPicture,
+        error,
         onUpdate,
-        success,
+        isFieldDisabled,
+        buttonDisabled,
+        reset,
     } = props;
-    const [isImageChanged, setIsImageChanged] = useState(false);
-    const [message, setMessage] = useState("");
+    const [file, setFile] = useState<any>();
+    const [image, setImage] = useState<any>(null);
 
-    // const formik = useFormik({
-    //     enableReinitialize: true,
-    //     initialValues: {
-    //         image: imageLink ? imageLink : null,
-    //         file: null,
-    //     },
-    //     validationSchema: Yup.object({
-    //         file: Yup.mixed()
-    //             .nullable()
-    //             .test(
-    //                 "fileFormat",
-    //                 "Ảnh tải lên không hợp lệ",
-    //                 (value: any) => {
-    //                     if (value && value.type) {
-    //                         return value.type.startsWith("image/");
-    //                     }
-    //                     return true;
-    //                 }
-    //             ),
-    //     }),
-    //     onSubmit: async (values, helpers: any) => {
-    //         try {
-    //             handleUpload();
-    //         } catch (err: any) {
-    //             helpers.setStatus({ success: false });
-    //             helpers.setErrors({ submit: err.message });
-    //             helpers.setSubmitting(false);
-    //         }
-    //     },
-    // });
-
-    // useEffect(() => {
-    //     setIsImageChanged(false);
-    // }, [imageLink]);
-
-    const inputRef = useRef(null);
+    const inputRef = useRef<any>();
 
     const handleClick = () => {
         if (inputRef && inputRef.current) (inputRef.current as any).click();
@@ -75,88 +35,86 @@ export const NewCategoryAvatar = (props: any) => {
 
     const handleFileChange = (event: any) => {
         const fileObj = event.target.files && event.target.files[0];
-        if (!fileObj) {
-            return;
-        }
-        if (!fileObj.type.startsWith("image/")) {
-            setMessage("Ảnh tải lên không hợp lệ. Vui lòng thử lại.");
-            return;
-        }
-        setMessage("");
-        formik.setValues({
-            ...formik.values,
-            file: fileObj,
-            image: URL.createObjectURL(fileObj),
-        });
-        setIsImageChanged(true);
+        setFile(fileObj);
+        setImage(fileObj ? URL.createObjectURL(fileObj) : null);
     };
 
     const handleCancel = () => {
-        formik.setValues({
-            ...formik.values,
-            file: null,
-            // image: imageLink,
-        });
-        setIsImageChanged(false);
+        setImage(null);
+        setFile(null);
     };
 
-    const handleUpload = () => {
-        if (isImageChanged && formik.values.file) {
-            const formData = new FormData();
-            formData.append("Files", formik.values.file);
-            setIsImageChanged(false);
-            onUpdate(formData);
-            setIsImageChanged(!success);
-        }
-    };
+    useEffect(() => {
+        onUpdate(file);
+    }, [file]);
+
+    useEffect(() => {
+        if (reset) handleCancel();
+    }, [reset]);
 
     return (
-        <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
-            <Card>
-                <CardContent
+        <Card>
+            <CardContent
+                sx={{
+                    p: 0,
+                    mb: 3,
+                    mt: 3,
+                }}
+            >
+                <Box
                     sx={{
-                        p: 0,
-                        mb: 3,
-                        mt: 3,
+                        alignItems: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        position: "relative",
                     }}
                 >
-                    <Box
-                        sx={{
-                            alignItems: "center",
-                            display: "flex",
-                            flexDirection: "column",
-                            position: "relative",
-                        }}
-                    >
-                        {loadingSkeleton ? (
-                            <Skeleton variant="circular">
-                                <Avatar
-                                    sx={{
-                                        height: 250,
-                                        width: 250,
-                                    }}
-                                />
-                            </Skeleton>
-                        ) : (
-                            <>
-                                <Badge
-                                    overlap="circular"
-                                    anchorOrigin={{
-                                        vertical: "bottom",
-                                        horizontal: "right",
-                                    }}
-                                    badgeContent={
+                    {loadingSkeleton ? (
+                        <Skeleton variant="circular">
+                            <Avatar
+                                sx={{
+                                    height: 250,
+                                    width: 250,
+                                }}
+                            />
+                        </Skeleton>
+                    ) : (
+                        <>
+                            <Typography
+                                sx={{
+                                    color: "red",
+                                    alignSelf: "end",
+                                    marginRight: "30%",
+                                }}
+                            >
+                                *
+                            </Typography>
+                            <Badge
+                                overlap="circular"
+                                anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "right",
+                                }}
+                                badgeContent={
+                                    !loadingButtonDetails && !buttonDisabled ? (
                                         <>
                                             <input
                                                 style={{ display: "none" }}
                                                 ref={inputRef}
                                                 type="file"
+                                                name="file"
                                                 accept="image/*"
                                                 onChange={handleFileChange}
                                             />
                                             <IconButton
-                                                disabled={loadingButtonDetails}
-                                                onClick={handleClick}
+                                                disabled={
+                                                    loadingButtonDetails ||
+                                                    isFieldDisabled
+                                                }
+                                                onClick={() => {
+                                                    if (!image) handleClick();
+                                                    else handleCancel();
+                                                }}
                                                 aria-label="edit"
                                                 sx={{
                                                     backgroundColor:
@@ -173,93 +131,61 @@ export const NewCategoryAvatar = (props: any) => {
                                                         "& .MuiSvgIcon-root": {
                                                             color: "background.paper",
                                                         },
-                                                        backgroundColor:
-                                                            "primary.main",
+                                                        backgroundColor: !image
+                                                            ? "primary.main"
+                                                            : "error.main",
                                                     },
                                                 }}
                                             >
-                                                <EditIcon
-                                                    sx={{
-                                                        color: "primary.main",
-                                                        height: 35,
-                                                        width: 35,
-                                                    }}
-                                                />
+                                                {!image ? (
+                                                    <EditIcon
+                                                        sx={{
+                                                            color: "primary.main",
+                                                            height: 35,
+                                                            width: 35,
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <CancelIcon
+                                                        sx={{
+                                                            color: "error.main",
+                                                            height: 50,
+                                                            width: 50,
+                                                        }}
+                                                    />
+                                                )}
                                             </IconButton>
                                         </>
-                                    }
-                                >
-                                    <Avatar
-                                        src={formik.values.image}
-                                        sx={{
-                                            borderColor: "primary.main",
-                                            borderStyle: "solid",
-                                            borderWidth: 4,
-                                            boxShadow: 10,
-                                            height: 250,
-                                            width: 250,
-                                        }}
-                                    />
-                                </Badge>
-                                <Typography
+                                    ) : (
+                                        <></>
+                                    )
+                                }
+                            >
+                                <Avatar
+                                    src={image ? image : defaultAvatar.src}
                                     sx={{
-                                        mt: 0.75,
-                                        color: "error.main",
+                                        borderColor: "primary.main",
+                                        borderStyle: "solid",
+                                        borderWidth: 4,
+                                        boxShadow: 10,
+                                        height: 250,
+                                        width: 250,
                                     }}
-                                >
-                                    {message}
-                                </Typography>
-                            </>
-                        )}
-                    </Box>
-                </CardContent>
-                <Divider />
-                {loadingButtonPicture && (
-                    <CardActions
-                        sx={{
-                            justifyContent: "center",
-                        }}
-                    >
-                        <LoadingButton
-                            disabled
-                            loading={loadingButtonPicture}
-                            fullWidth
-                            size="medium"
-                            variant="contained"
-                        >
-                            Tải ảnh lên
-                        </LoadingButton>
-                    </CardActions>
-                )}
-                {isImageChanged && !loadingButtonPicture && (
-                    <CardActions
-                        sx={{
-                            justifyContent: "center",
-                        }}
-                    >
-                        <Grid xs={12} md={6}>
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                startIcon={<CloudUploadIcon />}
+                                />
+                            </Badge>
+                            <Typography
+                                sx={{
+                                    mt: 0.75,
+                                    color: "error.main",
+                                }}
                             >
-                                Tải ảnh lên
-                            </Button>
-                        </Grid>
-                        <Grid xs={12} md={6}>
-                            <Button
-                                fullWidth
-                                variant="outlined"
-                                startIcon={<CancelIcon />}
-                                onClick={handleCancel}
-                            >
-                                Hủy
-                            </Button>
-                        </Grid>
-                    </CardActions>
-                )}
-            </Card>
-        </form>
+                                {error}
+                            </Typography>
+                        </>
+                    )}
+                </Box>
+            </CardContent>
+            <Divider />
+        </Card>
     );
 };

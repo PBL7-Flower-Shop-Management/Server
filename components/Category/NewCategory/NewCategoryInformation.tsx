@@ -4,9 +4,7 @@ import {
     Card,
     CardContent,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Skeleton from "@mui/material/Skeleton";
-import { useState } from "react";
 
 const NewCategoryInformation = (props: any) => {
     const { formik, loadingSkeleton, isFieldDisabled } = props;
@@ -20,12 +18,6 @@ const NewCategoryInformation = (props: any) => {
             <CardContent>
                 <Grid container spacing={3}>
                     {[
-                        {
-                            label: "Mã hạng mục",
-                            name: "_id",
-                            md: 4,
-                            disabled: true,
-                        },
                         {
                             label: "Tên hạng mục",
                             name: "categoryName",
@@ -44,41 +36,6 @@ const NewCategoryInformation = (props: any) => {
                                 <Skeleton variant="rounded">
                                     <TextField fullWidth />
                                 </Skeleton>
-                            ) : field.datePicker ? (
-                                <DatePicker
-                                    // error={
-                                    //     !!(
-                                    //         formik.touched[field.name] &&
-                                    //         formik.errors[field.name]
-                                    //     )
-                                    // }
-                                    // fullWidth
-                                    // helperText={
-                                    //     formik.touched[field.name] &&
-                                    //     formik.errors[field.name]
-                                    // }
-                                    label={field.label}
-                                    name={field.name}
-                                    // onBlur={formik.handleBlur}
-                                    onChange={(date) => {
-                                        formik.setFieldValue(field.name, date);
-                                    }}
-                                    // type={field.type}
-                                    value={formik.values[field.name] || null}
-                                    disabled={isFieldDisabled || field.disabled}
-                                    // renderInput={(params: any) => (
-                                    //     <TextField
-                                    //         {...params}
-                                    //         fullWidth
-                                    //         InputLabelProps={{ shrink: true }}
-                                    //         required={field.required || false}
-                                    //         onKeyDown={(e) =>
-                                    //             e.preventDefault()
-                                    //         }
-                                    //     />
-                                    // )}
-                                    maxDate={new Date()} // Assuming current date is the maximum allowed
-                                />
                             ) : (
                                 <TextField
                                     error={
@@ -92,16 +49,23 @@ const NewCategoryInformation = (props: any) => {
                                         formik.touched[field.name] &&
                                         formik.errors[field.name]
                                     }
+                                    disabled={isFieldDisabled || field.disabled}
                                     label={field.label}
                                     name={field.name}
                                     onBlur={formik.handleBlur}
                                     onChange={(e) => {
-                                        formik.handleChange(e);
+                                        const value =
+                                            field.type === "boolean"
+                                                ? e.target.value === "true"
+                                                : e.target.value;
+                                        formik.setFieldValue(field.name, value);
                                     }}
-                                    type={field.type}
+                                    type={
+                                        field.type === "boolean"
+                                            ? "text"
+                                            : field.type
+                                    }
                                     value={formik.values[field.name]}
-                                    multiline={field.textArea || false}
-                                    disabled={isFieldDisabled || field.disabled}
                                     required={field.required || false}
                                     select={field.select}
                                     SelectProps={
@@ -117,14 +81,12 @@ const NewCategoryInformation = (props: any) => {
                                     }}
                                 >
                                     {field.select &&
+                                        field.selectProps &&
                                         Object.entries(field.selectProps).map(
-                                            ([value, label]) => (
+                                            ([value, label]: any) => (
                                                 <option
                                                     key={value}
                                                     value={value}
-                                                    selected={
-                                                        value === field.selected
-                                                    }
                                                 >
                                                     {label as any}
                                                 </option>
@@ -136,36 +98,6 @@ const NewCategoryInformation = (props: any) => {
                     ))}
                 </Grid>
             </CardContent>
-            {/* <Divider />
-        <CardActions sx={{ justifyContent: "flex-end" }}>
-          {isClicked ? (
-            loadingButtonDetails && (
-              <LoadingButton
-                disabled
-                loading={loadingButtonDetails}
-                size="medium"
-                variant="contained"
-              >
-                Chỉnh sửa thông tin
-              </LoadingButton>
-            )
-          ) : (
-            <>
-              <Button
-                variant="contained"
-                onClick={isFieldDisabled ? handleEditGeneral : formik.handleSubmit}
-                disabled={loadingButtonPicture}
-              >
-                {isFieldDisabled ? "Chỉnh sửa thông tin" : "Cập nhật thông tin"}
-              </Button>
-              {!isFieldDisabled && (
-                <Button variant="outlined" onClick={handleCancelGeneral}>
-                  Hủy
-                </Button>
-              )}
-            </>
-          )}
-        </CardActions> */}
         </Card>
     );
 };

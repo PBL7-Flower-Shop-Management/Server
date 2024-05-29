@@ -7,7 +7,10 @@ const CategorySchema = new Schema(
             required: [true, "Category name is required!"],
             trim: true,
         },
-        image: {
+        avatarUrl: {
+            type: String,
+        },
+        avatarId: {
             type: String,
         },
         description: {

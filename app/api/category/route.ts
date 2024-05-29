@@ -1,5 +1,6 @@
 import CategoryController from "@/controllers/CategoryController";
 import { auth, checkRole } from "@/middlewares/Authorization";
+import checkFile from "@/middlewares/CheckFile";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
@@ -20,9 +21,6 @@ import { NextRequest } from "next/server";
  *          categoryName:
  *            type: string
  *            description: The category name.
- *          image:
- *            type: string
- *            description: The category avatar.
  *          description:
  *            type: string
  *            description: The description of category.
@@ -40,7 +38,7 @@ import { NextRequest } from "next/server";
  *          categoryName:
  *            type: string
  *            description: The category name.
- *          image:
+ *          avatarUrl:
  *            type: string
  *            description: The category avatar.
  *          description:
@@ -198,13 +196,29 @@ export const POST = async (req: NextRequest) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
                 userToken,
                 async () => {
-                    let body = await new Response(req.body).json();
+                    let body = null;
+                    let avatar = null;
+                    if (
+                        !req.headers
+                            .get("content-type")
+                            ?.includes("application/json")
+                    ) {
+                        const formData = await req.formData();
+                        avatar = formData.get("avatar");
+                        if (avatar !== "null")
+                            await checkFile(avatar as File, true);
+                        else avatar = null;
+
+                        body = JSON.parse(formData.get("body") as string);
+                    } else body = await new Response(req.body).json();
+
                     ({ req, body: body } = TrimRequest.all(req, null, body));
                     await validate(schemas.CreateCategorySchema)(
                         null,
                         null,
                         body
                     );
+                    body.avatar = avatar;
                     body.createdBy = userToken.user.username;
                     return await CategoryController.CreateCategory(body);
                 }
@@ -221,13 +235,29 @@ export const PUT = async (req: NextRequest) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
                 userToken,
                 async () => {
-                    let body = await new Response(req.body).json();
+                    let body = null;
+                    let avatar = null;
+                    if (
+                        !req.headers
+                            .get("content-type")
+                            ?.includes("application/json")
+                    ) {
+                        const formData = await req.formData();
+                        avatar = formData.get("avatar");
+                        if (avatar !== "null")
+                            await checkFile(avatar as File, true);
+                        else avatar = null;
+
+                        body = JSON.parse(formData.get("body") as string);
+                    } else body = await new Response(req.body).json();
+
                     ({ req, body: body } = TrimRequest.all(req, null, body));
                     await validate(schemas.UpdateCategorySchema)(
                         null,
                         null,
                         body
                     );
+                    body.avatar = avatar;
                     body.updatedBy = userToken.user.username;
                     return await CategoryController.UpdateCategory(body);
                 }

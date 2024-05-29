@@ -9,14 +9,14 @@ const Loading = ({ isShow }: any) => {
             {isShow && (
                 <div
                     className={styles.container}
-                    style={{ zIndex: zIndexLevel.three }}
+                    style={{ zIndex: zIndexLevel.five }}
                 >
                     <Image
                         src={loadingPhoto}
                         alt="Loading"
                         className={styles.animal}
                         unoptimized={true}
-                        style={{ zIndex: zIndexLevel.four }}
+                        style={{ zIndex: zIndexLevel.six }}
                     />
                 </div>
             )}

@@ -137,7 +137,7 @@ export const SideNav = (props: any) => {
                 },
             }}
             // sx={{ zIndex: (theme) => theme.zIndex.appBar + 100 }}
-            sx={{ zIndex: zIndexLevel.two }}
+            sx={{ zIndex: zIndexLevel.four }}
             variant="temporary"
         >
             {content}

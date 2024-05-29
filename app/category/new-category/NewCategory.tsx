@@ -1,11 +1,8 @@
 "use client";
 import Head from "next/head";
 import {
-    Alert,
     Box,
-    Collapse,
     Container,
-    IconButton,
     Skeleton,
     Stack,
     Typography,
@@ -13,182 +10,56 @@ import {
     Breadcrumbs,
     Link,
     Button,
-    Snackbar,
 } from "@mui/material";
 import NextLink from "next/link";
 import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { LoadingButton } from "@mui/lab";
-import CloseIcon from "@mui/icons-material/Close";
-import { useRouter } from "next/navigation";
 import NewCategoryInformation from "@/components/Category/NewCategory/NewCategoryInformation";
 import { NewCategoryAvatar } from "@/components/Category/NewCategory/NewCategoryImages";
+import * as yup from "yup";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { appendJsonToFormData } from "@/utils/helper";
+import { showToast } from "@/components/Toast";
 
 const NewCategory = () => {
-    const [categories, setCategories] = useState<any>([]);
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
-    const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
     const [isFieldDisabled, setIsFieldDisabled] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
-    const [open, setOpen] = useState(true);
-
-    const router = useRouter();
+    const { setLoading } = useLoadingContext();
 
     const formik = useFormik({
         initialValues: {
-            _id: "",
             categoryName: "",
             description: "",
+            avatar: null,
         },
-        validationSchema: Yup.object({
-            // name: Yup.string()
-            //     .max(100, messages.LIMIT_NAME)
-            //     .required(messages.REQUIRED_NAME)
-            //     .matches(
-            //         /^[ '\p{L}]+$/u,
-            //         messages.NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // anotherName: Yup.string()
-            //     .max(100, messages.LIMIT_ANOTHER_NAME)
-            //     .required(messages.REQUIRED_ANOTHER_NAME)
-            //     .matches(
-            //         /^[ '\p{L}]+$/u,
-            //         messages.ANOTHER_NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // citizenId: Yup.string()
-            //     .max(12, messages.LIMIT_CITIZEN_ID)
-            //     .required(messages.REQUIRED_CITIZEN_ID)
-            //     .matches(/^[0-9]+$/u, messages.CITIZEN_ID_VALID_CHARACTER),
-            // phoneNumber: Yup.string()
-            //     .matches(
-            //         /^(?:\+84|84|0)(3|5|7|8|9|1[2689])([0-9]{8,10})\b$/,
-            //         messages.INVALID_PHONE_NUMBER
-            //     )
-            //     .max(15, messages.LIMIT_PHONENUMBER)
-            //     .required(messages.REQUIRED_PHONENUMBER),
-            // careerAndWorkplace: Yup.string()
-            //     .max(300, messages.LIMIT_CAREER_AND_WORKPLACE)
-            //     .required(messages.REQUIRED_CAREER_AND_WORKPLACE)
-            //     .matches(
-            //         /^[\p{L}0-9,.: -]+$/u,
-            //         messages.CAREER_AND_WORKPLACE_VALID_CHARACTER
-            //     ),
-            // characteristics: Yup.string()
-            //     .max(500, messages.LIMIT_CHARACTERISTICS)
-            //     .required(messages.REQUIRED_CHARACTERISTICS)
-            //     .matches(
-            //         /^[\p{L}, ]+$/u,
-            //         messages.CHARACTERISTICS_VALID_CHARACTER
-            //     ),
-            // homeTown: Yup.string()
-            //     .max(200, messages.LIMIT_HOME_TOWN)
-            //     .required(messages.REQUIRED_HOME_TOWN)
-            //     .matches(
-            //         /^[\p{L}0-9,. ]+$/u,
-            //         messages.HOME_TOWN_VALID_CHARACTER
-            //     ),
-            // ethnicity: Yup.string()
-            //     .max(50, messages.LIMIT_ETHNICITY)
-            //     .required(messages.REQUIRED_ETHNICITY)
-            //     .matches(/^[\p{L} ]+$/u, messages.ETHNICITY_VALID_CHARACTER),
-            // religion: Yup.string()
-            //     .max(50, messages.LIMIT_RELIGION)
-            //     .matches(/^[\p{L} ]+$/u, messages.RELIGION_VALID_CHARACTER),
-            // nationality: Yup.string()
-            //     .max(50, messages.LIMIT_NATIONALITY)
-            //     .required(messages.REQUIRED_NATIONALITY)
-            //     .matches(/^[\p{L} ]+$/u, messages.NATIONALITY_VALID_CHARACTER),
-            // fatherName: Yup.string()
-            //     .max(100, messages.LIMIT_FATHER_NAME)
-            //     .required(messages.REQUIRED_FATHER_NAME)
-            //     .matches(
-            //         /^[\p{L} ']+$/u,
-            //         messages.NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // fatherCitizenId: Yup.string()
-            //     .max(12, messages.LIMIT_FATHER_CITIZEN_ID)
-            //     .required(messages.REQUIRED_FATHER_CITIZEN_ID)
-            //     .matches(/^[0-9]+$/u, messages.CITIZEN_ID_VALID_CHARACTER),
-            // motherName: Yup.string()
-            //     .max(100, messages.LIMIT_MOTHER_NAME)
-            //     .required(messages.REQUIRED_MOTHER_NAME)
-            //     .matches(
-            //         /^[\p{L} ']+$/u,
-            //         messages.NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // motherCitizenId: Yup.string()
-            //     .max(12, messages.LIMIT_MOTHER_CITIZEN_ID)
-            //     .required(messages.REQUIRED_MOTHER_CITIZEN_ID)
-            //     .matches(/^[0-9]+$/u, messages.CITIZEN_ID_VALID_CHARACTER),
-            // permanentResidence: Yup.string()
-            //     .max(200, messages.LIMIT_PERMANENT_RESIDENCE)
-            //     .required(messages.REQUIRED_PERMANENT_RESIDENCE)
-            //     .matches(
-            //         /^[\p{L}0-9,. ]+$/u,
-            //         messages.PERMANENT_RESIDENCE_VALID_CHARACTER
-            //     ),
-            // currentAccommodation: Yup.string()
-            //     .max(200, messages.LIMIT_CURRENT_ACCOMMODATION)
-            //     .required(messages.REQUIRED_CURRENT_ACCOMMODATION)
-            //     .matches(
-            //         /^[\p{L}0-9,. ]+$/u,
-            //         messages.CURRENT_ACCOMMODATION_VALID_CHARACTER
-            //     ),
-            // phoneModel: Yup.string()
-            //     .max(100, messages.LIMIT_PHONE_MODEL)
-            //     .required(messages.REQUIRED_PHONE_MODEL)
-            //     .matches(
-            //         /^[\p{L}0-9 ]+$/u,
-            //         messages.PHONE_MODE_VALID_CHARACTER
-            //     ),
-            // entryAndExitInformation: Yup.string()
-            //     .max(500, messages.LIMIT_ENTRY_AND_EXIT_INFORMATION)
-            //     .matches(
-            //         /^[\p{L}0-9,.: -]+$/u,
-            //         messages.ENTRY_AND_EXIT_INFORMATION_VALID_CHARACTER
-            //     ),
-            // facebook: Yup.string()
-            //     .max(100, messages.LIMIT_FACEBOOK)
-            //     .matches(
-            //         /^[\p{L}0-9,.: -]+$/u,
-            //         messages.FACEBOOK_VALID_CHARACTER
-            //     ),
-            // zalo: Yup.string()
-            //     .max(100, messages.LIMIT_ZALO)
-            //     .matches(/^[0-9]+$/u, messages.ZALO_VALID_CHARACTER),
-            // otherSocialNetworks: Yup.string().max(
-            //     300,
-            //     messages.LIMIT_OTHER_SOCIAL_NETWORKS
-            // ),
-            // gameCategory: Yup.string().max(100, messages.LIMIT_GAME_ACCOUNT),
-            // bankCategory: Yup.string()
-            //     .nullable()
-            //     .max(30, messages.LIMIT_BANK_ACCOUNT)
-            //     .matches(
-            //         /^[\p{L}0-9 ]+$/u,
-            //         messages.BANK_ACCOUNT_VALID_CHARACTER
-            //     ),
-            // vehicles: Yup.string()
-            //     .nullable()
-            //     .max(100, messages.LIMIT_VEHICLES)
-            //     .matches(
-            //         /^[\p{L}0-9,.: -]+$/u,
-            //         messages.VEHICLES_VALID_CHARACTER
-            //     ),
-            // dangerousLevel: Yup.string()
-            //     .nullable()
-            //     .max(200, messages.LIMIT_DANGEROUS_LEVEL)
-            //     .matches(
-            //         /^[\p{L}0-9,.: -]+$/u,
-            //         messages.DANGEROUS_LEVEL_VALID_CHARACTER
-            //     ),
-            // otherInformation: Yup.string()
-            //     .nullable()
-            //     .max(500, messages.LIMIT_OTHER_INFORMATION),
+        validationSchema: yup.object({
+            categoryName: yup
+                .string()
+                .trim()
+                .required("Category name field is required")
+                .matches(
+                    /^[\p{L}\d\s\/\-]+$/u,
+                    "Category name only contains characters, number, space, slash and dash!"
+                ),
+            avatar: yup
+                .mixed()
+                .required("Category avatar field is required!")
+                .test(
+                    "fileFormat",
+                    "Ảnh tải lên không hợp lệ!",
+                    (value: any) => {
+                        if (value && value.type) {
+                            return value.type.startsWith("image/");
+                        }
+                        return true;
+                    }
+                ),
+            description: yup.string().trim().nullable(),
         }),
         onSubmit: async (values, helpers: any) => {
             try {
@@ -204,77 +75,74 @@ const NewCategory = () => {
     const handleSubmit = async () => {
         try {
             setIsFieldDisabled(true);
-            setLoadingButtonDetails(true);
-            // let { image, ...newCategory } = formik.values;
-            // newCategory = {
-            //     ...newCategory,
-            //     birthday:
-            //         newCategory.birthday &&
-            //         format(newCategory.birthday, "dd/MM/yyyy"),
-            //     fatherBirthday:
-            //         newCategory.fatherBirthday &&
-            //         format(newCategory.fatherBirthday, "dd/MM/yyyy"),
-            //     motherBirthday:
-            //         newCategory.motherBirthday &&
-            //         format(newCategory.motherBirthday, "dd/MM/yyyy"),
-            //     gender:
-            //         newCategory.gender === true || newCategory.gender === "true",
-            //     releaseDate:
-            //         newCategory.releaseDate &&
-            //         format(newCategory.releaseDate, "dd/MM/yyyy"),
-            //     status: Number(newCategory.status),
-            // };
-            // console.log(newCategory);
-            // await categorysApi.addCategory(newCategory, auth);
-            setSuccess("Thêm hạng mục thành công.");
-            setError("");
-            setIsFieldDisabled(true);
             setButtonDisabled(true);
+            setLoadingButtonDetails(true);
+            const formData = new FormData();
+            let isFormData = false;
+            if (formik.values.avatar) {
+                formData.set("avatar", formik.values.avatar);
+                isFormData = true;
+            }
+            const response = await FetchApi(
+                UrlConfig.category.create,
+                "POST",
+                true,
+                isFormData
+                    ? appendJsonToFormData(formData, {
+                          ...formik.values,
+                          avatar: undefined,
+                      })
+                    : {
+                          ...formik.values,
+                          avatar: undefined,
+                      },
+                isFormData
+            );
+            if (response.canRefreshToken === false) {
+                setIsFieldDisabled(false);
+                setButtonDisabled(false);
+                showToast(response.message, "warning");
+                return false;
+            } else if (response.succeeded) {
+                showToast("Thêm hạng mục mới thành công.", "success");
+                formik.setValues({
+                    ...response.data,
+                    avatar: formik.values.avatar,
+                });
+                return true;
+            } else {
+                setIsFieldDisabled(false);
+                setButtonDisabled(false);
+                showToast(response.message, "error");
+                return false;
+            }
         } catch (error: any) {
             setIsFieldDisabled(false);
             setButtonDisabled(false);
-            setSuccess("");
-            setError(error.message);
-            console.log(error);
+            showToast(error.message ?? error, "error");
         } finally {
             setLoadingButtonDetails(false);
         }
     };
 
-    const uploadImage = useCallback(
-        async (newImage: any) => {
-            try {
-                // const response = await imagesApi.uploadImage(newImage);
-                // formik.setValues({
-                //     ...formik.values,
-                //     // avatar: response[0].filePath,
-                //     avatarLink: response[0].fileUrl,
-                // });
-                setSuccess("Thêm ảnh đại diện hạng mục thành công.");
-                setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [formik.values]
-    );
+    const uploadImage = async (newImage: any) => {
+        try {
+            formik.setValues({
+                ...formik.values,
+                avatar: newImage,
+            });
+        } catch (error: any) {
+            showToast(error.message ?? error, "error");
+        }
+    };
 
-    const updateCategoryPicture = useCallback(
-        async (newImage: any) => {
-            try {
-                setLoadingButtonPicture(true);
-                await uploadImage(newImage);
-                setOpen(true);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonPicture(false);
-            }
-        },
-        [uploadImage]
-    );
+    const handleAddOtherCategory = (e: any) => {
+        setButtonDisabled(false);
+        setIsFieldDisabled(false);
+        formik.handleReset(e);
+    };
+
+    useEffect(() => setLoading(false), []);
 
     return (
         <>
@@ -318,6 +186,7 @@ const NewCategory = () => {
                                                 alignItems: "center",
                                             }}
                                             href="/category"
+                                            onClick={() => setLoading(true)}
                                             color="text.primary"
                                         >
                                             <Typography
@@ -354,15 +223,23 @@ const NewCategory = () => {
                                 <Grid container spacing={3}>
                                     <Grid xs={12} md={12} lg={12}>
                                         <NewCategoryAvatar
-                                            formik={formik}
                                             loadingSkeleton={loadingSkeleton}
+                                            loadingButtonDetails={
+                                                loadingButtonDetails
+                                            }
+                                            error={
+                                                formik.touched.avatar &&
+                                                formik.errors.avatar
+                                            }
+                                            onUpdate={uploadImage}
                                             isFieldDisabled={isFieldDisabled}
+                                            buttonDisabled={buttonDisabled}
+                                            reset={!formik.values.avatar}
                                         />
                                     </Grid>
                                     <Grid xs={12} md={12} lg={12}>
                                         <NewCategoryInformation
                                             formik={formik}
-                                            initCategories={categories}
                                             loadingSkeleton={loadingSkeleton}
                                             isFieldDisabled={isFieldDisabled}
                                         />
@@ -374,9 +251,38 @@ const NewCategory = () => {
                                             alignItems="center"
                                             spacing={1}
                                         >
-                                            {formik.isSubmitting ||
-                                            loadingButtonDetails ? (
+                                            {buttonDisabled ? (
                                                 <>
+                                                    <LoadingButton
+                                                        loading={
+                                                            formik.isSubmitting ||
+                                                            loadingButtonDetails
+                                                        }
+                                                        onClick={(e) =>
+                                                            handleAddOtherCategory(
+                                                                e
+                                                            )
+                                                        }
+                                                        size="medium"
+                                                        variant="contained"
+                                                    >
+                                                        Thêm hạng mục khác
+                                                    </LoadingButton>
+                                                </>
+                                            ) : formik.isSubmitting ||
+                                              loadingButtonDetails ? (
+                                                <>
+                                                    <Button
+                                                        disabled={
+                                                            formik.isSubmitting ||
+                                                            loadingButtonDetails ||
+                                                            buttonDisabled
+                                                        }
+                                                        variant="outlined"
+                                                        color="error"
+                                                    >
+                                                        Khôi phục biểu mẫu
+                                                    </Button>
                                                     <LoadingButton
                                                         disabled
                                                         loading={
@@ -388,31 +294,26 @@ const NewCategory = () => {
                                                     >
                                                         Thêm hạng mục
                                                     </LoadingButton>
-                                                    <Button
-                                                        disabled={
-                                                            formik.isSubmitting ||
-                                                            loadingButtonPicture ||
-                                                            loadingButtonDetails ||
-                                                            buttonDisabled
-                                                        }
-                                                        variant="outlined"
-                                                        component={NextLink}
-                                                        href="/category"
-                                                        sx={{
-                                                            color: "neutral.500",
-                                                            borderColor:
-                                                                "neutral.500",
-                                                        }}
-                                                    >
-                                                        Huỷ
-                                                    </Button>
                                                 </>
                                             ) : (
                                                 <>
                                                     <Button
                                                         disabled={
                                                             formik.isSubmitting ||
-                                                            loadingButtonPicture ||
+                                                            loadingButtonDetails ||
+                                                            buttonDisabled
+                                                        }
+                                                        variant="outlined"
+                                                        onClick={
+                                                            formik.handleReset
+                                                        }
+                                                        color="error"
+                                                    >
+                                                        Khôi phục biểu mẫu
+                                                    </Button>
+                                                    <Button
+                                                        disabled={
+                                                            formik.isSubmitting ||
                                                             buttonDisabled
                                                         }
                                                         type="submit"
@@ -423,24 +324,15 @@ const NewCategory = () => {
                                                     <Button
                                                         disabled={
                                                             formik.isSubmitting ||
-                                                            loadingButtonPicture ||
                                                             loadingButtonDetails ||
                                                             buttonDisabled
                                                         }
                                                         variant="outlined"
                                                         component={NextLink}
+                                                        onClick={() =>
+                                                            setLoading(true)
+                                                        }
                                                         href="/category"
-                                                        sx={{
-                                                            color: "neutral.500",
-                                                            borderColor:
-                                                                "neutral.500",
-                                                            "&:hover": {
-                                                                borderColor:
-                                                                    "neutral.600",
-                                                                backgroundColor:
-                                                                    "neutral.100",
-                                                            },
-                                                        }}
                                                     >
                                                         Huỷ
                                                     </Button>
@@ -449,96 +341,6 @@ const NewCategory = () => {
                                         </Stack>
                                     </Grid>
                                 </Grid>
-                            </div>
-                            <div>
-                                {success && (
-                                    <Collapse in={open}>
-                                        <Snackbar
-                                            open={open}
-                                            autoHideDuration={6000}
-                                            onClose={() => setOpen(false)}
-                                            anchorOrigin={{
-                                                vertical: "top",
-                                                horizontal: "center",
-                                            }}
-                                        >
-                                            <Alert
-                                                variant="outlined"
-                                                severity="success"
-                                                action={
-                                                    <IconButton
-                                                        aria-label="close"
-                                                        color="success"
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setOpen(false);
-                                                            router.push(
-                                                                "/category"
-                                                            );
-                                                        }}
-                                                    >
-                                                        <CloseIcon fontSize="inherit" />
-                                                    </IconButton>
-                                                }
-                                                sx={{
-                                                    mt: 2,
-                                                    borderRadius: "12px",
-                                                }}
-                                            >
-                                                <Typography
-                                                    color="success"
-                                                    variant="subtitle2"
-                                                >
-                                                    {success}
-                                                </Typography>
-                                            </Alert>
-                                        </Snackbar>
-                                    </Collapse>
-                                )}
-                                {error && (
-                                    <Collapse in={open}>
-                                        <Snackbar
-                                            open={open}
-                                            autoHideDuration={6000}
-                                            onClose={() => setOpen(false)}
-                                            anchorOrigin={{
-                                                vertical: "top",
-                                                horizontal: "center",
-                                            }}
-                                        >
-                                            <Alert
-                                                variant="outlined"
-                                                severity="error"
-                                                action={
-                                                    <IconButton
-                                                        aria-label="close"
-                                                        color="error"
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setOpen(false);
-                                                            router.push(
-                                                                "/category"
-                                                            );
-                                                        }}
-                                                    >
-                                                        <CloseIcon fontSize="inherit" />
-                                                    </IconButton>
-                                                }
-                                                sx={{
-                                                    mt: 2,
-                                                    borderRadius: "12px",
-                                                }}
-                                            >
-                                                <Typography
-                                                    color="error"
-                                                    variant="subtitle2"
-                                                >
-                                                    {error}
-                                                </Typography>
-                                            </Alert>
-                                        </Snackbar>
-                                    </Collapse>
-                                )}
                             </div>
                         </Stack>
                     </Container>

@@ -1,173 +1,203 @@
 "use client";
 import Head from "next/head";
 import NextLink from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
-    Alert,
     Box,
     Breadcrumbs,
-    Collapse,
     Container,
-    IconButton,
     Skeleton,
     Stack,
     Typography,
     Unstable_Grid2 as Grid,
     Link,
+    Button,
+    CardActions,
+    Divider,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
 import { useSearchParams } from "next/navigation";
 import CategoryInformation from "@/components/Category/Detail/CategoryInformation";
 import { CategoryAvatar } from "@/components/Category/Detail/CategoryAvatar";
-import { isValidUrl } from "@/utils/helper";
+import { appendJsonToFormData } from "@/utils/helper";
+import * as yup from "yup";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import mongoose from "mongoose";
+import { useFormik } from "formik";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { showToast } from "@/components/Toast";
+import { LoadingButton } from "@mui/lab";
 
 const CategoryDetail = ({ params }: any) => {
-    const [category, setCategory] = useState<any>(null);
+    const [originalCategory, setOriginalCategory] = useState<any>();
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
-    const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
+    const alreadyRun = useRef(false);
+    const { setLoading } = useLoadingContext();
+    const [changesMade, setChangesMade] = useState(false);
+
     const searchParams = useSearchParams();
     const categoryId = params?.id;
-    const categoryName = searchParams.get("name");
     const canEdit = searchParams.get("edit") === "1";
-    const [open, setOpen] = useState(true);
+    const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
 
-    const getCategory = useCallback(async () => {
+    const formik = useFormik({
+        initialValues: {} as any,
+        validationSchema: yup.object({
+            _id: yup
+                .string()
+                .trim()
+                .required()
+                .test("is-objectid", "Invalid category id format", (value) =>
+                    mongoose.Types.ObjectId.isValid(value)
+                ),
+            categoryName: yup
+                .string()
+                .trim()
+                .required("Category name field is required")
+                .matches(
+                    /^[\p{L}\d\s\/\-]+$/u,
+                    "Category name only contains characters, number, space, slash and dash!"
+                ),
+            avatarUrl: yup.string().nullable(),
+            description: yup.string().trim().nullable(),
+            avatar: yup
+                .mixed()
+                .nullable()
+                .test(
+                    "fileFormat",
+                    "Ảnh tải lên không hợp lệ!",
+                    (value: any) => {
+                        if (value && value.type) {
+                            return value.type.startsWith("image/");
+                        }
+                        return true;
+                    }
+                )
+                .test(
+                    "require_avatar",
+                    "Category avatar field is required!",
+                    (value) => {
+                        if (value || value === undefined) return true;
+                        return false;
+                    }
+                ),
+        }),
+
+        onSubmit: async (values, helpers: any) => {
+            try {
+                console.log(values);
+                if (changesMade || formik.values.avatar) {
+                    setIsFieldDisabled(true);
+                    const res = await updateInformation();
+                    setIsFieldDisabled(res);
+                } else setIsFieldDisabled(true);
+            } catch (err: any) {
+                helpers.setStatus({ success: false });
+                helpers.setErrors({ submit: err.message });
+                helpers.setSubmitting(false);
+            }
+        },
+    });
+
+    const getCategory = async () => {
+        setLoading(true);
         setLoadingSkeleton(true);
-        setError("");
-        try {
-            // const category = await categorysApi.getCategoryById(
-            //     categoryId,
-            //     auth
-            // );
-            const category = {
-                _id: "663047485c22d11402fcc6d3",
-                categoryName: "Hoa trồng vườn",
-                image: "https://th.bing.com/th/id/OIP.f-FXUJ0aDZgeT7USzI7CUgHaKW?rs=1&pid=ImgDetMain",
-                description:
-                    "Integer ac leo. Pellentesque ultrices mattis odio. Donec vitae nisi.",
-                createdAt: "2024-04-01T00:00:00Z",
-                createdBy: "Merl",
-            };
-            setCategory(category);
-            console.log(category);
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
+
+        const response = await FetchApi(
+            UrlConfig.category.getById.replace("{id}", categoryId),
+            "GET",
+            true
+        );
+
+        if (response.canRefreshToken === false)
+            showToast(response.message, "warning");
+        else if (response.succeeded) {
+            formik.setValues(response.data);
+            setOriginalCategory(response.data);
             setLoadingSkeleton(false);
+        } else {
+            showToast(response.message, "error");
         }
-    }, []);
+        setLoading(false);
+    };
+
+    const updateInformation = async () => {
+        try {
+            setLoadingButtonDetails(true);
+            const formData = new FormData();
+            let isFormData = false;
+            if (formik.values.avatar || formik.values.avatar === null) {
+                formData.set("avatar", formik.values.avatar);
+                isFormData = true;
+            }
+
+            const response = await FetchApi(
+                UrlConfig.category.update,
+                "PUT",
+                true,
+                isFormData
+                    ? appendJsonToFormData(formData, {
+                          ...formik.values,
+                          avatarUrl: undefined,
+                          avatar: undefined,
+                      })
+                    : {
+                          ...formik.values,
+                          avatar: undefined,
+                      },
+                isFormData
+            );
+            if (response.canRefreshToken === false) {
+                showToast(response.message, "warning");
+                return false;
+            } else if (response.succeeded) {
+                showToast(
+                    "Cập nhật thông tin chi tiết tài khoản thành công.",
+                    "success"
+                );
+                formik.setValues(response.data);
+                return true;
+            } else {
+                showToast(response.message, "error");
+                return false;
+            }
+        } catch (error: any) {
+            showToast(error.message, "error");
+            return false;
+        } finally {
+            setLoadingButtonDetails(false);
+        }
+    };
+
+    const handleChange = (e: any) => {
+        formik.handleChange(e);
+        setChangesMade(true);
+    };
+
+    const handleClick = () => {
+        setOriginalCategory(formik.values);
+        setIsFieldDisabled(false);
+        setChangesMade(false);
+    };
+
+    const handleCancel = () => {
+        formik.setValues(originalCategory);
+        setIsFieldDisabled(true);
+        setChangesMade(false);
+    };
 
     useEffect(() => {
-        getCategory();
+        if (!alreadyRun.current) {
+            alreadyRun.current = true;
+            getCategory();
+        }
     }, []);
-
-    const updateDetails = useCallback(
-        async (updatedDetails: any) => {
-            try {
-                const updatedCategory = {
-                    id: categoryId, // dung params de truyen id
-                    ...category,
-                    ...updatedDetails,
-                };
-
-                const {
-                    relatedCases,
-                    charge,
-                    isWantedCategory,
-                    wantedCategorys,
-                    avatarLink,
-                    ...updated
-                } = updatedCategory;
-                // console.log(updated);
-                // await categorysApi.editCategory(updated, auth);
-                // getCategory();
-                setSuccess("Cập nhật thông tin chi tiết tội phạm thành công.");
-                setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [category]
-    );
-
-    const updateCategoryDetails = useCallback(
-        async (updatedDetails: any) => {
-            try {
-                setLoadingButtonDetails(true);
-                setCategory((prevCategory: any) => ({
-                    ...prevCategory,
-                    ...updatedDetails,
-                }));
-                setOpen(true);
-                await updateDetails(updatedDetails);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonDetails(false);
-            }
-        },
-        [setCategory, updateDetails]
-    );
-
-    const uploadImage = useCallback(
-        async (newImage: any) => {
-            try {
-                // const response = await imagesApi.uploadImage(newImage);
-                // const updatedCategory = {
-                //     id: categoryId,
-                //     ...category,
-                //     avatar: response[0].filePath,
-                // };
-                // const {
-                //     relatedCases,
-                //     charge,
-                //     isWantedCategory,
-                //     wantedCategorys,
-                //     avatarLink,
-                //     ...updated
-                // } = updatedCategory;
-                // // console.log(updated);
-                // // await categorysApi.editCategory(updated, auth);
-                // // getCategory();
-                // setSuccess("Cập nhật ảnh đại diện tội phạm thành công.");
-                // setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [category]
-    );
-
-    const updateCategoryPicture = useCallback(
-        async (newImage: any) => {
-            try {
-                setLoadingButtonPicture(true);
-                setCategory((prevCategory: any) => ({
-                    ...prevCategory,
-                    avatar: newImage,
-                }));
-                setOpen(true);
-                await uploadImage(newImage);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonPicture(false);
-            }
-        },
-        [setCategory, uploadImage]
-    );
 
     return (
         <>
             <Head>
-                <title>Hạng mục | {category?.name}</title>
+                <title>Hạng mục | {originalCategory?.categoryName}</title>
             </Head>
             <Box
                 sx={{
@@ -205,6 +235,7 @@ const CategoryDetail = ({ params }: any) => {
                                             alignItems: "center",
                                         }}
                                         href="/category"
+                                        onClick={() => setLoading(true)}
                                         color="text.primary"
                                     >
                                         <Typography
@@ -231,7 +262,7 @@ const CategoryDetail = ({ params }: any) => {
                                             color: "primary.main",
                                         }}
                                     >
-                                        {category?.categoryName}
+                                        {originalCategory?.categoryName}
                                     </Typography>
                                 </Breadcrumbs>
                             )}
@@ -240,106 +271,92 @@ const CategoryDetail = ({ params }: any) => {
                             <Grid container spacing={3}>
                                 <Grid xs={12} md={12} lg={12}>
                                     <CategoryAvatar
-                                        imageLink={
-                                            isValidUrl(category?.image)
-                                                ? category?.image
-                                                : undefined
-                                        }
+                                        formik={formik}
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
                                         }
-                                        loadingButtonPicture={
-                                            loadingButtonPicture
-                                        }
-                                        onUpdate={updateCategoryPicture}
-                                        success={success}
+                                        isFieldDisabled={isFieldDisabled}
                                     />
                                 </Grid>
 
                                 <Grid xs={12} md={12} lg={12}>
                                     <CategoryInformation
-                                        category={category}
+                                        formik={formik}
+                                        handleChange={handleChange}
                                         loadingSkeleton={loadingSkeleton}
-                                        loadingButtonDetails={
-                                            loadingButtonDetails
-                                        }
-                                        loadingButtonPicture={
-                                            loadingButtonPicture
-                                        }
-                                        handleSubmit={updateCategoryDetails}
-                                        canEdit={canEdit}
+                                        isFieldDisabled={isFieldDisabled}
                                     />
+                                    <Divider />
+                                    {canEdit && (
+                                        <CardActions
+                                            sx={{
+                                                justifyContent: "flex-end",
+                                            }}
+                                        >
+                                            {loadingSkeleton ? (
+                                                <>
+                                                    <Skeleton
+                                                        height={40}
+                                                        width={170}
+                                                        variant="rounded"
+                                                    ></Skeleton>
+                                                    <Skeleton
+                                                        height={40}
+                                                        width={170}
+                                                        variant="rounded"
+                                                    ></Skeleton>
+                                                </>
+                                            ) : loadingButtonDetails ? (
+                                                <>
+                                                    <LoadingButton
+                                                        disabled
+                                                        loading={
+                                                            loadingButtonDetails
+                                                        }
+                                                        size="medium"
+                                                        variant="contained"
+                                                    >
+                                                        Chỉnh sửa thông tin
+                                                    </LoadingButton>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={() => {
+                                                            if (isFieldDisabled)
+                                                                handleClick();
+                                                            else
+                                                                formik.handleSubmit();
+                                                        }}
+                                                        disabled={
+                                                            loadingButtonDetails
+                                                        }
+                                                    >
+                                                        {isFieldDisabled
+                                                            ? "Chỉnh sửa thông tin"
+                                                            : "Cập nhật thông tin"}
+                                                    </Button>
+                                                    {!isFieldDisabled && (
+                                                        <Button
+                                                            variant="outlined"
+                                                            onClick={
+                                                                handleCancel
+                                                            }
+                                                            disabled={
+                                                                loadingButtonDetails
+                                                            }
+                                                        >
+                                                            Hủy
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </CardActions>
+                                    )}
                                 </Grid>
                             </Grid>
-                        </div>
-                        <div>
-                            {success && (
-                                <Collapse in={open}>
-                                    {open && (
-                                        <Alert
-                                            variant="outlined"
-                                            severity="success"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="success"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
-                                                color="success"
-                                                variant="subtitle2"
-                                            >
-                                                {success}
-                                            </Typography>
-                                        </Alert>
-                                    )}
-                                </Collapse>
-                            )}
-                            {error && (
-                                <Collapse in={open}>
-                                    {open && (
-                                        <Alert
-                                            variant="outlined"
-                                            severity="error"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
-                                                color="error"
-                                                variant="subtitle2"
-                                            >
-                                                {error}
-                                            </Typography>
-                                        </Alert>
-                                    )}
-                                </Collapse>
-                            )}
                         </div>
                     </Stack>
                 </Container>

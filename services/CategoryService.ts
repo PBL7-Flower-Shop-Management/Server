@@ -6,6 +6,7 @@ import FlowerModel from "@/models/FlowerModel";
 import mongoose from "mongoose";
 import moment from "moment";
 import { parseSortString } from "@/utils/helper";
+import CloudinaryService from "./CloudinaryService";
 
 class CategoryService {
     async GetAllCategory(query: any): Promise<ApiResponse> {
@@ -29,50 +30,75 @@ class CategoryService {
                         })
                     );
 
-                const categories = await CategoryModel.find(
+                const results = await CategoryModel.aggregate([
                     {
-                        isDeleted: false,
-                        $or: [
-                            {
-                                categoryName: {
-                                    $regex: query.keyword,
-                                    $options: "i",
+                        $match: {
+                            isDeleted: false,
+                            $or: [
+                                {
+                                    categoryName: {
+                                        $regex: query.keyword,
+                                        $options: "i",
+                                    },
                                 },
-                            },
-                            {
-                                description: {
-                                    $regex: query.keyword,
-                                    $options: "i",
+                                {
+                                    description: {
+                                        $regex: query.keyword,
+                                        $options: "i",
+                                    },
                                 },
-                            },
-                        ],
+                            ],
+                        },
                     },
                     {
-                        _id: 1,
-                        categoryName: 1,
-                        image: 1,
-                        description: 1,
-                        createdAt: "$createdAt",
-                        createdBy: "$createdBy",
-                    }
-                )
-                    .skip(
-                        query.isExport
-                            ? 0
-                            : (query.pageNumber - 1) * query.pageSize
-                    )
-                    .limit(
-                        query.isExport
-                            ? Number.MAX_SAFE_INTEGER
-                            : query.pageSize
-                    )
-                    .collation({ locale: "en", caseLevel: false, strength: 1 })
-                    .sort(orderBy);
+                        $project: {
+                            _id: 1,
+                            categoryName: 1,
+                            avatarUrl: 1,
+                            description: 1,
+                            createdAt: "$createdAt",
+                            createdBy: "$createdBy",
+                        },
+                    },
+                    {
+                        $sort: orderBy,
+                    },
+                    {
+                        $facet: {
+                            // Paginated results
+                            paginatedResults: [
+                                {
+                                    $skip: query.isExport
+                                        ? 0
+                                        : (query.pageNumber - 1) *
+                                          query.pageSize,
+                                },
+                                {
+                                    $limit: query.isExport
+                                        ? Number.MAX_SAFE_INTEGER
+                                        : query.pageSize,
+                                },
+                            ],
+                            // Count of all documents that match the criteria
+                            totalCount: [{ $count: "totalCount" }],
+                        },
+                    },
+                ]).collation({ locale: "en", caseLevel: false, strength: 1 });
+
+                const total =
+                    results.length > 0
+                        ? results[0].totalCount.length > 0
+                            ? results[0].totalCount[0].totalCount
+                            : 0
+                        : 0;
+                const paginatedResults =
+                    results.length > 0 ? results[0].paginatedResults : [];
 
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: categories,
+                        total: total,
+                        data: paginatedResults,
                     })
                 );
             } catch (error: any) {
@@ -87,6 +113,14 @@ class CategoryService {
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
+                if (!category.avatar)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Category avatar is required!",
+                        })
+                    );
+
                 if (
                     await CategoryModel.findOne({
                         categoryName: category.categoryName,
@@ -101,6 +135,12 @@ class CategoryService {
                     );
                 }
                 //upload image cloudinary
+                const response = await CloudinaryService.Upload(
+                    category.avatar
+                );
+
+                category.avatarUrl = response.url;
+                category.avatarId = response.public_id;
 
                 const currentDate = moment().toDate();
 
@@ -142,12 +182,20 @@ class CategoryService {
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
-                if (
-                    !(await CategoryModel.findOne({
-                        _id: category._id,
-                        isDeleted: false,
-                    }))
-                )
+                if (!category.avatarUrl && !category.avatar)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "Category avatar is required!",
+                        })
+                    );
+
+                const categoryDb = await CategoryModel.findOne({
+                    _id: category._id,
+                    isDeleted: false,
+                });
+
+                if (!categoryDb)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -169,8 +217,22 @@ class CategoryService {
                         })
                     );
                 }
+                //update cloudinary
+                if (!category.avatarUrl && category.avatar) {
+                    // upload image and retrieve photo_url
+                    const response = await CloudinaryService.Upload(
+                        category.avatar
+                    );
+                    if (categoryDb.avatarId) {
+                        // delete old image async
+                        await CloudinaryService.DeleteByPublicId(
+                            categoryDb.avatarId
+                        );
+                    }
 
-                //update image cloudinary
+                    category.avatarUrl = response.url;
+                    category.avatarId = response.public_id;
+                }
 
                 const updatedCategory = await CategoryModel.findOneAndUpdate(
                     { _id: category._id },
@@ -181,7 +243,11 @@ class CategoryService {
                             updatedBy: category.updatedBy ?? "System",
                         },
                     },
-                    { session: session, new: true }
+                    {
+                        session: session,
+                        new: true,
+                        select: "_id categoryName avatarUrl description",
+                    }
                 );
 
                 await session.commitTransaction();
@@ -499,7 +565,7 @@ class CategoryService {
                     {
                         _id: 1,
                         categoryName: 1,
-                        image: 1,
+                        avatarUrl: 1,
                         description: 1,
                     }
                 );

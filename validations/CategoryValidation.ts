@@ -42,7 +42,6 @@ const schemas = {
                         /^[\p{L}\d\s\/\-]+$/u,
                         "Category name only contains characters, number, space, slash and dash!"
                     ),
-                image: yup.string().trim().required("Image field is required"),
                 description: yup.string().trim().nullable(),
             })
             .noUnknown(true, "Unknown field in request body: ${unknown}")
@@ -69,7 +68,7 @@ const schemas = {
                         /^[\p{L}\d\s\/\-]+$/u,
                         "Category name only contains characters, number, space, slash and dash!"
                     ),
-                image: yup.string().trim().required("Image field is required"),
+                avatarUrl: yup.string().nullable(),
                 description: yup.string().trim().nullable(),
             })
             .noUnknown(true, "Unknown field in request body: ${unknown}")

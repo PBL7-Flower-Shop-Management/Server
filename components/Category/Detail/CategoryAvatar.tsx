@@ -2,70 +2,20 @@ import {
     Avatar,
     Badge,
     Box,
-    Button,
     Card,
-    CardActions,
     CardContent,
     Divider,
-    Grid,
     IconButton,
     Skeleton,
     Typography,
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
-import { LoadingButton } from "@mui/lab";
-import { useEffect, useState, useRef } from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
+import { useRef } from "react";
 
 export const CategoryAvatar = (props: any) => {
-    const {
-        imageLink,
-        loadingSkeleton,
-        loadingButtonDetails,
-        loadingButtonPicture,
-        onUpdate,
-        success,
-    } = props;
-    const [isImageChanged, setIsImageChanged] = useState(false);
-    const [message, setMessage] = useState("");
-
-    const formik = useFormik({
-        enableReinitialize: true,
-        initialValues: {
-            image: imageLink ? imageLink : null,
-            file: null,
-        },
-        validationSchema: Yup.object({
-            file: Yup.mixed()
-                .nullable()
-                .test(
-                    "fileFormat",
-                    "Ảnh tải lên không hợp lệ",
-                    (value: any) => {
-                        if (value && value.type) {
-                            return value.type.startsWith("image/");
-                        }
-                        return true;
-                    }
-                ),
-        }),
-        onSubmit: async (values, helpers: any) => {
-            try {
-                handleUpload();
-            } catch (err: any) {
-                helpers.setStatus({ success: false });
-                helpers.setErrors({ submit: err.message });
-                helpers.setSubmitting(false);
-            }
-        },
-    });
-
-    useEffect(() => {
-        setIsImageChanged(false);
-    }, [imageLink]);
+    const { formik, loadingSkeleton, loadingButtonDetails, isFieldDisabled } =
+        props;
 
     const inputRef = useRef(null);
 
@@ -75,88 +25,76 @@ export const CategoryAvatar = (props: any) => {
 
     const handleFileChange = (event: any) => {
         const fileObj = event.target.files && event.target.files[0];
-        if (!fileObj) {
-            return;
-        }
-        if (!fileObj.type.startsWith("image/")) {
-            setMessage("Ảnh tải lên không hợp lệ. Vui lòng thử lại.");
-            return;
-        }
-        setMessage("");
         formik.setValues({
             ...formik.values,
-            file: fileObj,
-            image: URL.createObjectURL(fileObj),
+            avatar: fileObj,
+            avatarUrl: URL.createObjectURL(fileObj),
         });
-        setIsImageChanged(true);
     };
 
     const handleCancel = () => {
         formik.setValues({
             ...formik.values,
-            file: null,
-            image: imageLink,
+            avatar: null,
+            avatarUrl: null,
         });
-        setIsImageChanged(false);
-    };
-
-    const handleUpload = () => {
-        if (isImageChanged && formik.values.file) {
-            const formData = new FormData();
-            formData.append("Files", formik.values.file);
-            setIsImageChanged(false);
-            onUpdate(formData);
-            setIsImageChanged(!success);
-        }
+        formik.setErrors({});
     };
 
     return (
-        <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
-            <Card>
-                <CardContent
+        <Card>
+            <CardContent
+                sx={{
+                    p: 0,
+                    mb: 3,
+                    mt: 3,
+                }}
+            >
+                <Box
                     sx={{
-                        p: 0,
-                        mb: 3,
-                        mt: 3,
+                        alignItems: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        position: "relative",
                     }}
                 >
-                    <Box
-                        sx={{
-                            alignItems: "center",
-                            display: "flex",
-                            flexDirection: "column",
-                            position: "relative",
-                        }}
-                    >
-                        {loadingSkeleton ? (
-                            <Skeleton variant="circular">
-                                <Avatar
-                                    sx={{
-                                        height: 250,
-                                        width: 250,
-                                    }}
-                                />
-                            </Skeleton>
-                        ) : (
-                            <>
-                                <Badge
-                                    overlap="circular"
-                                    anchorOrigin={{
-                                        vertical: "bottom",
-                                        horizontal: "right",
-                                    }}
-                                    badgeContent={
+                    {loadingSkeleton || !formik ? (
+                        <Skeleton variant="circular">
+                            <Avatar
+                                sx={{
+                                    height: 250,
+                                    width: 250,
+                                }}
+                            />
+                        </Skeleton>
+                    ) : (
+                        <>
+                            <Badge
+                                overlap="circular"
+                                anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "right",
+                                }}
+                                badgeContent={
+                                    !loadingButtonDetails &&
+                                    !isFieldDisabled ? (
                                         <>
                                             <input
                                                 style={{ display: "none" }}
                                                 ref={inputRef}
                                                 type="file"
+                                                name="file"
                                                 accept="image/*"
                                                 onChange={handleFileChange}
                                             />
                                             <IconButton
-                                                disabled={loadingButtonDetails}
-                                                onClick={handleClick}
+                                                onClick={() => {
+                                                    if (
+                                                        !formik.values.avatarUrl
+                                                    )
+                                                        handleClick();
+                                                    else handleCancel();
+                                                }}
                                                 aria-label="edit"
                                                 sx={{
                                                     backgroundColor:
@@ -173,93 +111,62 @@ export const CategoryAvatar = (props: any) => {
                                                         "& .MuiSvgIcon-root": {
                                                             color: "background.paper",
                                                         },
-                                                        backgroundColor:
-                                                            "primary.main",
+                                                        backgroundColor: !formik
+                                                            .values.avatarUrl
+                                                            ? "primary.main"
+                                                            : "error.main",
                                                     },
                                                 }}
                                             >
-                                                <EditIcon
-                                                    sx={{
-                                                        color: "primary.main",
-                                                        height: 35,
-                                                        width: 35,
-                                                    }}
-                                                />
+                                                {!formik.values.avatarUrl ? (
+                                                    <EditIcon
+                                                        sx={{
+                                                            color: "primary.main",
+                                                            height: 35,
+                                                            width: 35,
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <CancelIcon
+                                                        sx={{
+                                                            color: "error.main",
+                                                            height: 50,
+                                                            width: 50,
+                                                        }}
+                                                    />
+                                                )}
                                             </IconButton>
                                         </>
-                                    }
-                                >
-                                    <Avatar
-                                        src={formik.values.image}
-                                        sx={{
-                                            borderColor: "primary.main",
-                                            borderStyle: "solid",
-                                            borderWidth: 4,
-                                            boxShadow: 10,
-                                            height: 250,
-                                            width: 250,
-                                        }}
-                                    />
-                                </Badge>
-                                <Typography
+                                    ) : (
+                                        <></>
+                                    )
+                                }
+                            >
+                                <Avatar
+                                    src={formik.values?.avatarUrl}
                                     sx={{
-                                        mt: 0.75,
-                                        color: "error.main",
+                                        borderColor: "primary.main",
+                                        borderStyle: "solid",
+                                        borderWidth: 4,
+                                        boxShadow: 10,
+                                        height: 250,
+                                        width: 250,
                                     }}
-                                >
-                                    {message}
-                                </Typography>
-                            </>
-                        )}
-                    </Box>
-                </CardContent>
-                <Divider />
-                {loadingButtonPicture && (
-                    <CardActions
-                        sx={{
-                            justifyContent: "center",
-                        }}
-                    >
-                        <LoadingButton
-                            disabled
-                            loading={loadingButtonPicture}
-                            fullWidth
-                            size="medium"
-                            variant="contained"
-                        >
-                            Tải ảnh lên
-                        </LoadingButton>
-                    </CardActions>
-                )}
-                {isImageChanged && !loadingButtonPicture && (
-                    <CardActions
-                        sx={{
-                            justifyContent: "center",
-                        }}
-                    >
-                        <Grid xs={12} md={6}>
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                startIcon={<CloudUploadIcon />}
+                                />
+                            </Badge>
+                            <Typography
+                                sx={{
+                                    mt: 0.75,
+                                    color: "error.main",
+                                }}
                             >
-                                Tải ảnh lên
-                            </Button>
-                        </Grid>
-                        <Grid xs={12} md={6}>
-                            <Button
-                                fullWidth
-                                variant="outlined"
-                                startIcon={<CancelIcon />}
-                                onClick={handleCancel}
-                            >
-                                Hủy
-                            </Button>
-                        </Grid>
-                    </CardActions>
-                )}
-            </Card>
-        </form>
+                                {formik.errors.avatar}
+                            </Typography>
+                        </>
+                    )}
+                </Box>
+            </CardContent>
+            <Divider />
+        </Card>
     );
 };

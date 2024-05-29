@@ -69,7 +69,6 @@ export const AccountTable = (props: any) => {
     }));
 
     const handleDeleteConfirm = () => {
-        console.log(selectedId);
         onDeleteAccount(doDeleteOne ? selectedId : selected);
         setOpenDeletePopup(false);
     };
@@ -157,10 +156,14 @@ export const AccountTable = (props: any) => {
                 )}
                 <TableContainer sx={{ maxHeight: 400 }}>
                     <Box sx={{ minWidth: 800 }}>
-                        <Table>
+                        <Table stickyHeader>
                             <TableHead>
                                 <TableRow>
-                                    <StickyLeftTableCell>
+                                    <StickyLeftTableCell
+                                        sx={{
+                                            zIndex: zIndexLevel.three,
+                                        }}
+                                    >
                                         <Checkbox
                                             color="primary"
                                             indeterminate={
@@ -195,6 +198,7 @@ export const AccountTable = (props: any) => {
                                     <StickyTableCell
                                         sx={{
                                             textAlign: "center",
+                                            zIndex: zIndexLevel.three,
                                         }}
                                     >
                                         Hành động

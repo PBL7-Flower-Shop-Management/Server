@@ -287,6 +287,7 @@ export function createComponents(
                 root: {
                     borderBottomColor: palette.divider,
                     padding: "15px 16px",
+                    zIndex: zIndexLevel.two,
                 },
             },
         },
@@ -439,7 +440,7 @@ export function createComponents(
         MuiDrawer: {
             styleOverrides: {
                 paper: {
-                    zIndex: zIndexLevel.two,
+                    zIndex: zIndexLevel.four,
                 },
             },
         },

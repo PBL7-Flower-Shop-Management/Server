@@ -72,6 +72,7 @@ const Accounts = () => {
             alreadyRun.current = false;
         }
     };
+
     const getAccounts = async () => {
         if (!alreadyRun.current) {
             alreadyRun.current = true;
