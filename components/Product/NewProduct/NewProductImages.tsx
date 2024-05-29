@@ -336,7 +336,7 @@ const NewProductImages = (props: any) => {
                                     onChange={(e) => {
                                         formik.handleChange(e);
                                     }}
-                                    type={field.name}
+                                    type={field.type}
                                     value={formik.values[field.name]}
                                     multiline={field.textArea || false}
                                     disabled={isFieldDisabled || field.disabled}

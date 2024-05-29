@@ -238,7 +238,7 @@ class FeedbackService {
                         })
                     );
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 const newFeedback = await CommentModel.create(
                     [
@@ -352,7 +352,7 @@ class FeedbackService {
                     {
                         $set: {
                             ...feedback,
-                            commentDate: moment(),
+                            commentDate: moment().toDate(),
                         },
                     },
                     { session: session, new: true }
@@ -497,4 +497,5 @@ class FeedbackService {
     }
 }
 
-export default new FeedbackService();
+const feedbackService = new FeedbackService();
+export default feedbackService;

@@ -2,42 +2,30 @@ import {
     Avatar,
     Badge,
     Box,
-    Button,
     Card,
-    CardActions,
     CardContent,
     Divider,
-    Grid,
     IconButton,
     Skeleton,
     Typography,
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
 import { useEffect, useState, useRef } from "react";
-import { LoadingButton } from "@mui/lab";
-import * as Yup from "yup";
 
 export const NewAccountAvatar = (props: any) => {
     const {
-        imageLink,
         loadingSkeleton,
         loadingButtonDetails,
-        loadingButtonPicture,
+        error,
         onUpdate,
         isFieldDisabled,
         buttonDisabled,
+        reset,
     } = props;
     const [isImageChanged, setIsImageChanged] = useState(false);
     const [file, setFile] = useState<any>();
     const [image, setImage] = useState<any>();
-    const [message, setMessage] = useState("");
-
-    useEffect(() => {
-        setImage(imageLink);
-        setIsImageChanged(false);
-    }, [imageLink]);
 
     const inputRef = useRef<any>();
 
@@ -47,34 +35,27 @@ export const NewAccountAvatar = (props: any) => {
 
     const handleFileChange = (event: any) => {
         const fileObj = event.target.files && event.target.files[0];
-        if (!fileObj) {
-            return;
-        }
-        if (!fileObj.type.startsWith("image/")) {
-            setMessage("Ảnh tải lên không hợp lệ. Vui lòng thử lại.");
-            return;
-        }
-        setMessage("");
         setFile(fileObj);
         setImage(URL.createObjectURL(fileObj));
         setIsImageChanged(true);
     };
 
     const handleCancel = () => {
-        setImage(imageLink);
+        setImage(null);
         setFile(null);
         setIsImageChanged(false);
     };
 
-    const handleUpload = () => {
+    useEffect(() => {
+        onUpdate(file);
         if (isImageChanged && file) {
-            const formData = new FormData();
-            formData.append("Files", file);
-            setIsImageChanged(false);
-            onUpdate(formData);
-            // setIsImageChanged(!success);
+            setIsImageChanged(!error);
         }
-    };
+    }, [file, isImageChanged]);
+
+    useEffect(() => {
+        if (reset) handleCancel();
+    }, [reset]);
 
     return (
         <Card>
@@ -111,52 +92,71 @@ export const NewAccountAvatar = (props: any) => {
                                     horizontal: "right",
                                 }}
                                 badgeContent={
-                                    <>
-                                        <input
-                                            style={{ display: "none" }}
-                                            ref={inputRef}
-                                            type="file"
-                                            name="file"
-                                            accept="image/*"
-                                            onChange={handleFileChange}
-                                        />
-                                        <IconButton
-                                            disabled={
-                                                loadingButtonDetails ||
-                                                isFieldDisabled ||
-                                                buttonDisabled
-                                            }
-                                            onClick={handleClick}
-                                            aria-label="edit"
-                                            sx={{
-                                                backgroundColor:
-                                                    "background.paper",
-                                                height: 50,
-                                                width: 50,
-                                                boxShadow: 11,
-                                                position: "absolute",
-                                                top: -10,
-                                                right: 4,
-                                                "&:hover": {
-                                                    transition:
-                                                        "0.2s all ease-in-out",
-                                                    "& .MuiSvgIcon-root": {
-                                                        color: "background.paper",
-                                                    },
-                                                    backgroundColor:
-                                                        "primary.main",
-                                                },
-                                            }}
-                                        >
-                                            <EditIcon
-                                                sx={{
-                                                    color: "primary.main",
-                                                    height: 35,
-                                                    width: 35,
-                                                }}
+                                    !loadingButtonDetails && !buttonDisabled ? (
+                                        <>
+                                            <input
+                                                style={{ display: "none" }}
+                                                ref={inputRef}
+                                                type="file"
+                                                name="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
                                             />
-                                        </IconButton>
-                                    </>
+                                            <IconButton
+                                                disabled={
+                                                    loadingButtonDetails ||
+                                                    isFieldDisabled
+                                                }
+                                                onClick={() => {
+                                                    if (!isImageChanged)
+                                                        handleClick();
+                                                    else handleCancel();
+                                                }}
+                                                aria-label="edit"
+                                                sx={{
+                                                    backgroundColor:
+                                                        "background.paper",
+                                                    height: 50,
+                                                    width: 50,
+                                                    boxShadow: 11,
+                                                    position: "absolute",
+                                                    top: -10,
+                                                    right: 4,
+                                                    "&:hover": {
+                                                        transition:
+                                                            "0.2s all ease-in-out",
+                                                        "& .MuiSvgIcon-root": {
+                                                            color: "background.paper",
+                                                        },
+                                                        backgroundColor:
+                                                            !isImageChanged
+                                                                ? "primary.main"
+                                                                : "error.main",
+                                                    },
+                                                }}
+                                            >
+                                                {!isImageChanged ? (
+                                                    <EditIcon
+                                                        sx={{
+                                                            color: "primary.main",
+                                                            height: 35,
+                                                            width: 35,
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <CancelIcon
+                                                        sx={{
+                                                            color: "error.main",
+                                                            height: 50,
+                                                            width: 50,
+                                                        }}
+                                                    />
+                                                )}
+                                            </IconButton>
+                                        </>
+                                    ) : (
+                                        <></>
+                                    )
                                 }
                             >
                                 <Avatar
@@ -177,58 +177,13 @@ export const NewAccountAvatar = (props: any) => {
                                     color: "error.main",
                                 }}
                             >
-                                {message}
+                                {error}
                             </Typography>
                         </>
                     )}
                 </Box>
             </CardContent>
             <Divider />
-            {loadingButtonPicture && (
-                <CardActions
-                    sx={{
-                        justifyContent: "center",
-                    }}
-                >
-                    <LoadingButton
-                        disabled
-                        loading={loadingButtonPicture}
-                        fullWidth
-                        size="medium"
-                        variant="contained"
-                    >
-                        Tải ảnh lên
-                    </LoadingButton>
-                </CardActions>
-            )}
-            {isImageChanged && !loadingButtonPicture && (
-                <CardActions
-                    sx={{
-                        justifyContent: "center",
-                    }}
-                >
-                    <Grid xs={12} md={6}>
-                        <Button
-                            fullWidth
-                            variant="contained"
-                            startIcon={<CloudUploadIcon />}
-                            onClick={handleUpload}
-                        >
-                            Tải ảnh lên
-                        </Button>
-                    </Grid>
-                    <Grid xs={12} md={6}>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            startIcon={<CancelIcon />}
-                            onClick={handleCancel}
-                        >
-                            Hủy
-                        </Button>
-                    </Grid>
-                </CardActions>
-            )}
         </Card>
     );
 };

@@ -98,3 +98,16 @@ export const parseSortString = (sortString: string) => {
         return null;
     }
 };
+
+export const appendJsonToFormData = (formData: FormData, json: any) => {
+    // Object.keys(json).forEach((key) => {
+    //     if (json[key] instanceof File) {
+    //         formData.append(key, json[key]);
+    //     } else {
+    //         formData.append(key, JSON.stringify(json[key]));
+    //     }
+    // });
+    formData.append("body", JSON.stringify(json));
+
+    return formData;
+};

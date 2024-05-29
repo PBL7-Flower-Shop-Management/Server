@@ -42,14 +42,14 @@ class AuthService {
                     parseInt(process.env.BCRYPT_SALT!)
                 );
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 const newUser = await UserModel.create(
                     [
                         {
                             ...user,
                             createdAt: currentDate,
-                            createdBy: "System",
+                            createdBy: user.createdBy ?? "System",
                             isDeleted: false,
                         },
                     ],
@@ -64,12 +64,13 @@ class AuthService {
                             isActived: true,
                             username: user.username,
                             password: hashedPassword,
-                            tokenExpireTime: authTokens.accessTokenExpiresAt,
+                            tokenExpireTime:
+                                authTokens.accessTokenExpiresAt.toDate(),
                             refreshToken: authTokens.refreshToken,
                             refreshTokenExpireTime:
-                                authTokens.refreshTokenExpireAt,
+                                authTokens.refreshTokenExpireAt.toDate(),
                             createdAt: currentDate,
-                            createdBy: "System",
+                            createdBy: user.createdBy ?? "System",
                             isDeleted: false,
                         },
                     ],
@@ -152,10 +153,11 @@ class AuthService {
                     { userId: user._id },
                     {
                         $set: {
-                            tokenExpireTime: authTokens.accessTokenExpiresAt,
+                            tokenExpireTime:
+                                authTokens.accessTokenExpiresAt.toDate(),
                             refreshToken: authTokens.refreshToken,
                             refreshTokenExpireTime:
-                                authTokens.refreshTokenExpireAt,
+                                authTokens.refreshTokenExpireAt.toDate(),
                         },
                     },
                     { session: session }
@@ -393,10 +395,11 @@ class AuthService {
                     { userId: user._id },
                     {
                         $set: {
-                            tokenExpireTime: authTokens.accessTokenExpiresAt,
+                            tokenExpireTime:
+                                authTokens.accessTokenExpiresAt.toDate(),
                             refreshToken: authTokens.refreshToken,
                             refreshTokenExpireTime:
-                                authTokens.refreshTokenExpireAt,
+                                authTokens.refreshTokenExpireAt.toDate(),
                         },
                     },
                     { session: session }
@@ -422,4 +425,5 @@ class AuthService {
     }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

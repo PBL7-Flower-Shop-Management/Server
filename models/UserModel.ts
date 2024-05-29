@@ -20,12 +20,6 @@ const UserSchema = new Schema(
             type: String,
             maxLength: 20,
             trim: true,
-            validate: {
-                validator: function (value: any) {
-                    return /^[0-9]+$/u.test(value);
-                },
-                message: "CitizenId field only contains numbers!",
-            },
         },
         email: {
             type: String,
@@ -38,19 +32,16 @@ const UserSchema = new Schema(
             type: String,
             maxLength: 20,
             trim: true,
-            validate: {
-                validator: function (value: any) {
-                    return /^[0-9]+$/u.test(value);
-                },
-                message: "Phone number field only contains numbers!",
-            },
         },
         role: {
             type: String,
             enum: ["Admin", "Employee", "Customer"],
             default: "Customer",
         },
-        avatar: {
+        avatarUrl: {
+            type: String,
+        },
+        avatarId: {
             type: String,
         },
         createdAt: {

@@ -13,6 +13,7 @@ import {
 } from "@/utils/helper";
 import { sendMail } from "@/utils/sendMail";
 import { roleMap } from "@/utils/constants";
+import CloudinaryService from "./CloudinaryService";
 
 class AccountService {
     async GetAllAccount(query: any, userRole: string): Promise<ApiResponse> {
@@ -114,7 +115,7 @@ class AccountService {
                         $project: {
                             _id: 1,
                             username: "$acc.username",
-                            avatar: "$avatar",
+                            avatarUrl: "$avatarUrl",
                             name: "$name",
                             // citizenId: "$citizenId",
                             email: "$email",
@@ -124,6 +125,9 @@ class AccountService {
                             createdAt: "$createdAt",
                             createdBy: "$createdBy",
                         },
+                    },
+                    {
+                        $sort: orderBy,
                     },
                     {
                         $facet: {
@@ -145,9 +149,7 @@ class AccountService {
                             totalCount: [{ $count: "totalCount" }],
                         },
                     },
-                ])
-                    .collation({ locale: "en", caseLevel: false, strength: 1 })
-                    .sort(orderBy);
+                ]).collation({ locale: "en", caseLevel: false, strength: 1 });
 
                 const total =
                     results.length > 0
@@ -233,19 +235,33 @@ class AccountService {
                 }
 
                 //upload image cloudinary
+                if (!user.avatarUrl && user.avatar) {
+                    // upload image and retrieve photo_url
+                    const response = await CloudinaryService.Upload(
+                        user.avatar
+                    );
 
-                const currentDate = moment();
+                    user.avatarUrl = response.url;
+                    user.avatarId = response.public_id;
+                } else if (!user.avatarUrl) {
+                    user.avatarUrl = null;
+                    user.avatarId = null;
+                }
+
+                const currentDate = moment().toDate();
 
                 const newUser = await UserModel.create(
                     [
                         {
                             ...user,
                             createdAt: currentDate,
-                            createdBy: "System",
+                            createdBy: user.createdBy ?? "System",
                             isDeleted: false,
                         },
                     ],
-                    { session: session }
+                    {
+                        session: session,
+                    }
                 ).then((res) => res[0]);
 
                 const randomPassword = generateRandomPassword();
@@ -254,7 +270,7 @@ class AccountService {
                     parseInt(process.env.BCRYPT_SALT!)
                 );
 
-                await AccountModel.create(
+                const newAcc = await AccountModel.create(
                     [
                         {
                             userId: newUser._id,
@@ -262,12 +278,12 @@ class AccountService {
                             username: user.username,
                             password: hashedPassword,
                             createdAt: currentDate,
-                            createdBy: "System",
+                            createdBy: user.createdBy ?? "System",
                             isDeleted: false,
                         },
                     ],
                     { session: session }
-                );
+                ).then((res) => res[0]);
 
                 await sendMail({
                     to: user.email,
@@ -281,12 +297,23 @@ class AccountService {
                         Liên hệ với người quản trị nếu bạn gặp bất kì vấn đề gì khi đăng nhập vào hệ thống!<br>`,
                 });
 
+                let newObj: any = {};
+                newObj._id = newUser._id;
+                newObj.avatarUrl = newUser.avatarUrl;
+                newObj.name = newUser.name;
+                newObj.citizenId = newUser.citizenId;
+                newObj.email = newUser.email;
+                newObj.phoneNumber = newUser.phoneNumber;
+                newObj.role = newUser.role;
+                newObj.username = newAcc.username;
+                newObj.isActived = newAcc.isActived;
+
                 await session.commitTransaction();
 
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.CREATED,
-                        data: newUser,
+                        data: newObj,
                     })
                 );
             } catch (error: any) {
@@ -312,13 +339,12 @@ class AccountService {
                     isDeleted: false,
                 });
 
-                if (
-                    !userDb ||
-                    !(await AccountModel.findOne({
-                        userId: user._id,
-                        isDeleted: false,
-                    }))
-                )
+                const acc = await AccountModel.findOne({
+                    userId: user._id,
+                    isDeleted: false,
+                });
+
+                if (!userDb || !acc)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -351,27 +377,58 @@ class AccountService {
                         })
                     );
                 }
+                //update cloudinary
+                if (!user.avatarUrl && user.avatar) {
+                    // upload image and retrieve photo_url
+                    const response = await CloudinaryService.Upload(
+                        user.avatar
+                    );
+                    if (userDb.avatarId) {
+                        // delete old image async
+                        await CloudinaryService.DeleteByPublicId(
+                            userDb.avatarId
+                        );
+                    }
 
-                //update image cloudinary
+                    user.avatarUrl = response.url;
+                    user.avatarId = response.public_id;
+                } else if (!user.avatarUrl) {
+                    user.avatarUrl = null;
+                    user.avatarId = null;
+                    if (userDb.avatarId) {
+                        // delete old image async
+                        await CloudinaryService.DeleteByPublicId(
+                            userDb.avatarId
+                        );
+                    }
+                }
 
                 const updatedUser = await UserModel.findOneAndUpdate(
                     { _id: user._id },
                     {
                         $set: {
                             ...user,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: user.updatedBy ?? "System",
                         },
                     },
-                    { session: session, new: true }
+                    {
+                        session: session,
+                        new: true,
+                        select: "_id avatarUrl name citizenId email phoneNumber role",
+                    }
                 );
+
+                let updatedObj = updatedUser.toObject();
+                updatedObj.username = acc.username;
+                updatedObj.isActived = acc.isActived;
 
                 await session.commitTransaction();
 
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: updatedUser,
+                        data: updatedObj,
                     })
                 );
             } catch (error: any) {
@@ -396,14 +453,12 @@ class AccountService {
                     _id: user._id,
                     isDeleted: false,
                 });
+                const acc = await AccountModel.findOne({
+                    userId: user._id,
+                    isDeleted: false,
+                });
 
-                if (
-                    !userDb ||
-                    !(await AccountModel.findOne({
-                        userId: user._id,
-                        isDeleted: false,
-                    }))
-                )
+                if (!userDb || !acc)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -428,11 +483,14 @@ class AccountService {
                     {
                         $set: {
                             isActived: user.isActived ?? false,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: user.updatedBy ?? "System",
                         },
                     },
-                    { session: session, new: true }
+                    {
+                        session: session,
+                        new: true,
+                    }
                 );
 
                 await session.commitTransaction();
@@ -440,7 +498,7 @@ class AccountService {
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: updatedUser,
+                        data: updatedUser.isActived,
                     })
                 );
             } catch (error: any) {
@@ -512,7 +570,7 @@ class AccountService {
                         $project: {
                             _id: 1,
                             username: "$acc.username",
-                            avatar: "$avatar",
+                            avatarUrl: "$avatarUrl",
                             name: "$name",
                             citizenId: "$citizenId",
                             email: "$email",
@@ -535,7 +593,7 @@ class AccountService {
         });
     }
 
-    async DeleteAccount(id: string, userRole: string): Promise<ApiResponse> {
+    async DeleteAccount(id: string, user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
@@ -561,7 +619,7 @@ class AccountService {
                     );
 
                 if (
-                    userRole === roleMap.Employee &&
+                    user.role === roleMap.Employee &&
                     userDb.role !== roleMap.Customer
                 )
                     return reject(
@@ -578,8 +636,8 @@ class AccountService {
                     {
                         $set: {
                             isDeleted: true,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: user.username ?? "System",
                         },
                     },
                     { session: session, new: true }
@@ -590,8 +648,8 @@ class AccountService {
                     {
                         $set: {
                             isDeleted: true,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: user.username ?? "System",
                         },
                     },
                     { session: session, new: true }
@@ -645,7 +703,7 @@ class AccountService {
                     (id: string) => new mongoose.Types.ObjectId(id)
                 );
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 await AccountModel.updateMany(
                     { userId: { $in: objectIds } },
@@ -690,7 +748,7 @@ class AccountService {
         });
     }
 
-    async AdminResetPassword(id: string): Promise<ApiResponse> {
+    async AdminResetPassword(id: string, username: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
 
@@ -725,8 +783,8 @@ class AccountService {
                     {
                         $set: {
                             password: hashedPassword,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: username ?? "System",
                         },
                     }
                 );
@@ -754,4 +812,5 @@ class AccountService {
     }
 }
 
-export default new AccountService();
+const accountService = new AccountService();
+export default accountService;

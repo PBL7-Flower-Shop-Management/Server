@@ -128,8 +128,12 @@ export const saveToken = (response: any) => {
     Cookies.set("refreshToken", refreshToken, {
         expires: new Date(refreshTokenExpiryTime),
     });
-    Cookies.set("tokenExpiryTime", tokenExpiryTime);
-    Cookies.set("refreshTokenExpiryTime", refreshTokenExpiryTime);
+    Cookies.set("tokenExpiryTime", tokenExpiryTime, {
+        expires: new Date(refreshTokenExpiryTime),
+    });
+    Cookies.set("refreshTokenExpiryTime", refreshTokenExpiryTime, {
+        expires: new Date(refreshTokenExpiryTime),
+    });
 };
 
 export const removeItems = () => {

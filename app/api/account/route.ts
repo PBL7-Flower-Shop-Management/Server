@@ -1,5 +1,6 @@
 import AccountController from "@/controllers/AccountController";
 import { auth, checkRole } from "@/middlewares/Authorization";
+import checkFile from "@/middlewares/CheckFile";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
@@ -280,13 +281,30 @@ export const POST = async (req: NextRequest) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
                 userToken,
                 async () => {
-                    let body = await new Response(req.body).json();
+                    let body = null;
+                    let avatar = null;
+                    if (
+                        !req.headers
+                            .get("content-type")
+                            ?.includes("application/json")
+                    ) {
+                        const formData = await req.formData();
+                        avatar = formData.get("avatar");
+                        if (avatar !== "null")
+                            await checkFile(avatar as File, true);
+                        else avatar = null;
+
+                        body = JSON.parse(formData.get("body") as string);
+                    } else body = await new Response(req.body).json();
+
                     ({ req, body: body } = TrimRequest.all(req, null, body));
                     await validate(schemas.CreateAccountSchema)(
                         null,
                         null,
                         body
                     );
+                    body.avatar = avatar;
+                    body.createdBy = userToken.user.username;
                     return await AccountController.CreateAccount(
                         body,
                         userToken.user.role
@@ -305,13 +323,29 @@ export const PUT = async (req: NextRequest) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
                 userToken,
                 async () => {
-                    let body = await new Response(req.body).json();
+                    let body = null;
+                    let avatar = null;
+                    if (
+                        !req.headers
+                            .get("content-type")
+                            ?.includes("application/json")
+                    ) {
+                        const formData = await req.formData();
+                        avatar = formData.get("avatar");
+                        if (avatar !== "null")
+                            await checkFile(avatar as File, true);
+                        else avatar = null;
+
+                        body = JSON.parse(formData.get("body") as string);
+                    } else body = await new Response(req.body).json();
                     ({ req, body: body } = TrimRequest.all(req, null, body));
                     await validate(schemas.UpdateAccountSchema)(
                         null,
                         null,
                         body
                     );
+                    body.avatar = avatar;
+                    body.updatedBy = userToken.user.username;
                     return await AccountController.UpdateAccount(
                         body,
                         userToken.user.role
@@ -337,6 +371,7 @@ export const PATCH = async (req: NextRequest) => {
                         null,
                         body
                     );
+                    body.updatedBy = userToken.user.username;
                     return await AccountController.LockUnLockAccount(
                         body,
                         userToken.user.role

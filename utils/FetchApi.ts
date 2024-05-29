@@ -4,7 +4,8 @@ export const FetchApi = async (
     endpoint: string,
     httpType: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
     doNeedToken: boolean = true,
-    body?: any
+    body?: any,
+    hasFormData: boolean = false
 ) => {
     let token = "";
     if (doNeedToken) {
@@ -20,11 +21,15 @@ export const FetchApi = async (
 
     return await fetch(process.env.NEXT_PUBLIC_HOST_URL + endpoint, {
         method: httpType,
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-        },
-        body: JSON.stringify(body),
+        headers: hasFormData
+            ? {
+                  Authorization: token,
+              }
+            : {
+                  "Content-Type": "application/json",
+                  Authorization: token,
+              },
+        body: hasFormData ? body : JSON.stringify(body),
     })
         .then(async (res) => {
             let response: any = {};

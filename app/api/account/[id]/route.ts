@@ -84,7 +84,7 @@ export const DELETE = async (req: NextRequest, { params }: any) => {
                     const { id } = params;
                     return await AccountController.DeleteAccount(
                         id,
-                        userToken.user.role
+                        userToken.user
                     );
                 }
             );

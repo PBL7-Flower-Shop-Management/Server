@@ -34,6 +34,10 @@ const nextConfig = {
                 protocol: "https",
                 hostname: "juro.com.vn",
             },
+            {
+                protocol: "http",
+                hostname: "res.cloudinary.com",
+            },
         ],
     },
 };

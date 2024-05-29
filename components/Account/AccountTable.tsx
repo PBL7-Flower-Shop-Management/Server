@@ -31,10 +31,10 @@ import { Stack } from "@mui/system";
 import Chip from "@mui/material/Chip";
 import { isValidUrl } from "@/utils/helper";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment-timezone";
 import { zIndexLevel } from "@/utils/constants";
+import { useLoadingContext } from "@/contexts/LoadingContext";
 
 export const AccountTable = (props: any) => {
     const {
@@ -47,7 +47,7 @@ export const AccountTable = (props: any) => {
         onDeleteAccount,
         reload,
     } = props;
-    const router = useRouter();
+    const { setLoading } = useLoadingContext();
 
     const [openDeletePopup, setOpenDeletePopup] = useState(false);
     const [selectedId, setSelectedId] = useState<any>(null);
@@ -218,13 +218,14 @@ export const AccountTable = (props: any) => {
                                             onClick={(event) =>
                                                 handleClick(event, account._id)
                                             }
-                                            onDoubleClick={() =>
-                                                router.push(
-                                                    `/account/${encodeURIComponent(
-                                                        account._id
-                                                    )}`
-                                                )
-                                            }
+                                            // onDoubleClick={() => {
+                                            //     setLoading(true);
+                                            //     router.push(
+                                            //         `/account/${encodeURIComponent(
+                                            //             account._id
+                                            //         )}`
+                                            //     );
+                                            // }}
                                             sx={{ cursor: "pointer" }}
                                         >
                                             <StickyLeftTableCell padding="checkbox">
@@ -243,9 +244,11 @@ export const AccountTable = (props: any) => {
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                {isValidUrl(account.avatar) && (
+                                                {isValidUrl(
+                                                    account.avatarUrl
+                                                ) && (
                                                     <Image
-                                                        src={account.avatar}
+                                                        src={account.avatarUrl}
                                                         alt="avatar"
                                                         width={100}
                                                         height={100}
@@ -311,6 +314,9 @@ export const AccountTable = (props: any) => {
                                                             LinkComponent={
                                                                 NextLink
                                                             }
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                             href={`/account/${encodeURIComponent(
                                                                 account._id
                                                             )}                                                            
@@ -329,6 +335,9 @@ export const AccountTable = (props: any) => {
                                                         <IconButton
                                                             LinkComponent={
                                                                 NextLink
+                                                            }
+                                                            onClick={() =>
+                                                                setLoading(true)
                                                             }
                                                             href={`/account/${encodeURIComponent(
                                                                 account._id

@@ -305,7 +305,7 @@ const ProfileDetail = (props: any) => {
                                                 date
                                             );
                                         }}
-                                        // type={field.name}
+                                        // type={field.type}
                                         value={formik.values[field.name]}
                                         // renderInput={(params: any) => (
                                         //     <TextField
@@ -344,7 +344,7 @@ const ProfileDetail = (props: any) => {
                                         name={field.name}
                                         onBlur={formik.handleBlur}
                                         onChange={handleChange}
-                                        type={field.name}
+                                        type={field.type}
                                         value={
                                             !field.select && field.selectProps
                                                 ? field.selectProps[

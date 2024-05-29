@@ -84,4 +84,18 @@ export const orderStatusMap = {
     Cancelled: "Cancelled",
 };
 
-//value: label
+export const allowedImageExtensions: string[] = ["jpg", "jpeg", "png", "gif"];
+export const allowedVideoExtensions: string[] = ["mp4", "mpeg", "mp3"];
+export const allowedImageMimeTypes: string[] = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+];
+export const allowedVideoMimeTypes: string[] = [
+    "video/mp4",
+    "video/mpeg",
+    "audio/mpeg",
+];
+
+export const MAX_SIZE_IMAGE = 50 * 1024 * 1024;
+export const MAX_SIZE_VIDEO = 200 * 1024 * 1024;

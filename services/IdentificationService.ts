@@ -1,3 +1,4 @@
 class IdentificationService {}
 
-export default new IdentificationService();
+const identificationService = new IdentificationService();
+export default identificationService;

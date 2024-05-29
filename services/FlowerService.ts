@@ -151,7 +151,7 @@ class FlowerService {
                     }
                 }
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 let newFlower = await FlowerModel.create(
                     [
@@ -262,7 +262,7 @@ class FlowerService {
                     {
                         $set: {
                             ...flower,
-                            updatedAt: moment(),
+                            updatedAt: moment().toDate(),
                             updatedBy: flower.updatedBy ?? "System",
                         },
                     },
@@ -786,7 +786,7 @@ class FlowerService {
                     {
                         $set: {
                             isDeleted: true,
-                            updatedAt: moment(),
+                            updatedAt: moment().toDate(),
                             updatedBy: username ?? "system",
                         },
                     },
@@ -823,7 +823,7 @@ class FlowerService {
                     (id: string) => new mongoose.Types.ObjectId(id)
                 );
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 await FlowerModel.updateMany(
                     { _id: { $in: objectIds } },
@@ -857,4 +857,5 @@ class FlowerService {
     }
 }
 
-export default new FlowerService();
+const flowerService = new FlowerService();
+export default flowerService;

@@ -266,7 +266,7 @@ const CategoryInformation = (props: any) => {
                                                 date
                                             );
                                         }}
-                                        // type={field.name}
+                                        // type={field.type}
                                         value={formik.values[field.name]}
                                         disabled={
                                             isFieldDisabled || field.disabled
@@ -308,7 +308,7 @@ const CategoryInformation = (props: any) => {
                                             setChangesMade(true);
                                             formik.handleChange(e);
                                         }}
-                                        type={field.name}
+                                        type={field.type}
                                         value={formik.values[field.name]}
                                         multiline={field.textArea || false}
                                         disabled={

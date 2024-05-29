@@ -357,8 +357,8 @@ class UserService {
                     {
                         $set: {
                             password: hashedPassword,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: body.updatedBy ?? "System",
                         },
                     }
                 );
@@ -491,8 +491,8 @@ class UserService {
                     {
                         $set: {
                             password: hashedPassword,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: body.updatedBy ?? "System",
                         },
                     }
                 );
@@ -617,8 +617,8 @@ class UserService {
                     {
                         $set: {
                             ...user,
-                            updatedAt: moment(),
-                            updatedBy: "System",
+                            updatedAt: moment().toDate(),
+                            updatedBy: user.updatedBy ?? "System",
                         },
                     },
                     { session: session, new: true }
@@ -704,4 +704,5 @@ class UserService {
     }
 }
 
-export default new UserService();
+const userService = new UserService();
+export default userService;

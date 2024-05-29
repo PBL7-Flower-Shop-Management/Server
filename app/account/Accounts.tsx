@@ -136,6 +136,7 @@ const Accounts = () => {
                                     }
                                     component={NextLink}
                                     href="/account/new-account"
+                                    onClick={() => setLoading(true)}
                                     variant="contained"
                                 >
                                     Thêm tài khoản

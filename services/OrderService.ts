@@ -196,7 +196,7 @@ class OrderService {
                     }
                 }
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
                 console.log(order);
                 const newOrder = await OrderModel.create(
                     [
@@ -343,7 +343,7 @@ class OrderService {
                     {
                         $set: {
                             ...order,
-                            updatedAt: moment(),
+                            updatedAt: moment().toDate(),
                             updatedBy: order.updatedBy ?? "System",
                         },
                     },
@@ -549,7 +549,7 @@ class OrderService {
                     {
                         $set: {
                             isDeleted: true,
-                            updatedAt: moment(),
+                            updatedAt: moment().toDate(),
                             updatedBy: username ?? "system",
                         },
                     },
@@ -585,7 +585,7 @@ class OrderService {
                     (id: string) => new mongoose.Types.ObjectId(id)
                 );
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 await OrderModel.updateMany(
                     {
@@ -627,4 +627,5 @@ class OrderService {
     }
 }
 
-export default new OrderService();
+const orderService = new OrderService();
+export default orderService;

@@ -49,7 +49,10 @@ export const PATCH = async (req: NextRequest) => {
                     body
                 );
                 const { _id: id } = body;
-                return await AccountController.AdminResetPassword(id);
+                return await AccountController.AdminResetPassword(
+                    id,
+                    userToken.user.username
+                );
             });
         });
     } catch (error: any) {

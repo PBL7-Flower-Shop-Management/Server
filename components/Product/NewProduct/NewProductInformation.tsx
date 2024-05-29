@@ -133,7 +133,7 @@ const NewProductInformation = (props: any) => {
                                     onChange={(date) => {
                                         formik.setFieldValue(field.name, date);
                                     }}
-                                    // type={field.name}
+                                    // type={field.type}
                                     value={formik.values[field.name] || null}
                                     disabled={isFieldDisabled || field.disabled}
                                     // renderInput={(params: any) => (
@@ -267,7 +267,7 @@ const NewProductInformation = (props: any) => {
                                     onChange={(e) => {
                                         formik.handleChange(e);
                                     }}
-                                    type={field.name}
+                                    type={field.type}
                                     value={formik.values[field.name]}
                                     multiline={field.textArea || false}
                                     disabled={isFieldDisabled || field.disabled}

@@ -611,7 +611,7 @@ const OrderProduct = (props: any) => {
                                                             date
                                                         );
                                                     }}
-                                                    // type={field.name}
+                                                    // type={field.type}
                                                     value={
                                                         formik.values[
                                                             field.name

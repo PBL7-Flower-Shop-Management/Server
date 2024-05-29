@@ -16,8 +16,9 @@ const schemas = {
                 citizenId: yup
                     .string()
                     .trim()
+                    .transform((curr, orig) => (orig === "" ? null : curr))
                     .matches(
-                        /^[0-9]+$/u,
+                        /^[0-9]*$/u,
                         "CitizenId field only contains numbers!"
                     ),
                 email: yup
@@ -28,15 +29,16 @@ const schemas = {
                 phoneNumber: yup
                     .string()
                     .trim()
+                    .transform((curr, orig) => (orig === "" ? null : curr))
                     .matches(
-                        /^[0-9]+$/u,
+                        /^[0-9]*$/u,
                         "Phone number field only contains numbers!"
                     ),
-                avatar: yup.string().trim(),
                 isActived: yup.boolean().nullable().default(false),
                 role: yup
                     .string()
                     .trim()
+                    .transform((curr, orig) => (orig === "" ? null : curr))
                     .nullable()
                     .oneOf(["Admin", "Employee", "Customer"], "Invalid role")
                     .default("Customer"),
@@ -66,8 +68,9 @@ const schemas = {
                 citizenId: yup
                     .string()
                     .trim()
+                    .transform((curr, orig) => (orig === "" ? null : curr))
                     .matches(
-                        /^[0-9]+$/u,
+                        /^[0-9]*$/u,
                         "CitizenId field only contains numbers!"
                     ),
                 email: yup
@@ -78,11 +81,12 @@ const schemas = {
                 phoneNumber: yup
                     .string()
                     .trim()
+                    .transform((curr, orig) => (orig === "" ? null : curr))
                     .matches(
                         /^[0-9]+$/u,
                         "Phone number field only contains numbers!"
                     ),
-                avatar: yup.string().trim(),
+                avatarUrl: yup.string().nullable(),
                 // isActived: yup.boolean().nullable().default(false),
                 role: yup
                     .string()

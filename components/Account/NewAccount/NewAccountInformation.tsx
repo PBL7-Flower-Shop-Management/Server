@@ -6,7 +6,6 @@ import {
     Unstable_Grid2 as Grid,
     Skeleton,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { isActive, role } from "@/utils/constants";
 export const NewAccountInformation = (props: any) => {
     const { formik, loadingSkeleton, isFieldDisabled } = props;
@@ -37,13 +36,13 @@ export const NewAccountInformation = (props: any) => {
                             label: "Email",
                             name: "email",
                             required: true,
-                            md: 4,
+                            md: 8,
                         },
                         {
                             label: "Số điện thoại",
                             name: "phoneNumber",
                             textArea: true,
-                            md: 4,
+                            md: 6,
                         },
                         {
                             label: "Chức vụ",
@@ -59,6 +58,7 @@ export const NewAccountInformation = (props: any) => {
                             select: true,
                             selectProps: isActive,
                             selected: false,
+                            type: "boolean",
                             md: 6,
                         },
                     ].map((field: any) => (
@@ -69,42 +69,6 @@ export const NewAccountInformation = (props: any) => {
                                 <Skeleton variant="rounded">
                                     <TextField fullWidth />
                                 </Skeleton>
-                            ) : field.datePicker ? (
-                                <DatePicker
-                                    // error={
-                                    //     !!(
-                                    //         formik.touched[field.name] &&
-                                    //         formik.errors[field.name]
-                                    //     )
-                                    // }
-                                    // fullWidth
-                                    // helperText={
-                                    //     formik.touched[field.name] &&
-                                    //     formik.errors[field.name]
-                                    // }
-                                    disabled={isFieldDisabled || field.disabled}
-                                    label={field.label}
-                                    name={field.name}
-                                    // onBlur={formik.handleBlur}
-                                    onChange={(date) => {
-                                        // dispatch({ type: "UPDATE_USER" });
-                                        formik.setFieldValue("birthday", date);
-                                    }}
-                                    // type={field.name}
-                                    value={formik.values[field.name]}
-                                    // renderInput={(params: any) => (
-                                    //     <TextField
-                                    //         {...params}
-                                    //         fullWidth
-                                    //         InputLabelProps={{ shrink: true }}
-                                    //         required={field.required || false}
-                                    //         onKeyDown={(e) =>
-                                    //             e.preventDefault()
-                                    //         }
-                                    //     />
-                                    // )}
-                                    maxDate={new Date()} // Assuming current date is the maximum allowed
-                                />
                             ) : (
                                 <TextField
                                     error={
@@ -122,15 +86,19 @@ export const NewAccountInformation = (props: any) => {
                                     label={field.label}
                                     name={field.name}
                                     onBlur={formik.handleBlur}
-                                    onChange={formik.handleChange}
-                                    type={field.name}
-                                    value={
-                                        !field.select && field.selectProps
-                                            ? field.selectProps[
-                                                  formik.values[field.name]
-                                              ]
-                                            : formik.values[field.name]
+                                    onChange={(e) => {
+                                        const value =
+                                            field.type === "boolean"
+                                                ? e.target.value === "true"
+                                                : e.target.value;
+                                        formik.setFieldValue(field.name, value);
+                                    }}
+                                    type={
+                                        field.type === "boolean"
+                                            ? "text"
+                                            : field.type
                                     }
+                                    value={formik.values[field.name]}
                                     required={field.required || false}
                                     select={field.select}
                                     SelectProps={
@@ -148,13 +116,10 @@ export const NewAccountInformation = (props: any) => {
                                     {field.select &&
                                         field.selectProps &&
                                         Object.entries(field.selectProps).map(
-                                            ([value, label]) => (
+                                            ([value, label]: any) => (
                                                 <option
                                                     key={value}
                                                     value={value}
-                                                    selected={
-                                                        value === field.selected
-                                                    }
                                                 >
                                                     {label as any}
                                                 </option>

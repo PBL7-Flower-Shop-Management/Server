@@ -41,9 +41,9 @@ class AccountController {
         }
     }
 
-    async DeleteAccount(id: string, userRole: string) {
+    async DeleteAccount(id: string, user: any) {
         try {
-            return await AccountService.DeleteAccount(id, userRole);
+            return await AccountService.DeleteAccount(id, user);
         } catch (error) {
             throw error;
         }
@@ -57,9 +57,9 @@ class AccountController {
         }
     }
 
-    async AdminResetPassword(id: string) {
+    async AdminResetPassword(id: string, username: string) {
         try {
-            return await AccountService.AdminResetPassword(id);
+            return await AccountService.AdminResetPassword(id, username);
         } catch (error) {
             throw error;
         }

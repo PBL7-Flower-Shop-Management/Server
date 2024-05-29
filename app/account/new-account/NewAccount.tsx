@@ -1,11 +1,8 @@
 "use client";
 import Head from "next/head";
 import {
-    Alert,
     Box,
-    Collapse,
     Container,
-    IconButton,
     Skeleton,
     Stack,
     Typography,
@@ -13,71 +10,88 @@ import {
     Breadcrumbs,
     Link,
     Button,
-    Snackbar,
 } from "@mui/material";
 import NextLink from "next/link";
 import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { LoadingButton } from "@mui/lab";
-import CloseIcon from "@mui/icons-material/Close";
-import { format } from "date-fns";
-import { useRouter } from "next/navigation";
 import { NewAccountAvatar } from "@/components/Account/NewAccount/NewAccountAvatar";
 import { NewAccountInformation } from "@/components/Account/NewAccount/NewAccountInformation";
+import { showToast } from "@/components/Toast";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { appendJsonToFormData } from "@/utils/helper";
+import * as yup from "yup";
+import { useLoadingContext } from "@/contexts/LoadingContext";
 
 const NewAccount = () => {
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
-    const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
     const [isFieldDisabled, setIsFieldDisabled] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
-    const [open, setOpen] = useState(true);
+    const { setLoading } = useLoadingContext();
 
     const formik = useFormik({
         initialValues: {
+            username: "",
             name: "",
             citizenId: "",
-            phoneNumber: "",
             email: "",
-            address: "",
-            birthday: new Date(),
-            role: "Customer",
+            phoneNumber: "",
             isActived: false,
-            gender: true,
-            image: "",
-            imageLink: "",
+            role: "Customer",
+            avatar: null,
         },
-        validationSchema: Yup.object({
-            // name: Yup.string()
-            //     .max(100, messages.LIMIT_NAME)
-            //     .required(messages.REQUIRED_NAME)
-            //     .matches(
-            //         /^[ '\p{L}]+$/u,
-            //         messages.NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // citizenId: Yup.string()
-            //     .max(12, messages.LIMIT_CITIZEN_ID)
-            //     .required(messages.REQUIRED_CITIZEN_ID)
-            //     .matches(/^[0-9]+$/, messages.CITIZEN_ID_VALID_CHARACTER),
-            // phoneNumber: Yup.string()
-            //     .matches(
-            //         /^(?:\+84|84|0)(3|5|7|8|9|1[2689])([0-9]{8,10})\b$/,
-            //         messages.INVALID_PHONE_NUMBER
-            //     )
-            //     .max(15, messages.LIMIT_PHONENUMBER)
-            //     .required(messages.REQUIRED_PHONENUMBER),
-            // email: Yup.string()
-            //     .email(messages.INVALID_EMAIL)
-            //     .max(100, messages.LIMIT_EMAIL)
-            //     .required(messages.REQUIRED_EMAIL),
-            // address: Yup.string()
-            //     .max(200, messages.LIMIT_ADDRESS)
-            //     .required(messages.REQUIRED_ADDRESS)
-            //     .matches(/^[0-9,. \p{L}]+$/u, messages.ADDRESS_VALID_CHARACTER),
+        validationSchema: yup.object({
+            name: yup
+                .string()
+                .trim()
+                .required("Name is required")
+                .matches(
+                    /^[ \p{L}]+$/u,
+                    "Name field only contains unicode characters or spaces!"
+                ),
+            citizenId: yup
+                .string()
+                .trim()
+                .transform((curr, orig) => (orig === "" ? null : curr))
+                .matches(/^[0-9]*$/u, "CitizenId field only contains numbers!"),
+            email: yup
+                .string()
+                .trim()
+                .required("Email is required")
+                .email("Please provide a valid email!"),
+            phoneNumber: yup
+                .string()
+                .trim()
+                .transform((curr, orig) => (orig === "" ? null : curr))
+                .matches(
+                    /^[0-9]*$/u,
+                    "Phone number field only contains numbers!"
+                ),
+            isActived: yup.boolean().nullable().default(false),
+            role: yup
+                .string()
+                .trim()
+                .transform((curr, orig) => (orig === "" ? null : curr))
+                .nullable()
+                .oneOf(["Admin", "Employee", "Customer"], "Invalid role")
+                .default("Customer"),
+            avatar: yup
+                .mixed()
+                .nullable()
+                .test(
+                    "fileFormat",
+                    "Ảnh tải lên không hợp lệ!",
+                    (value: any) => {
+                        if (value && value.type) {
+                            return value.type.startsWith("image/");
+                        }
+                        return true;
+                    }
+                ),
         }),
+
         onSubmit: async (values, helpers: any) => {
             try {
                 handleSubmit();
@@ -92,65 +106,76 @@ const NewAccount = () => {
     const handleSubmit = async () => {
         try {
             setIsFieldDisabled(true);
-            setLoadingButtonDetails(true);
-            let { imageLink, ...newAccount } = formik.values;
-            newAccount = {
-                ...newAccount,
-                // birthday: format(newAccount.birthday, "dd/MM/yyyy"),
-                // gender:
-                //     newAccount.gender === true || newAccount.gender === "true",
-                // role: parseInt(newAccount.role, 10),
-            };
-            // await accountsApi.addAccount(newAccount, auth);
-            setSuccess("Thêm tài khoản thành công.");
-            setError("");
-            setIsFieldDisabled(true);
             setButtonDisabled(true);
+            setLoadingButtonDetails(true);
+            const formData = new FormData();
+            let isFormData = false;
+            if (formik.values.avatar) {
+                formData.set("avatar", formik.values.avatar);
+                isFormData = true;
+            }
+            const response = await FetchApi(
+                UrlConfig.account.create,
+                "POST",
+                true,
+                isFormData
+                    ? appendJsonToFormData(formData, {
+                          ...formik.values,
+                          username: undefined,
+                          avatar: undefined,
+                      })
+                    : {
+                          ...formik.values,
+                          username: undefined,
+                          avatar: undefined,
+                      },
+                isFormData
+            );
+            if (response.canRefreshToken === false) {
+                setIsFieldDisabled(false);
+                setButtonDisabled(false);
+                showToast(response.message, "warning");
+                return false;
+            } else if (response.succeeded) {
+                showToast("Thêm tài khoản mới thành công.", "success");
+                formik.setValues({
+                    ...response.data,
+                    avatar: formik.values.avatar,
+                });
+                return true;
+            } else {
+                setIsFieldDisabled(false);
+                setButtonDisabled(false);
+                showToast(response.message, "error");
+                return false;
+            }
         } catch (error: any) {
             setIsFieldDisabled(false);
             setButtonDisabled(false);
-            setSuccess("");
-            setError(error.message);
-            console.log(error);
+            showToast(error.message ?? error, "error");
         } finally {
             setLoadingButtonDetails(false);
         }
     };
 
-    const uploadImage = useCallback(
-        async (newImage: any) => {
-            try {
-                // const response = await imagesApi.uploadImage(newImage);
-                formik.setValues({
-                    ...formik.values,
-                    // image: response[0].filePath,
-                    // imageLink: response[0].fileUrl,
-                });
-                setSuccess("Thêm ảnh đại diện thành công.");
-                setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [formik.values]
-    );
+    const uploadImage = async (newImage: any) => {
+        try {
+            formik.setValues({
+                ...formik.values,
+                avatar: newImage,
+            });
+        } catch (error: any) {
+            showToast(error.message ?? error, "error");
+        }
+    };
 
-    const updateAccountPicture = useCallback(
-        async (newImage: any) => {
-            try {
-                setLoadingButtonPicture(true);
-                await uploadImage(newImage);
-                setOpen(true);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonPicture(false);
-            }
-        },
-        [uploadImage]
-    );
+    const handleAddOtherAccount = (e: any) => {
+        setButtonDisabled(false);
+        setIsFieldDisabled(false);
+        formik.handleReset(e);
+    };
+
+    useEffect(() => setLoading(false), []);
 
     return (
         <>
@@ -194,6 +219,7 @@ const NewAccount = () => {
                                                 alignItems: "center",
                                             }}
                                             href="/account"
+                                            onClick={() => setLoading(true)}
                                             color="text.primary"
                                         >
                                             <Typography
@@ -230,17 +256,15 @@ const NewAccount = () => {
                                 <Grid container spacing={3}>
                                     <Grid xs={12} md={6} lg={4}>
                                         <NewAccountAvatar
-                                            imageLink={formik.values.imageLink}
                                             loadingSkeleton={loadingSkeleton}
                                             loadingButtonDetails={
                                                 loadingButtonDetails
                                             }
-                                            loadingButtonPicture={
-                                                loadingButtonPicture
-                                            }
-                                            onUpdate={updateAccountPicture}
+                                            error={formik.errors.avatar}
+                                            onUpdate={uploadImage}
                                             isFieldDisabled={isFieldDisabled}
                                             buttonDisabled={buttonDisabled}
+                                            reset={!formik.values.avatar}
                                         />
                                     </Grid>
                                     <Grid xs={12} md={6} lg={8}>
@@ -263,9 +287,38 @@ const NewAccount = () => {
                                                     mt: 2,
                                                 }}
                                             >
-                                                {formik.isSubmitting ||
-                                                loadingButtonDetails ? (
+                                                {buttonDisabled ? (
                                                     <>
+                                                        <LoadingButton
+                                                            loading={
+                                                                formik.isSubmitting ||
+                                                                loadingButtonDetails
+                                                            }
+                                                            onClick={(e) =>
+                                                                handleAddOtherAccount(
+                                                                    e
+                                                                )
+                                                            }
+                                                            size="medium"
+                                                            variant="contained"
+                                                        >
+                                                            Thêm tài khoản khác
+                                                        </LoadingButton>
+                                                    </>
+                                                ) : formik.isSubmitting ||
+                                                  loadingButtonDetails ? (
+                                                    <>
+                                                        <Button
+                                                            disabled={
+                                                                formik.isSubmitting ||
+                                                                loadingButtonDetails ||
+                                                                buttonDisabled
+                                                            }
+                                                            variant="outlined"
+                                                            color="error"
+                                                        >
+                                                            Khôi phục biểu mẫu
+                                                        </Button>
                                                         <LoadingButton
                                                             disabled
                                                             loading={
@@ -277,10 +330,12 @@ const NewAccount = () => {
                                                         >
                                                             Thêm tài khoản
                                                         </LoadingButton>
+                                                    </>
+                                                ) : (
+                                                    <>
                                                         <Button
                                                             disabled={
                                                                 formik.isSubmitting ||
-                                                                loadingButtonPicture ||
                                                                 loadingButtonDetails ||
                                                                 buttonDisabled
                                                             }
@@ -290,33 +345,11 @@ const NewAccount = () => {
                                                             }
                                                             color="error"
                                                         >
-                                                            Reset
+                                                            Khôi phục biểu mẫu
                                                         </Button>
                                                         <Button
                                                             disabled={
                                                                 formik.isSubmitting ||
-                                                                loadingButtonPicture ||
-                                                                loadingButtonDetails ||
-                                                                buttonDisabled
-                                                            }
-                                                            variant="outlined"
-                                                            component={NextLink}
-                                                            href="/account"
-                                                            sx={{
-                                                                color: "neutral.500",
-                                                                borderColor:
-                                                                    "neutral.500",
-                                                            }}
-                                                        >
-                                                            Huỷ
-                                                        </Button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Button
-                                                            disabled={
-                                                                formik.isSubmitting ||
-                                                                loadingButtonPicture ||
                                                                 buttonDisabled
                                                             }
                                                             type="submit"
@@ -327,39 +360,15 @@ const NewAccount = () => {
                                                         <Button
                                                             disabled={
                                                                 formik.isSubmitting ||
-                                                                loadingButtonPicture ||
-                                                                loadingButtonDetails ||
-                                                                buttonDisabled
-                                                            }
-                                                            variant="outlined"
-                                                            onClick={
-                                                                formik.handleReset
-                                                            }
-                                                            color="error"
-                                                        >
-                                                            Reset
-                                                        </Button>
-                                                        <Button
-                                                            disabled={
-                                                                formik.isSubmitting ||
-                                                                loadingButtonPicture ||
                                                                 loadingButtonDetails ||
                                                                 buttonDisabled
                                                             }
                                                             variant="outlined"
                                                             component={NextLink}
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                             href="/account"
-                                                            sx={{
-                                                                color: "neutral.500",
-                                                                borderColor:
-                                                                    "neutral.500",
-                                                                "&:hover": {
-                                                                    borderColor:
-                                                                        "neutral.600",
-                                                                    backgroundColor:
-                                                                        "neutral.100",
-                                                                },
-                                                            }}
                                                         >
                                                             Huỷ
                                                         </Button>
@@ -369,95 +378,6 @@ const NewAccount = () => {
                                         </>
                                     </Grid>
                                 </Grid>
-                            </div>
-                            <div>
-                                {success && (
-                                    <Collapse in={open}>
-                                        <Snackbar
-                                            open={open}
-                                            autoHideDuration={6000}
-                                            onClose={() => setOpen(false)}
-                                            anchorOrigin={{
-                                                vertical: "top",
-                                                horizontal: "center",
-                                            }}
-                                        >
-                                            <Alert
-                                                variant="outlined"
-                                                severity="success"
-                                                action={
-                                                    <IconButton
-                                                        aria-label="close"
-                                                        color="success"
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setOpen(false);
-                                                            // router.push(
-                                                            //     "/account"
-                                                            // );
-                                                        }}
-                                                    >
-                                                        <CloseIcon fontSize="inherit" />
-                                                    </IconButton>
-                                                }
-                                                sx={{
-                                                    mt: 2,
-                                                    mb: 2,
-                                                    borderRadius: "12px",
-                                                }}
-                                            >
-                                                <Typography
-                                                    color="success"
-                                                    variant="subtitle2"
-                                                >
-                                                    {success}
-                                                </Typography>
-                                            </Alert>
-                                        </Snackbar>
-                                    </Collapse>
-                                )}
-                                {error && (
-                                    <Collapse in={open}>
-                                        <Snackbar
-                                            open={open}
-                                            autoHideDuration={6000}
-                                            onClose={() => setOpen(false)}
-                                            anchorOrigin={{
-                                                vertical: "top",
-                                                horizontal: "center",
-                                            }}
-                                        >
-                                            <Alert
-                                                variant="outlined"
-                                                severity="error"
-                                                action={
-                                                    <IconButton
-                                                        aria-label="close"
-                                                        color="error"
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setOpen(false);
-                                                        }}
-                                                    >
-                                                        <CloseIcon fontSize="inherit" />
-                                                    </IconButton>
-                                                }
-                                                sx={{
-                                                    mt: 2,
-                                                    mb: 2,
-                                                    borderRadius: "12px",
-                                                }}
-                                            >
-                                                <Typography
-                                                    color="error"
-                                                    variant="subtitle2"
-                                                >
-                                                    {error}
-                                                </Typography>
-                                            </Alert>
-                                        </Snackbar>
-                                    </Collapse>
-                                )}
                             </div>
                         </Stack>
                     </Container>

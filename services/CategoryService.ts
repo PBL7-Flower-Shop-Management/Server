@@ -102,7 +102,7 @@ class CategoryService {
                 }
                 //upload image cloudinary
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 const newCategory = await CategoryModel.create(
                     [
@@ -177,7 +177,7 @@ class CategoryService {
                     {
                         $set: {
                             ...category,
-                            updatedAt: moment(),
+                            updatedAt: moment().toDate(),
                             updatedBy: category.updatedBy ?? "System",
                         },
                     },
@@ -550,7 +550,7 @@ class CategoryService {
                     {
                         $set: {
                             isDeleted: true,
-                            updatedAt: moment(),
+                            updatedAt: moment().toDate(),
                             updatedBy: username ?? "system",
                         },
                     },
@@ -587,7 +587,7 @@ class CategoryService {
                     (id: string) => new mongoose.Types.ObjectId(id)
                 );
 
-                const currentDate = moment();
+                const currentDate = moment().toDate();
 
                 await CategoryModel.updateMany(
                     { _id: { $in: objectIds } },
@@ -621,4 +621,5 @@ class CategoryService {
     }
 }
 
-export default new CategoryService();
+const categoryService = new CategoryService();
+export default categoryService;
