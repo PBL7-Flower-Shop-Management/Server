@@ -141,7 +141,7 @@ import { NextRequest } from "next/server";
  *       - name: keyword
  *         type: string
  *         in: query
- *         description: Search keyword (search by username, address, paymentMethod and status)
+ *         description: Search keyword (search by username, address and paymentMethod)
  *       - name: pageNumber
  *         type: integer
  *         in: query

@@ -51,7 +51,7 @@ any) => {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         // fullWidth
-                        placeholder="Tìm kiếm tài khoản"
+                        placeholder="Search by role, name, email and username"
                         startAdornment={
                             <InputAdornment position="start">
                                 <SvgIcon color="action" fontSize="small">

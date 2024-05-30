@@ -1,6 +1,6 @@
 import CategoryController from "@/controllers/CategoryController";
 import { auth, checkRole } from "@/middlewares/Authorization";
-import checkFile from "@/middlewares/CheckFile";
+import { checkFile } from "@/middlewares/CheckFile";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";

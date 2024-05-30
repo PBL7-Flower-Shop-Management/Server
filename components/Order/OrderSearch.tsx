@@ -8,9 +8,9 @@ import {
     Box,
     Button,
 } from "@mui/material";
-// import { CategoriesFilter } from "./categories-filter";
+// import { OrdersFilter } from "./orders-filter";
 
-export const CategorySearch = ({
+export const OrderSearch = ({
     onSearchChange,
 }: // onFilterChange,
 any) => {
@@ -51,7 +51,7 @@ any) => {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         // fullWidth
-                        placeholder="Search by category name and description"
+                        placeholder="Search by username, address and paymentMethod"
                         startAdornment={
                             <InputAdornment position="start">
                                 <SvgIcon color="action" fontSize="small">
@@ -78,7 +78,7 @@ any) => {
                 </Box>
             </Card>
 
-            {/* <CategoriesFilter
+            {/* <OrdersFilter
                 open={openFilterPopup}
                 onClose={handleCloseFilterPopup}
                 onSelectFilter={handleSelectFilter}

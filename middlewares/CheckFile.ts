@@ -9,7 +9,11 @@ import {
 } from "@/utils/constants";
 import httpStatus from "http-status";
 
-const checkFile = async (file: File, isImage: boolean) => {
+export const checkFiles = async (file: [File]) => {
+    for (const f of file) await checkFile(f, f.type.startsWith("image"));
+};
+
+export const checkFile = async (file: File, isImage: boolean) => {
     if (!file) {
         throw new ApiResponse({
             status: httpStatus.BAD_REQUEST,
@@ -57,22 +61,24 @@ const validateFileType = async (
     const fileExtension = file.name.split(".").pop();
     const mimeType = file.type.toLowerCase();
     if (!allowedExtensions.includes(fileExtension)) {
-        return `File không phải là ${
+        return `File ${file.name} không phải là ${
             isImage ? "ảnh" : "video"
         } hợp lệ! (Chỉ chấp nhận: ${allowedExtensions.join(", ")})`;
     }
 
     if (!allowedMimeTypes.includes(mimeType)) {
-        return `Kiểu ${isImage ? "ảnh" : "video"} file không hợp lệ`;
+        return `Kiểu ${isImage ? "ảnh" : "video"} file ${
+            file.name
+        } không hợp lệ`;
     }
 
     const fileBytes = await file.arrayBuffer();
     if (isImage && !isImageFile(fileBytes)) {
-        return `File không phải là ảnh hợp lệ!`;
+        return `File ${file.name} không phải là ảnh hợp lệ!`;
     }
 
     if (!isImage && !isVideoFile(fileBytes)) {
-        return `File không phải là video hợp lệ!`;
+        return `File ${file.name} không phải là video hợp lệ!`;
     }
 
     return "";
@@ -81,14 +87,14 @@ const validateFileType = async (
 const validateFileSize = async (file: File, isImage: boolean) => {
     if (isImage) {
         if (file.size > MAX_SIZE_IMAGE) {
-            return `Ảnh vượt quá kích thước tối đa cho phép (${
+            return `Ảnh ${file.name} vượt quá kích thước tối đa cho phép (${
                 MAX_SIZE_IMAGE / (1024 * 1024)
             } MB)`;
         }
         return "";
     } else {
         if (file.size > MAX_SIZE_VIDEO) {
-            return `Video vượt quá kích thước tối đa cho phép (${
+            return `Video ${file.name} vượt quá kích thước tối đa cho phép (${
                 MAX_SIZE_VIDEO / (1024 * 1024)
             } MB)`;
         }
@@ -159,5 +165,3 @@ const isMpeg = (fileBytes: ArrayBuffer) => {
         (byteArray[2] === 0x01 || byteArray[2] === 0xba)
     );
 };
-
-export default checkFile;

@@ -60,9 +60,12 @@ const FlowerSchema = new Schema(
             },
             default: 0,
         },
-        imageVideoFiles: {
-            type: [String],
-        },
+        imageVideoFiles: [
+            {
+                url: { type: String, required: true },
+                public_id: { type: String, required: true },
+            },
+        ],
         description: {
             type: String,
         },

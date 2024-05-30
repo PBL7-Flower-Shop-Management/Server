@@ -31,7 +31,6 @@ import { Stack } from "@mui/system";
 import { ShortenString } from "@/utils/helper";
 import moment from "moment-timezone";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { zIndexLevel } from "@/utils/constants";
 import { useLoadingContext } from "@/contexts/LoadingContext";
@@ -284,6 +283,9 @@ export const CategoryTable = (props: any) => {
                                                             href={`/category/${encodeURIComponent(
                                                                 category._id
                                                             )}`}
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                         >
                                                             <SvgIcon
                                                                 color="primary"
@@ -302,6 +304,9 @@ export const CategoryTable = (props: any) => {
                                                             href={`/category/${encodeURIComponent(
                                                                 category._id
                                                             )}?edit=1`}
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                         >
                                                             <SvgIcon
                                                                 color="warning"

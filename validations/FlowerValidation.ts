@@ -65,7 +65,6 @@ const schemas = {
                             return value <= this.parent.quantity;
                         }
                     ),
-                imageVideoFiles: yup.array().nullable(),
                 description: yup.string().trim().nullable(),
                 category: yup
                     .array()

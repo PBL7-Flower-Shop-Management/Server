@@ -234,6 +234,10 @@ export function createComponents(
                     fontSize: 14,
                     fontWeight: 500,
                     lineHeight: "24px",
+                    "&::placeholder": {
+                        color: "gray",
+                        opacity: 1,
+                    },
                 },
                 notchedOutline: {
                     borderColor: palette.neutral[300],

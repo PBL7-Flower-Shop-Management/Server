@@ -316,7 +316,7 @@ class CategoryService {
                         $project: {
                             _id: 1,
                             name: "$categoryName",
-                            avatar: "$image",
+                            avatar: "$avatarUrl",
                             flowers: {
                                 $map: {
                                     input: limit

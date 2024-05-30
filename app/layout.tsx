@@ -47,7 +47,7 @@ export default function RootLayout({
                         theme={{
                             components: {
                                 Image: {
-                                    zIndexPopupBase: zIndexLevel.five,
+                                    zIndexPopupBase: zIndexLevel.six,
                                 },
                             },
                         }}

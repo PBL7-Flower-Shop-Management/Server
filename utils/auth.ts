@@ -77,6 +77,16 @@ export const refreshToken: any = async () => {
                 refreshTokenExpiryTime != null &&
                 refreshTokenExpiryTime > new Date()
             ) {
+                const isRefreshing = Cookies.get("isRefreshing");
+                if (!isRefreshing) {
+                    Cookies.set("isRefreshing", "true");
+                } else if (isRefreshing === "true") {
+                    return {
+                        isSuccessfully: false,
+                        data: `Đang trong quá trình refresh token, vui lòng đợi vài giây!`,
+                    };
+                }
+
                 const response = await FetchApi(
                     UrlConfig.authentication.refreshToken,
                     "POST",
@@ -85,11 +95,13 @@ export const refreshToken: any = async () => {
                 );
                 if (response.succeeded) {
                     saveToken(response.data);
+                    Cookies.remove("isRefreshing");
                     return {
                         isSuccessfully: true,
                         data: response.data.token.accessToken,
                     };
                 } else {
+                    Cookies.remove("isRefreshing");
                     return {
                         isSuccessfully: false,
                         data: `Refresh token thất bại: ${response.message}`,
@@ -105,6 +117,7 @@ export const refreshToken: any = async () => {
         }
         return { isSuccessfully: true, data: token };
     } catch (error) {
+        Cookies.remove("isRefreshing");
         console.error("Lỗi khi refresh token:", error);
         return {
             isSuccessfully: false,

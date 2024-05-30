@@ -33,7 +33,7 @@ class OrderService {
                         })
                     );
 
-                const orders = await OrderModel.aggregate([
+                const results = await OrderModel.aggregate([
                     {
                         $match: {
                             isDeleted: false,
@@ -87,12 +87,6 @@ class OrderService {
                                         $options: "i",
                                     },
                                 },
-                                {
-                                    status: {
-                                        $regex: query.keyword,
-                                        $options: "i",
-                                    },
-                                },
                             ],
                         },
                     },
@@ -111,24 +105,45 @@ class OrderService {
                             createdBy: 1,
                         },
                     },
-                ])
-                    .skip(
-                        query.isExport
-                            ? 0
-                            : (query.pageNumber - 1) * query.pageSize
-                    )
-                    .limit(
-                        query.isExport
-                            ? Number.MAX_SAFE_INTEGER
-                            : query.pageSize
-                    )
-                    .collation({ locale: "en", caseLevel: false, strength: 1 })
-                    .sort(orderBy);
+                    {
+                        $sort: orderBy,
+                    },
+                    {
+                        $facet: {
+                            // Paginated results
+                            paginatedResults: [
+                                {
+                                    $skip: query.isExport
+                                        ? 0
+                                        : (query.pageNumber - 1) *
+                                          query.pageSize,
+                                },
+                                {
+                                    $limit: query.isExport
+                                        ? Number.MAX_SAFE_INTEGER
+                                        : query.pageSize,
+                                },
+                            ],
+                            // Count of all documents that match the criteria
+                            totalCount: [{ $count: "totalCount" }],
+                        },
+                    },
+                ]).collation({ locale: "en", caseLevel: false, strength: 1 });
+
+                const total =
+                    results.length > 0
+                        ? results[0].totalCount.length > 0
+                            ? results[0].totalCount[0].totalCount
+                            : 0
+                        : 0;
+                const paginatedResults =
+                    results.length > 0 ? results[0].paginatedResults : [];
 
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: orders,
+                        total: total,
+                        data: paginatedResults,
                     })
                 );
             } catch (error: any) {
@@ -587,7 +602,7 @@ class OrderService {
 
                 const currentDate = moment().toDate();
 
-                await OrderModel.updateMany(
+                const res = await OrderModel.updateMany(
                     {
                         _id: { $in: objectIds },
                         status: {
@@ -608,6 +623,24 @@ class OrderService {
                 );
 
                 await session.commitTransaction();
+
+                if (res.modifiedCount === 0)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message:
+                                "Order can only be deleted once it has been delivered or cancelled!",
+                        })
+                    );
+
+                if (res.modifiedCount < objectIds.length)
+                    return resolve(
+                        new ApiResponse({
+                            status: HttpStatus.OK,
+                            message:
+                                "There are one or several orders that cannot be deleted because they are not in delivered status or have been canceled!",
+                        })
+                    );
 
                 resolve(
                     new ApiResponse({

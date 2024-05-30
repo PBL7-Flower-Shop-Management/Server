@@ -21,7 +21,7 @@ export const isValidUrl = (url: string | undefined) => {
         return true; // It's an absolute URL
     } catch (_) {
         // It's not an absolute URL, so let's check if it's a valid relative path
-        return url.startsWith("/");
+        return typeof url === "string" && url.startsWith("/");
     }
 };
 

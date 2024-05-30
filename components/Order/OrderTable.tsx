@@ -26,7 +26,7 @@ import PencilSquareIcon from "@mui/icons-material/ModeEditOutlined";
 import EyeIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import TrashIcon from "@mui/icons-material/DeleteOutline";
 import { alpha, styled } from "@mui/material/styles";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Stack } from "@mui/system";
 import { orderStatus, orderStatusColor, zIndexLevel } from "@/utils/constants";
 import Chip from "@mui/material/Chip";
@@ -35,6 +35,7 @@ import moment from "moment-timezone";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useLoadingContext } from "@/contexts/LoadingContext";
 
 export const OrderTable = (props: any) => {
     const {
@@ -45,13 +46,14 @@ export const OrderTable = (props: any) => {
         page = 0,
         rowsPerPage = 0,
         onDeleteOrder,
-        isFetching,
+        reload,
     } = props;
-    const router = useRouter();
+    const { setLoading } = useLoadingContext();
 
-    const [openDeletePopup, setOpenDeletePopup] = React.useState(false);
-    const [selectedId, setSelectedId] = React.useState("");
-    const [selected, setSelected] = React.useState<readonly number[]>([]);
+    const [openDeletePopup, setOpenDeletePopup] = useState(false);
+    const [selectedId, setSelectedId] = useState<any>(null);
+    const [selected, setSelected] = useState<readonly string[]>([]);
+    const [doDeleteOne, setDoDeleteOne] = useState(false);
 
     const StickyTableCell = styled(TableCell)(({ theme }) => ({
         position: "sticky",
@@ -68,18 +70,19 @@ export const OrderTable = (props: any) => {
     }));
 
     const handleDeleteConfirm = () => {
-        onDeleteOrder(selectedId);
+        onDeleteOrder(doDeleteOne ? selectedId : selected);
         setOpenDeletePopup(false);
     };
 
     const handleDeleteCancel = () => {
         setOpenDeletePopup(false);
-        setSelectedId("");
+        setSelectedId(null);
     };
 
-    const handleDeleteClick = (id: any) => {
+    const handleDeleteClick = (id?: string) => {
         setOpenDeletePopup(true);
-        setSelectedId(id);
+        if (id) setSelectedId(id);
+        setDoDeleteOne(id !== undefined);
     };
 
     const handleSelectAllClick = (
@@ -93,9 +96,9 @@ export const OrderTable = (props: any) => {
         setSelected([]);
     };
 
-    const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
+    const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
         const selectedIndex = selected.indexOf(id);
-        let newSelected: readonly number[] = [];
+        let newSelected: readonly string[] = [];
 
         if (selectedIndex === -1) {
             newSelected = newSelected.concat(selected, id);
@@ -112,7 +115,9 @@ export const OrderTable = (props: any) => {
         setSelected(newSelected);
     };
 
-    const isSelected = (id: number) => selected.indexOf(id) !== -1;
+    const isSelected = (id: string) => selected.indexOf(id) !== -1;
+
+    useEffect(() => setSelected([]), [reload]);
 
     return (
         <Box>
@@ -143,19 +148,23 @@ export const OrderTable = (props: any) => {
                         )}
                         {selected.length > 0 && (
                             <Tooltip title="Delete">
-                                <IconButton>
+                                <IconButton onClick={() => handleDeleteClick()}>
                                     <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
                         )}
                     </Toolbar>
                 )}
-                <TableContainer sx={{ maxHeight: 1200 }}>
+                <TableContainer sx={{ maxHeight: 400 }}>
                     <Box sx={{ minWidth: 800 }}>
                         <Table stickyHeader>
                             <TableHead>
                                 <TableRow>
-                                    <StickyLeftTableCell>
+                                    <StickyLeftTableCell
+                                        sx={{
+                                            zIndex: zIndexLevel.three,
+                                        }}
+                                    >
                                         <Checkbox
                                             color="primary"
                                             indeterminate={
@@ -182,13 +191,20 @@ export const OrderTable = (props: any) => {
                                         Phương thức thanh toán
                                     </TableCell>
                                     <TableCell>Tổng tiền</TableCell>
-                                    <TableCell>Trạng thái</TableCell>
+                                    <TableCell
+                                        sx={{
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        Trạng thái
+                                    </TableCell>
                                     <TableCell>Ghi chú</TableCell>
                                     <TableCell>Ngày tạo</TableCell>
                                     <TableCell>Tạo bởi</TableCell>
                                     <StickyTableCell
                                         sx={{
                                             textAlign: "center",
+                                            zIndex: zIndexLevel.three,
                                         }}
                                     >
                                         Hành động
@@ -211,13 +227,6 @@ export const OrderTable = (props: any) => {
                                             selected={isItemSelected}
                                             onClick={(event) =>
                                                 handleClick(event, order._id)
-                                            }
-                                            onDoubleClick={() =>
-                                                router.push(
-                                                    `/order/${encodeURIComponent(
-                                                        order._id
-                                                    )}`
-                                                )
                                             }
                                             sx={{ cursor: "pointer" }}
                                         >
@@ -326,6 +335,9 @@ export const OrderTable = (props: any) => {
                                                             href={`/order/${encodeURIComponent(
                                                                 order._id
                                                             )}`}
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                         >
                                                             <SvgIcon
                                                                 color="primary"
@@ -344,18 +356,9 @@ export const OrderTable = (props: any) => {
                                                             href={`/order/${encodeURIComponent(
                                                                 order._id
                                                             )}?edit=1`}
-                                                            // href={{
-                                                            //     pathname:
-                                                            //         "/order/[id]",
-                                                            //     query: {
-                                                            //         id: encodeURIComponent(
-                                                            //             order._id
-                                                            //         ),
-                                                            //         name: encodeURIComponent(
-                                                            //             order.name
-                                                            //         ),
-                                                            //     },
-                                                            // }}
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                         >
                                                             <SvgIcon
                                                                 color="warning"
@@ -403,7 +406,9 @@ export const OrderTable = (props: any) => {
                 <Dialog open={openDeletePopup} onClose={handleDeleteCancel}>
                     <DialogTitle>Xác nhận xóa đơn hàng</DialogTitle>
                     <DialogContent>
-                        Bạn có chắc chắn muốn xóa đơn hàng này?
+                        {doDeleteOne
+                            ? "Bạn có chắc chắn muốn xóa đơn hàng này không?"
+                            : "Bạn có chắc chắn muốn xoá những đơn hàng đã chọn không?"}
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleDeleteCancel} color="primary">
@@ -427,5 +432,5 @@ OrderTable.propTypes = {
     page: PropTypes.number,
     rowsPerPage: PropTypes.number,
     onDeleteOrder: PropTypes.func,
-    isFetching: PropTypes.bool,
+    reload: PropTypes.bool,
 };

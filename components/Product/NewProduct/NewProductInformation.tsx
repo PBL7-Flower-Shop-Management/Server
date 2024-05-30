@@ -8,25 +8,59 @@ import {
     Avatar,
     Box,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Skeleton from "@mui/material/Skeleton";
 import { useEffect, useState } from "react";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { showToast } from "@/components/Toast";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import { productStatus } from "@/utils/constants";
+import { isNumberic } from "@/utils/helper";
 
 const NewProductInformation = (props: any) => {
-    const { formik, initCategories, loadingSkeleton, isFieldDisabled } = props;
+    const { formik, loadingSkeleton, isFieldDisabled, reset } = props;
     const [categories, setCategories] = useState([]);
     const [value, setValue] = useState([]);
+    const { setLoading } = useLoadingContext();
+
+    useEffect(() => {
+        const getCategories = async () => {
+            setLoading(true);
+            const response = await FetchApi(
+                UrlConfig.category.getAll,
+                "GET",
+                true
+            );
+            if (response.canRefreshToken === false) {
+                showToast(response.message, "warning");
+            } else if (response.succeeded) {
+                setCategories(response.data);
+            } else {
+                showToast(response.message, "error");
+            }
+            setLoading(false);
+        };
+
+        getCategories();
+    }, []);
 
     useEffect(() => {
         if (categories) {
             setValue(
                 categories.filter((category: any) =>
-                    formik.values.categoryId.includes(category._id)
+                    formik.values.category.includes(category._id)
                 )
             );
         }
-        setCategories(initCategories);
     }, [categories]);
+
+    useEffect(() => {
+        setValue(
+            categories.filter((category: any) =>
+                formik.values.category.includes(category._id)
+            )
+        );
+    }, [reset]);
 
     return (
         <Card
@@ -40,12 +74,6 @@ const NewProductInformation = (props: any) => {
                 </Box>
                 <Grid container spacing={3}>
                     {[
-                        {
-                            label: "Mã sản phẩm",
-                            name: "_id",
-                            md: 4,
-                            disabled: true,
-                        },
                         {
                             label: "Tên sản phẩm",
                             name: "name",
@@ -84,11 +112,6 @@ const NewProductInformation = (props: any) => {
                             md: 3,
                         },
                         {
-                            label: "Số lượng đã bán",
-                            name: "soldQuantity",
-                            md: 3,
-                        },
-                        {
                             label: "Mô tả",
                             name: "description",
                             textArea: true,
@@ -108,47 +131,10 @@ const NewProductInformation = (props: any) => {
                         },
                     ].map((field: any) => (
                         <Grid key={field.name} xs={12} md={field.md || 12}>
-                            {loadingSkeleton ||
-                            formik.values === null ||
-                            formik.values.name === undefined ? (
+                            {loadingSkeleton || formik.values === null ? (
                                 <Skeleton variant="rounded">
                                     <TextField fullWidth />
                                 </Skeleton>
-                            ) : field.datePicker ? (
-                                <DatePicker
-                                    // error={
-                                    //     !!(
-                                    //         formik.touched[field.name] &&
-                                    //         formik.errors[field.name]
-                                    //     )
-                                    // }
-                                    // fullWidth
-                                    // helperText={
-                                    //     formik.touched[field.name] &&
-                                    //     formik.errors[field.name]
-                                    // }
-                                    label={field.label}
-                                    name={field.name}
-                                    // onBlur={formik.handleBlur}
-                                    onChange={(date) => {
-                                        formik.setFieldValue(field.name, date);
-                                    }}
-                                    // type={field.type}
-                                    value={formik.values[field.name] || null}
-                                    disabled={isFieldDisabled || field.disabled}
-                                    // renderInput={(params: any) => (
-                                    //     <TextField
-                                    //         {...params}
-                                    //         fullWidth
-                                    //         InputLabelProps={{ shrink: true }}
-                                    //         required={field.required || false}
-                                    //         onKeyDown={(e) =>
-                                    //             e.preventDefault()
-                                    //         }
-                                    //     />
-                                    // )}
-                                    maxDate={new Date()} // Assuming current date is the maximum allowed
-                                />
                             ) : field.autoComplete ? (
                                 <Autocomplete
                                     id="autocomplete-products"
@@ -172,7 +158,7 @@ const NewProductInformation = (props: any) => {
                                                         avatar={
                                                             <Avatar
                                                                 src={
-                                                                    option.image
+                                                                    option.avatarUrl
                                                                 }
                                                             />
                                                         }
@@ -198,19 +184,12 @@ const NewProductInformation = (props: any) => {
                                     //     }
                                     //     return option.id === value.id;
                                     // }}
-                                    // onChange={async (event, value) => {
-                                    //     if (value === null || value === undefined) {
-                                    //         setValue('');
-                                    //         handleChangeCriminals(event, '', index);
-                                    //     } else {
-                                    //         setValue(value);
-                                    //         handleChangeCriminals(event, value, index);
-                                    //     }
-
-                                    // }}
-
                                     onChange={(event, value: any) => {
                                         setValue(value);
+                                        formik.setFieldValue(
+                                            "category",
+                                            value.map((v: any) => v._id)
+                                        );
                                     }}
                                     value={value}
                                     renderOption={(props, option: any) => (
@@ -225,11 +204,11 @@ const NewProductInformation = (props: any) => {
                                                     height: 32,
                                                     width: 32,
                                                 }}
-                                                src={option?.image}
+                                                src={option?.avatarUrl}
                                             />
                                             {option.categoryName}
                                         </Box>
-                                    )} // Set the default value based on the criminal prop
+                                    )}
                                     renderInput={(params: any) => (
                                         <TextField
                                             {...params}
@@ -265,6 +244,24 @@ const NewProductInformation = (props: any) => {
                                     name={field.name}
                                     onBlur={formik.handleBlur}
                                     onChange={(e) => {
+                                        if (e.target.name === "quantity") {
+                                            if (
+                                                e.target.value === "" ||
+                                                Number(e.target.value) === 0 ||
+                                                !isNumberic(e.target.value)
+                                            )
+                                                formik.setFieldValue(
+                                                    "status",
+                                                    productStatus[
+                                                        "Out of stock"
+                                                    ]
+                                                );
+                                            else
+                                                formik.setFieldValue(
+                                                    "status",
+                                                    productStatus["Available"]
+                                                );
+                                        }
                                         formik.handleChange(e);
                                     }}
                                     type={field.type}
@@ -305,36 +302,6 @@ const NewProductInformation = (props: any) => {
                     ))}
                 </Grid>
             </CardContent>
-            {/* <Divider />
-        <CardActions sx={{ justifyContent: "flex-end" }}>
-          {isClicked ? (
-            loadingButtonDetails && (
-              <LoadingButton
-                disabled
-                loading={loadingButtonDetails}
-                size="medium"
-                variant="contained"
-              >
-                Chỉnh sửa thông tin
-              </LoadingButton>
-            )
-          ) : (
-            <>
-              <Button
-                variant="contained"
-                onClick={isFieldDisabled ? handleEditGeneral : formik.handleSubmit}
-                disabled={loadingButtonPicture}
-              >
-                {isFieldDisabled ? "Chỉnh sửa thông tin" : "Cập nhật thông tin"}
-              </Button>
-              {!isFieldDisabled && (
-                <Button variant="outlined" onClick={handleCancelGeneral}>
-                  Hủy
-                </Button>
-              )}
-            </>
-          )}
-        </CardActions> */}
         </Card>
     );
 };

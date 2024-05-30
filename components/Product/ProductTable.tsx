@@ -26,7 +26,7 @@ import PencilSquareIcon from "@mui/icons-material/ModeEditOutlined";
 import EyeIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import TrashIcon from "@mui/icons-material/DeleteOutline";
 import { alpha, styled } from "@mui/material/styles";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Stack } from "@mui/system";
 import {
     productStatus,
@@ -34,11 +34,11 @@ import {
     zIndexLevel,
 } from "@/utils/constants";
 import Chip from "@mui/material/Chip";
-import { ShortenString } from "@/utils/helper";
+import { isValidUrl, ShortenString } from "@/utils/helper";
 import moment from "moment-timezone";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useLoadingContext } from "@/contexts/LoadingContext";
 
 export const ProductTable = (props: any) => {
     const {
@@ -49,13 +49,14 @@ export const ProductTable = (props: any) => {
         page = 0,
         rowsPerPage = 0,
         onDeleteProduct,
-        isFetching,
+        reload,
     } = props;
-    const router = useRouter();
+    const { setLoading } = useLoadingContext();
 
-    const [openDeletePopup, setOpenDeletePopup] = React.useState(false);
-    const [selectedId, setSelectedId] = React.useState("");
-    const [selected, setSelected] = React.useState<readonly number[]>([]);
+    const [openDeletePopup, setOpenDeletePopup] = useState(false);
+    const [selectedId, setSelectedId] = useState<any>(null);
+    const [selected, setSelected] = useState<readonly string[]>([]);
+    const [doDeleteOne, setDoDeleteOne] = useState(false);
 
     const StickyTableCell = styled(TableCell)(({ theme }) => ({
         position: "sticky",
@@ -72,18 +73,19 @@ export const ProductTable = (props: any) => {
     }));
 
     const handleDeleteConfirm = () => {
-        onDeleteProduct(selectedId);
+        onDeleteProduct(doDeleteOne ? selectedId : selected);
         setOpenDeletePopup(false);
     };
 
     const handleDeleteCancel = () => {
         setOpenDeletePopup(false);
-        setSelectedId("");
+        setSelectedId(null);
     };
 
-    const handleDeleteClick = (id: any) => {
+    const handleDeleteClick = (id?: string) => {
         setOpenDeletePopup(true);
-        setSelectedId(id);
+        if (id) setSelectedId(id);
+        setDoDeleteOne(id !== undefined);
     };
 
     const handleSelectAllClick = (
@@ -97,9 +99,9 @@ export const ProductTable = (props: any) => {
         setSelected([]);
     };
 
-    const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
+    const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
         const selectedIndex = selected.indexOf(id);
-        let newSelected: readonly number[] = [];
+        let newSelected: readonly string[] = [];
 
         if (selectedIndex === -1) {
             newSelected = newSelected.concat(selected, id);
@@ -116,7 +118,9 @@ export const ProductTable = (props: any) => {
         setSelected(newSelected);
     };
 
-    const isSelected = (id: number) => selected.indexOf(id) !== -1;
+    const isSelected = (id: string) => selected.indexOf(id) !== -1;
+
+    useEffect(() => setSelected([]), [reload]);
 
     return (
         <Box>
@@ -147,19 +151,23 @@ export const ProductTable = (props: any) => {
                         )}
                         {selected.length > 0 && (
                             <Tooltip title="Delete">
-                                <IconButton>
+                                <IconButton onClick={() => handleDeleteClick()}>
                                     <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
                         )}
                     </Toolbar>
                 )}
-                <TableContainer sx={{ maxHeight: 1200 }}>
+                <TableContainer sx={{ maxHeight: 400 }}>
                     <Box sx={{ minWidth: 800 }}>
                         <Table stickyHeader>
                             <TableHead>
                                 <TableRow>
-                                    <StickyLeftTableCell>
+                                    <StickyLeftTableCell
+                                        sx={{
+                                            zIndex: zIndexLevel.three,
+                                        }}
+                                    >
                                         <Checkbox
                                             color="primary"
                                             indeterminate={
@@ -204,6 +212,7 @@ export const ProductTable = (props: any) => {
                                     <StickyTableCell
                                         sx={{
                                             textAlign: "center",
+                                            zIndex: zIndexLevel.three,
                                         }}
                                     >
                                         Hành động
@@ -227,15 +236,6 @@ export const ProductTable = (props: any) => {
                                             onClick={(event) =>
                                                 handleClick(event, product._id)
                                             }
-                                            onDoubleClick={() =>
-                                                router.push(
-                                                    `/product/${encodeURIComponent(
-                                                        product._id
-                                                    )}&name=${encodeURIComponent(
-                                                        product.name
-                                                    )}`
-                                                )
-                                            }
                                             sx={{ cursor: "pointer" }}
                                         >
                                             <StickyLeftTableCell padding="checkbox">
@@ -255,10 +255,16 @@ export const ProductTable = (props: any) => {
                                             </TableCell>
                                             <TableCell>
                                                 <Image
-                                                    src={product.image}
+                                                    src={
+                                                        isValidUrl(
+                                                            product.image
+                                                        )
+                                                            ? product.image
+                                                            : undefined
+                                                    }
                                                     alt="avatar"
-                                                    width={100}
-                                                    height={100}
+                                                    width={50}
+                                                    height={50}
                                                 />
                                             </TableCell>
                                             <TableCell id={labelId} scope="row">
@@ -339,9 +345,10 @@ export const ProductTable = (props: any) => {
                                                             }
                                                             href={`/product/${encodeURIComponent(
                                                                 product._id
-                                                            )}?name=${encodeURIComponent(
-                                                                product.name
                                                             )}`}
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                         >
                                                             <SvgIcon
                                                                 color="primary"
@@ -359,21 +366,10 @@ export const ProductTable = (props: any) => {
                                                             }
                                                             href={`/product/${encodeURIComponent(
                                                                 product._id
-                                                            )}?name=${encodeURIComponent(
-                                                                product.name
-                                                            )}&edit=1`}
-                                                            // href={{
-                                                            //     pathname:
-                                                            //         "/product/[id]",
-                                                            //     query: {
-                                                            //         id: encodeURIComponent(
-                                                            //             product._id
-                                                            //         ),
-                                                            //         name: encodeURIComponent(
-                                                            //             product.name
-                                                            //         ),
-                                                            //     },
-                                                            // }}
+                                                            )}?edit=1`}
+                                                            onClick={() =>
+                                                                setLoading(true)
+                                                            }
                                                         >
                                                             <SvgIcon
                                                                 color="warning"
@@ -421,7 +417,9 @@ export const ProductTable = (props: any) => {
                 <Dialog open={openDeletePopup} onClose={handleDeleteCancel}>
                     <DialogTitle>Xác nhận xóa sản phẩm</DialogTitle>
                     <DialogContent>
-                        Bạn có chắc chắn muốn xóa sản phẩm này?
+                        {doDeleteOne
+                            ? "Bạn có chắc chắn muốn xóa sản phẩm này không?"
+                            : "Bạn có chắc chắn muốn xoá những sản phẩm đã chọn không?"}
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleDeleteCancel} color="primary">
@@ -445,5 +443,5 @@ ProductTable.propTypes = {
     page: PropTypes.number,
     rowsPerPage: PropTypes.number,
     onDeleteProduct: PropTypes.func,
-    isFetching: PropTypes.bool,
+    reload: PropTypes.bool,
 };

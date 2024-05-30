@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import PlusIcon from "@mui/icons-material/Add";
 import {
@@ -11,64 +11,26 @@ import {
     Typography,
 } from "@mui/material";
 import { OrderTable } from "@/components/Order/OrderTable";
-// import { OrdersSearch } from "src/sections/orders/orders-search";
 import NextLink from "next/link";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import UrlConfig from "@/config/UrlConfig";
+import { FetchApi } from "@/utils/FetchApi";
+import { showToast } from "@/components/Toast";
+import { OrderSearch } from "@/components/Order/OrderSearch";
 
 const Orders = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [orderData, setOrderData] = useState([
-        {
-            _id: "6159f6a23603a45f08268ebb",
-            username: "twoollacott1",
-            orderDate: "2024-04-28T12:00:00Z",
-            shipAddress: "789 Oak St",
-            shipPrice: 20,
-            discount: 10,
-            totalPrice: 150,
-            status: "Delivered",
-            paymentMethod: "Bank Transfer",
-            note: "",
-            createdAt: "2024-04-28T10:00:00Z",
-            createdBy: "Admin",
-            shipDate: "2024-07-30T12:00:00Z",
-        },
-        {
-            _id: "6159f6a23603a45f08268eb7",
-            username: "string4",
-            orderDate: "2024-04-30T12:00:00Z",
-            shipAddress: "123 Main St",
-            shipPrice: 10,
-            discount: 5,
-            totalPrice: 100,
-            status: "Processing",
-            paymentMethod: "Credit Card",
-            note: "Please deliver before 5 PM",
-            createdAt: "2024-04-30T10:00:00Z",
-            createdBy: "Admin",
-            shipDate: "2024-07-30T12:00:00Z",
-        },
-        {
-            _id: "6159f6a23603a45f08268eb9",
-            username: "danghoann",
-            orderDate: "2024-04-29T12:00:00Z",
-            shipAddress: "456 Elm St",
-            shipPrice: 15,
-            discount: 0,
-            totalPrice: 200,
-            status: "Shipped",
-            paymentMethod: "PayPal",
-            note: "Customer requested fast shipping",
-            createdAt: "2024-04-29T10:00:00Z",
-            createdBy: "Admin",
-            shipDate: "2024-07-30T12:00:00Z",
-        },
-    ]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [orderData, setOrderData] = useState<any>({});
+    const { setLoading } = useLoadingContext();
+    const alreadyRun = useRef(false);
     const [searchValue, setSearchValue] = useState("");
-    const [filter, setFilter] = useState({});
-    const [searchButtonClicked, setSearchButtonClicked] = useState(true);
+    const [reload, setReload] = useState(false);
+    // const [filter, setFilter] = useState({});
+
+    const handleSearchChange = (searchValue: string) => {
+        setSearchValue(searchValue);
+    };
 
     const handlePageChange = (event: any, newPage: any) => {
         setPage(newPage);
@@ -79,37 +41,75 @@ const Orders = () => {
         setPage(0); // Reset to the first page when the number of rows per page changes
     };
 
-    const getOrder = async () => {
-        setLoading(true);
-        setError(null);
+    const handleDelete = async (ids: any) => {
+        if (!alreadyRun.current) {
+            alreadyRun.current = true;
+            setLoading(true);
+            try {
+                let url = UrlConfig.order.deleteMultiple;
+                let body: any = { orderIds: ids };
+                if (!Array.isArray(ids)) {
+                    url = UrlConfig.order.delete.replace("{id}", ids);
+                    body = undefined;
+                }
 
-        try {
-            // const orders = await ordersApi.getAllOrders(
-            //     searchValue,
-            //     filter,
-            //     auth
-            // );
-            const orders: never[] = [];
-            setOrderData(orders);
+                const response = await FetchApi(url, "DELETE", true, body);
+
+                if (response.canRefreshToken === false)
+                    showToast(response.message, "warning");
+                else if (response.succeeded) {
+                    showToast(
+                        response.message
+                            ? response.message
+                            : "Delete order successfully!",
+                        "success"
+                    );
+                    alreadyRun.current = false;
+                    setReload(!reload);
+                    await getOrders();
+                } else {
+                    showToast(response.message, "error");
+                }
+            } catch (error: any) {
+                showToast(error.message, "error");
+            }
             setLoading(false);
-        } catch (error: any) {
-            setError(error.message);
+            alreadyRun.current = false;
         }
-
-        setLoading(false);
     };
 
-    const handleDelete = async (id: string) => {
-        setLoading(true);
-        try {
-            console.log(id);
-            // await ordersApi.deleteOrder(id, auth);
-            getOrder();
-        } catch (error: any) {
-            setError(error.message);
+    const getOrders = async () => {
+        if (!alreadyRun.current) {
+            alreadyRun.current = true;
+            setLoading(true);
+            const response = await FetchApi(
+                UrlConfig.order.getAll +
+                    `?keyword=${searchValue}&pageNumber=${
+                        page + 1
+                    }&pageSize=${rowsPerPage}`,
+                "GET",
+                true
+            );
+
+            if (response.canRefreshToken === false)
+                showToast(response.message, "warning");
+            else if (response.succeeded) {
+                setOrderData(response);
+            } else {
+                showToast(response.message, "error");
+            }
+            setLoading(false);
+            alreadyRun.current = false;
         }
-        setLoading(false);
     };
+
+    useEffect(() => {
+        getOrders();
+    }, []);
+
+    useEffect(() => {
+        getOrders();
+    }, [page, rowsPerPage, searchValue]);
 
     return (
         <>
@@ -142,29 +142,23 @@ const Orders = () => {
                                     }
                                     component={NextLink}
                                     href="/order/new-order"
+                                    onClick={() => setLoading(true)}
                                     variant="contained"
                                 >
                                     Thêm đơn hàng
                                 </Button>
                             </div>
                         </Stack>
-                        {/* <OrdersSearch
-                            onSearchChange={handleSearchChange}
-                            onFilterChange={handleFilterChange}
-                            onSearchButtonClick={handleSearchButtonClick}
-                        /> */}
+                        <OrderSearch onSearchChange={handleSearchChange} />
                         <OrderTable
-                            count={orderData.length}
-                            items={orderData.slice(
-                                page * rowsPerPage,
-                                (page + 1) * rowsPerPage
-                            )}
+                            count={orderData.total}
+                            items={orderData.data}
                             onPageChange={handlePageChange}
                             onRowsPerPageChange={handleRowsPerPageChange}
                             page={page}
                             rowsPerPage={rowsPerPage}
                             onDeleteOrder={handleDelete}
-                            isFetching={loading}
+                            reload={reload}
                         />
                     </Stack>
                 </Container>

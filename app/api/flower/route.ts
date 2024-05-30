@@ -1,5 +1,6 @@
 import FlowerController from "@/controllers/FlowerController";
 import { auth, checkRole } from "@/middlewares/Authorization";
+import { checkFiles } from "@/middlewares/CheckFile";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import { roleMap } from "@/utils/constants";
@@ -39,11 +40,6 @@ import { NextRequest } from "next/server";
  *          soldQuantity:
  *            type: integer
  *            description: The quantity of the flower sold.
- *          imageVideoFiles:
- *            type: array
- *            items:
- *              type: string
- *            description: The URLs of image or video files related to the flower.
  *          description:
  *            type: string
  *            description: The description of the flower.
@@ -118,7 +114,7 @@ import { NextRequest } from "next/server";
  *       - name: keyword
  *         type: string
  *         in: query
- *         description: Search keyword (search by flower name, habitat, status and description)
+ *         description: Search keyword (search by flower name, habitat and description)
  *       - name: pageNumber
  *         type: integer
  *         in: query
@@ -237,12 +233,12 @@ import { NextRequest } from "next/server";
 
 export const GET = async (req: NextRequest) => {
     try {
-        return await auth(async () => {
-            let query;
-            ({ req, query: query } = TrimRequest.all(req));
-            await validate(schemas.GetAllFlowerSchema)(null, query);
-            return await FlowerController.GetAllFlower(query);
-        });
+        // return await auth(async () => {
+        let query;
+        ({ req, query: query } = TrimRequest.all(req));
+        await validate(schemas.GetAllFlowerSchema)(null, query);
+        return await FlowerController.GetAllFlower(query);
+        // });
     } catch (error: any) {
         return ErrorHandler(error);
     }
@@ -254,13 +250,32 @@ export const POST = async (req: NextRequest) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
                 userToken,
                 async () => {
-                    let body = await new Response(req.body).json();
+                    let body = null;
+                    let imageVideoFiles: any = [];
+                    if (
+                        !req.headers
+                            .get("content-type")
+                            ?.includes("application/json")
+                    ) {
+                        const formData = await req.formData();
+                        imageVideoFiles = formData.getAll("imageVideoFiles");
+                        if (imageVideoFiles !== "null")
+                            await checkFiles(imageVideoFiles as [File]);
+                        else imageVideoFiles = [];
+
+                        body = JSON.parse(formData.get("body") as string);
+                    } else body = await new Response(req.body).json();
+
                     ({ req, body: body } = TrimRequest.all(req, null, body));
+                    body.unitPrice = body.unitPrice !== "" ? body.unitPrice : 0;
+                    body.discount = body.discount !== "" ? body.discount : 0;
+                    body.quantity = body.quantity !== "" ? body.quantity : 0;
                     await validate(schemas.CreateFlowerSchema)(
                         null,
                         null,
                         body
                     );
+                    body.imageVideoFiles = imageVideoFiles;
                     body.createdBy = userToken.user.username;
                     return await FlowerController.CreateFlower(body);
                 }

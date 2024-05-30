@@ -9,6 +9,7 @@ import ApiResponse from "@/utils/ApiResponse";
 import mongoose from "mongoose";
 import { parseSortString } from "@/utils/helper";
 import moment from "moment";
+import CloudinaryService from "./CloudinaryService";
 
 class FlowerService {
     async GetAllFlower(query: any): Promise<ApiResponse> {
@@ -32,78 +33,100 @@ class FlowerService {
                         })
                     );
 
-                const flowers = await FlowerModel.find(
+                const results = await FlowerModel.aggregate([
                     {
-                        isDeleted: false,
-                        $or: [
-                            {
-                                name: {
-                                    $regex: query.keyword,
-                                    $options: "i",
-                                },
-                            },
-                            {
-                                habitat: {
-                                    $regex: query.keyword,
-                                    $options: "i",
-                                },
-                            },
-                            {
-                                status: {
-                                    $regex: query.keyword,
-                                    $options: "i",
-                                },
-                            },
-                            {
-                                description: {
-                                    $regex: query.keyword,
-                                    $options: "i",
-                                },
-                            },
-                        ],
-                    },
-                    {
-                        _id: 1,
-                        image: {
-                            $cond: [
+                        $match: {
+                            isDeleted: false,
+                            $or: [
                                 {
-                                    $ne: ["$imageVideoFiles", null],
+                                    name: {
+                                        $regex: query.keyword,
+                                        $options: "i",
+                                    },
                                 },
                                 {
-                                    $arrayElemAt: ["$imageVideoFiles", 0],
+                                    habitat: {
+                                        $regex: query.keyword,
+                                        $options: "i",
+                                    },
                                 },
-                                null,
+                                {
+                                    description: {
+                                        $regex: query.keyword,
+                                        $options: "i",
+                                    },
+                                },
                             ],
                         },
-                        name: 1,
-                        habitat: 1,
-                        unitPrice: 1,
-                        discount: 1,
-                        quantity: 1,
-                        soldQuantity: 1,
-                        status: 1,
-                        description: 1,
-                        createdAt: 1,
-                        createdBy: 1,
-                    }
-                )
-                    .skip(
-                        query.isExport
-                            ? 0
-                            : (query.pageNumber - 1) * query.pageSize
-                    )
-                    .limit(
-                        query.isExport
-                            ? Number.MAX_SAFE_INTEGER
-                            : query.pageSize
-                    )
-                    .collation({ locale: "en", caseLevel: false, strength: 1 })
-                    .sort(orderBy);
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            image: {
+                                $cond: [
+                                    {
+                                        $ne: ["$imageVideoFiles", null],
+                                    },
+                                    {
+                                        $arrayElemAt: [
+                                            "$imageVideoFiles.url",
+                                            0,
+                                        ],
+                                    },
+                                    null,
+                                ],
+                            },
+                            name: 1,
+                            habitat: 1,
+                            unitPrice: 1,
+                            discount: 1,
+                            quantity: 1,
+                            soldQuantity: 1,
+                            status: 1,
+                            description: 1,
+                            createdAt: 1,
+                            createdBy: 1,
+                        },
+                    },
+                    {
+                        $sort: orderBy,
+                    },
+                    {
+                        $facet: {
+                            // Paginated results
+                            paginatedResults: [
+                                {
+                                    $skip: query.isExport
+                                        ? 0
+                                        : (query.pageNumber - 1) *
+                                          query.pageSize,
+                                },
+                                {
+                                    $limit: query.isExport
+                                        ? Number.MAX_SAFE_INTEGER
+                                        : query.pageSize,
+                                },
+                            ],
+                            // Count of all documents that match the criteria
+                            totalCount: [{ $count: "totalCount" }],
+                        },
+                    },
+                ]).collation({ locale: "en", caseLevel: false, strength: 1 });
+
+                const total =
+                    results.length > 0
+                        ? results[0].totalCount.length > 0
+                            ? results[0].totalCount[0].totalCount
+                            : 0
+                        : 0;
+                const paginatedResults =
+                    results.length > 0 ? results[0].paginatedResults : [];
 
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: flowers,
+                        total: total,
+                        data: paginatedResults,
                     })
                 );
             } catch (error: any) {
@@ -131,7 +154,18 @@ class FlowerService {
                         })
                     );
                 }
+
                 //upload image cloudinary
+                let listImageVideoFiles = [];
+                for (const image of flower.imageVideoFiles) {
+                    const response = await CloudinaryService.Upload(image);
+                    console.log(response);
+                    listImageVideoFiles.push({
+                        url: response.url,
+                        public_id: response.public_id,
+                    });
+                }
+                flower.imageVideoFiles = listImageVideoFiles;
 
                 //check category id exists
                 if (flower.category) {
@@ -620,6 +654,8 @@ class FlowerService {
                         status: 1,
                         description: 1,
                         imageVideoFiles: 1,
+                        starsTotal: 1,
+                        feedbacksTotal: 1,
                         // category: 1,
                     }
                 );
