@@ -1,4 +1,5 @@
 import unidecode from "unidecode";
+import { mimeTypeMap } from "./constants";
 
 export const isNumberic = (value: any) => {
     return !isNaN(parseFloat(value)) && isFinite(value);
@@ -110,4 +111,10 @@ export const appendJsonToFormData = (formData: FormData, json: any) => {
     formData.append("body", JSON.stringify(json));
 
     return formData;
+};
+
+export const getMimeType = (url: string) => {
+    const arr = url.split(".");
+    const ext = arr && arr.length > 0 ? arr[arr.length - 1] : "unknown";
+    return mimeTypeMap[ext];
 };

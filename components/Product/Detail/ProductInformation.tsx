@@ -1,566 +1,317 @@
 import {
     Unstable_Grid2 as Grid,
     TextField,
-    Button,
     Card,
     CardContent,
-    CardActions,
-    Divider,
     Box,
     Autocomplete,
     Avatar,
     Chip,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Skeleton from "@mui/material/Skeleton";
-import { LoadingButton } from "@mui/lab";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { format, parse } from "date-fns";
 import { useState, useEffect } from "react";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { showToast } from "@/components/Toast";
+import { productStatus } from "@/utils/constants";
+import { isNumberic } from "@/utils/helper";
 
 const ProductInformation = (props: any) => {
-    const {
-        product,
-        initCategories,
-        loading,
-        loadingButtonDetails,
-        loadingButtonPicture,
-        handleSubmit,
-        canEdit,
-    } = props;
-    const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
-    const [isClicked, setIsClicked] = useState(false);
-    const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [changesMade, setChangesMade] = useState(false);
+    const { formik, handleChange, loadingSkeleton, isFieldDisabled } = props;
     const [categories, setCategories] = useState([]);
     const [value, setValue] = useState([]);
+    const { setLoading } = useLoadingContext();
 
     useEffect(() => {
-        if (!loadingButtonDetails && hasSubmitted) {
-            setIsClicked(false);
-            setHasSubmitted(false);
-        }
-    }, [loadingButtonDetails, hasSubmitted]);
-
-    const handleEditGeneral = () => {
-        setIsFieldDisabled(false);
-        setIsClicked(false);
-        setChangesMade(false);
-    };
-
-    const handleSubmitGeneral = () => {
-        setIsFieldDisabled(true);
-        setIsClicked(true);
-        setHasSubmitted(true);
-        if (changesMade)
-            handleSubmit({
-                ...formik.values,
-                birthday:
-                    formik.values.birthday &&
-                    format(formik.values.birthday, "dd/MM/yyyy"),
-                fatherBirthday:
-                    formik.values.fatherBirthday &&
-                    format(formik.values.fatherBirthday, "dd/MM/yyyy"),
-                motherBirthday:
-                    formik.values.motherBirthday &&
-                    format(formik.values.motherBirthday, "dd/MM/yyyy"),
-                gender:
-                    formik.values.gender === true ||
-                    formik.values.gender === "true",
-            });
-    };
-
-    const handleCancelGeneral = () => {
-        setIsClicked(false);
-        setIsFieldDisabled(true);
-        formik.setValues({
-            ...product,
-            birthday: parse(product.birthday, "dd/MM/yyyy", new Date()),
-            fatherBirthday: parse(
-                product.fatherBirthday,
-                "dd/MM/yyyy",
-                new Date()
-            ),
-            motherBirthday: parse(
-                product.motherBirthday,
-                "dd/MM/yyyy",
-                new Date()
-            ),
-        });
-    };
-
-    const formik = useFormik({
-        enableReinitialize: true,
-        initialValues: product
-            ? {
-                  ...product,
-                  birthday:
-                      product.birthday &&
-                      parse(product.birthday, "dd/MM/yyyy", new Date()),
-                  fatherBirthday:
-                      product.fatherBirthday &&
-                      parse(product.fatherBirthday, "dd/MM/yyyy", new Date()),
-                  motherBirthday:
-                      product.motherBirthday &&
-                      parse(product.motherBirthday, "dd/MM/yyyy", new Date()),
-              }
-            : null,
-        validationSchema: Yup.object({
-            // name: Yup.string()
-            //     .max(100, messages.LIMIT_NAME)
-            //     .required(messages.REQUIRED_NAME)
-            //     .matches(
-            //         /^[ '\p{L}]+$/u,
-            //         messages.NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // anotherName: Yup.string()
-            //     .max(100, messages.LIMIT_ANOTHER_NAME)
-            //     .required(messages.REQUIRED_ANOTHER_NAME)
-            //     .matches(
-            //         /^[ '\p{L}]+$/u,
-            //         messages.ANOTHER_NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // citizenId: Yup.string()
-            //     .max(12, messages.LIMIT_CITIZEN_ID)
-            //     .required(messages.REQUIRED_CITIZEN_ID)
-            //     .matches(/^[0-9]+$/u, messages.CITIZEN_ID_VALID_CHARACTER),
-            // phoneNumber: Yup.string()
-            //     .matches(
-            //         /^(?:\+84|84|0)(3|5|7|8|9|1[2689])([0-9]{8,10})\b$/,
-            //         messages.INVALID_PHONE_NUMBER
-            //     )
-            //     .max(15, messages.LIMIT_PHONENUMBER)
-            //     .required(messages.REQUIRED_PHONENUMBER),
-            // careerAndWorkplace: Yup.string()
-            //     .max(300, messages.LIMIT_CAREER_AND_WORKPLACE)
-            //     .required(messages.REQUIRED_CAREER_AND_WORKPLACE)
-            //     .matches(
-            //         /^[\p{L}0-9,.: -]+$/u,
-            //         messages.CAREER_AND_WORKPLACE_VALID_CHARACTER
-            //     ),
-            // characteristics: Yup.string()
-            //     .max(500, messages.LIMIT_CHARACTERISTICS)
-            //     .required(messages.REQUIRED_CHARACTERISTICS)
-            //     .matches(
-            //         /^[\p{L}, ]+$/u,
-            //         messages.CHARACTERISTICS_VALID_CHARACTER
-            //     ),
-            // homeTown: Yup.string()
-            //     .max(200, messages.LIMIT_HOME_TOWN)
-            //     .required(messages.REQUIRED_HOME_TOWN)
-            //     .matches(
-            //         /^[\p{L}0-9,. ]+$/u,
-            //         messages.HOME_TOWN_VALID_CHARACTER
-            //     ),
-            // ethnicity: Yup.string()
-            //     .max(50, messages.LIMIT_ETHNICITY)
-            //     .required(messages.REQUIRED_ETHNICITY)
-            //     .matches(/^[\p{L} ]+$/u, messages.ETHNICITY_VALID_CHARACTER),
-            // religion: Yup.string()
-            //     .max(50, messages.LIMIT_RELIGION)
-            //     .matches(/^[\p{L} ]+$/u, messages.RELIGION_VALID_CHARACTER),
-            // nationality: Yup.string()
-            //     .max(50, messages.LIMIT_NATIONALITY)
-            //     .required(messages.REQUIRED_NATIONALITY)
-            //     .matches(/^[\p{L} ]+$/u, messages.NATIONALITY_VALID_CHARACTER),
-            // fatherName: Yup.string()
-            //     .max(100, messages.LIMIT_FATHER_NAME)
-            //     .required(messages.REQUIRED_FATHER_NAME)
-            //     .matches(
-            //         /^[\p{L} ']+$/u,
-            //         messages.NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // fatherCitizenId: Yup.string()
-            //     .max(12, messages.LIMIT_FATHER_CITIZEN_ID)
-            //     .required(messages.REQUIRED_FATHER_CITIZEN_ID)
-            //     .matches(/^[0-9]+$/u, messages.CITIZEN_ID_VALID_CHARACTER),
-            // motherName: Yup.string()
-            //     .max(100, messages.LIMIT_MOTHER_NAME)
-            //     .required(messages.REQUIRED_MOTHER_NAME)
-            //     .matches(
-            //         /^[\p{L} ']+$/u,
-            //         messages.NAME_CONTAINS_VALID_CHARACTER
-            //     ),
-            // motherCitizenId: Yup.string()
-            //     .max(12, messages.LIMIT_MOTHER_CITIZEN_ID)
-            //     .required(messages.REQUIRED_MOTHER_CITIZEN_ID)
-            //     .matches(/^[0-9]+$/u, messages.CITIZEN_ID_VALID_CHARACTER),
-            // permanentResidence: Yup.string()
-            //     .max(200, messages.LIMIT_PERMANENT_RESIDENCE)
-            //     .required(messages.REQUIRED_PERMANENT_RESIDENCE)
-            //     .matches(
-            //         /^[\p{L}0-9,. ]+$/u,
-            //         messages.PERMANENT_RESIDENCE_VALID_CHARACTER
-            //     ),
-            // currentAccommodation: Yup.string()
-            //     .max(200, messages.LIMIT_CURRENT_ACCOMMODATION)
-            //     .required(messages.REQUIRED_CURRENT_ACCOMMODATION)
-            //     .matches(
-            //         /^[\p{L}0-9,. ]+$/u,
-            //         messages.CURRENT_ACCOMMODATION_VALID_CHARACTER
-            //     ),
-        }),
-        onSubmit: async (values: any, helpers: any) => {
-            try {
-                handleSubmitGeneral();
-            } catch (err: any) {
-                helpers.setStatus({ success: false });
-                helpers.setErrors({ submit: err.message });
-                helpers.setSubmitting(false);
+        const getCategories = async () => {
+            setLoading(true);
+            const response = await FetchApi(
+                UrlConfig.category.getAll + "?isExport=true",
+                "GET",
+                true
+            );
+            if (response.canRefreshToken === false) {
+                showToast(response.message, "warning");
+            } else if (response.succeeded) {
+                setCategories(response.data);
+            } else {
+                showToast(response.message, "error");
             }
-        },
-    });
+            setLoading(false);
+        };
+
+        getCategories();
+    }, []);
 
     useEffect(() => {
-        if (categories) {
+        if (categories && formik.values.category) {
             setValue(
                 categories.filter((category: any) =>
-                    product.categoryId.includes(category._id)
+                    formik.values.category.includes(category._id)
                 )
             );
         }
-        setCategories(initCategories);
-    }, [categories]);
+    }, [categories, formik.values.category]);
 
     return (
-        <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
-            <Card
-                sx={{
-                    p: 0,
-                }}
-            >
-                <CardContent>
-                    <Box sx={{ fontWeight: 700, marginBottom: 1 }}>
-                        Thông tin chung
-                    </Box>
-                    <Grid container spacing={3}>
-                        {[
-                            {
-                                label: "Mã sản phẩm",
-                                name: "_id",
-                                md: 4,
-                                disabled: true,
-                            },
-                            {
-                                label: "Tên sản phẩm",
-                                name: "name",
-                                md: 8,
-                                required: true,
-                            },
-                            {
-                                label: "Môi trường sống",
-                                name: "habitat",
-                                md: 3,
-                            },
-                            {
-                                label: "Thời gian sinh trưởng",
-                                name: "growthTime",
-                                md: 9,
-                            },
-                            {
-                                label: "Cách chăm sóc",
-                                name: "care",
-                                textArea: true,
-                                md: 12,
-                            },
-                            {
-                                label: "Đơn giá ($)",
-                                name: "unitPrice",
-                                md: 3,
-                            },
-                            {
-                                label: "Giảm giá (%)",
-                                name: "discount",
-                                md: 3,
-                            },
-                            {
-                                label: "Số lượng",
-                                name: "quantity",
-                                md: 3,
-                            },
-                            {
-                                label: "Số lượng đã bán",
-                                name: "soldQuantity",
-                                md: 3,
-                            },
-                            {
-                                label: "Mô tả",
-                                name: "description",
-                                textArea: true,
-                                md: 12,
-                            },
-                            {
-                                label: "Trạng thái",
-                                name: "status",
-                                disabled: true,
-                                md: 12,
-                            },
-                            {
-                                label: "Hạng mục",
-                                name: "categories",
-                                autoComplete: true,
-                                md: 12,
-                            },
-                        ].map((field: any) => (
-                            <Grid key={field.name} xs={12} md={field.md || 12}>
-                                {loading ||
-                                formik.values === null ||
-                                formik.values.name === undefined ? (
-                                    <Skeleton variant="rounded">
-                                        <TextField fullWidth />
-                                    </Skeleton>
-                                ) : field.datePicker ? (
-                                    <DatePicker
-                                        // error={
-                                        //     !!(
-                                        //         formik.touched[field.name] &&
-                                        //         formik.errors[field.name]
-                                        //     )
-                                        // }
-                                        // fullWidth
-                                        // helperText={
-                                        //     formik.touched[field.name] &&
-                                        //     formik.errors[field.name]
-                                        // }
-                                        label={field.label}
-                                        name={field.name}
-                                        // onBlur={formik.handleBlur}
-                                        onChange={(date: any) => {
-                                            setChangesMade(true);
-                                            formik.setFieldValue(
-                                                field.name,
-                                                date
-                                            );
-                                        }}
-                                        // type={field.type}
-                                        value={formik.values[field.name]}
-                                        disabled={
-                                            isFieldDisabled || field.disabled
-                                        }
-                                        // renderInput={(params: any) => (
-                                        //     <TextField
-                                        //         {...params}
-                                        //         fullWidth
-                                        //         InputLabelProps={{
-                                        //             shrink: true,
-                                        //         }}
-                                        //         required={
-                                        //             field.required || false
-                                        //         }
-                                        //         onKeyDown={(e) =>
-                                        //             e.preventDefault()
-                                        //         }
-                                        //     />
-                                        // )}
-                                        // maxDate={new Date()} // Assuming current date is the maximum allowed
-                                    />
-                                ) : field.autoComplete ? (
-                                    <Autocomplete
-                                        id="autocomplete-products"
-                                        multiple
-                                        autoHighlight={true}
-                                        disabled={
-                                            isFieldDisabled || field.disabled
-                                        }
-                                        // name={field.name}
-                                        // label={field.label}
-                                        disablePortal
-                                        fullWidth
-                                        options={categories}
-                                        getOptionLabel={(option: any) =>
-                                            value ? option.categoryName : ""
-                                        }
-                                        renderTags={(value, getTagProps) =>
-                                            value.map(
-                                                (
-                                                    option: any,
-                                                    index: number
-                                                ) => (
-                                                    <Box key={index}>
-                                                        <Chip
-                                                            variant="outlined"
-                                                            avatar={
-                                                                <Avatar
-                                                                    src={
-                                                                        option.image
-                                                                    }
-                                                                />
-                                                            }
-                                                            label={
-                                                                option.categoryName
-                                                            }
-                                                            {...getTagProps({
-                                                                index,
-                                                            })}
-                                                            // sx={{
-                                                            //     color: "black",
-                                                            //     backgroundColor:
-                                                            //         "white",
-                                                            // }}
-                                                        />
-                                                    </Box>
-                                                )
+        <Card
+            sx={{
+                p: 0,
+            }}
+        >
+            <CardContent>
+                <Box sx={{ fontWeight: 700, marginBottom: 1 }}>
+                    Thông tin chung
+                </Box>
+                <Grid container spacing={3}>
+                    {[
+                        {
+                            label: "Mã sản phẩm",
+                            name: "_id",
+                            md: 4,
+                            disabled: true,
+                        },
+                        {
+                            label: "Tên sản phẩm",
+                            name: "name",
+                            md: 8,
+                            required: true,
+                        },
+                        {
+                            label: "Môi trường sống",
+                            name: "habitat",
+                            md: 3,
+                        },
+                        {
+                            label: "Thời gian sinh trưởng",
+                            name: "growthTime",
+                            md: 9,
+                        },
+                        {
+                            label: "Cách chăm sóc",
+                            name: "care",
+                            textArea: true,
+                            md: 12,
+                        },
+                        {
+                            label: "Đơn giá ($)",
+                            name: "unitPrice",
+                            md: 3,
+                        },
+                        {
+                            label: "Giảm giá (%)",
+                            name: "discount",
+                            md: 3,
+                        },
+                        {
+                            label: "Số lượng",
+                            name: "quantity",
+                            md: 3,
+                        },
+                        {
+                            label: "Số lượng đã bán",
+                            name: "soldQuantity",
+                            md: 3,
+                            disabled: true,
+                        },
+                        {
+                            label: "Mô tả",
+                            name: "description",
+                            textArea: true,
+                            md: 12,
+                        },
+                        {
+                            label: "Trạng thái",
+                            name: "status",
+                            disabled: true,
+                            md: 12,
+                        },
+                        {
+                            label: "Hạng mục",
+                            name: "categories",
+                            autoComplete: true,
+                            md: 12,
+                        },
+                    ].map((field: any) => (
+                        <Grid key={field.name} xs={12} md={field.md || 12}>
+                            {loadingSkeleton || formik.values === null ? (
+                                <Skeleton variant="rounded">
+                                    <TextField fullWidth />
+                                </Skeleton>
+                            ) : field.autoComplete ? (
+                                <Autocomplete
+                                    id="autocomplete-products"
+                                    multiple
+                                    autoHighlight={true}
+                                    disabled={isFieldDisabled || field.disabled}
+                                    // name={field.name}
+                                    // label={field.label}
+                                    disablePortal
+                                    fullWidth
+                                    options={categories}
+                                    getOptionLabel={(option: any) =>
+                                        value ? option.categoryName : ""
+                                    }
+                                    renderTags={(value, getTagProps) =>
+                                        value.map(
+                                            (option: any, index: number) => (
+                                                <Box key={index}>
+                                                    <Chip
+                                                        variant="outlined"
+                                                        avatar={
+                                                            <Avatar
+                                                                src={
+                                                                    option.avatarUrl
+                                                                }
+                                                            />
+                                                        }
+                                                        label={
+                                                            option.categoryName
+                                                        }
+                                                        {...getTagProps({
+                                                            index,
+                                                        })}
+                                                        // sx={{
+                                                        //     color: "black",
+                                                        //     backgroundColor:
+                                                        //         "white",
+                                                        // }}
+                                                    />
+                                                </Box>
                                             )
-                                        }
-                                        // isOptionEqualToValue={(option, value) => {
-                                        //     if (value === null || value === undefined) {
-                                        //         return option === value;
-                                        //     }
-                                        //     return option.id === value.id;
-                                        // }}
-                                        // onChange={async (event, value) => {
-                                        //     if (value === null || value === undefined) {
-                                        //         setValue('');
-                                        //         handleChangeCriminals(event, '', index);
-                                        //     } else {
-                                        //         setValue(value);
-                                        //         handleChangeCriminals(event, value, index);
-                                        //     }
-
-                                        // }}
-
-                                        onChange={(event, value: any) => {
-                                            setValue(value);
-                                        }}
-                                        value={value}
-                                        renderOption={(props, option: any) => (
-                                            <Box
-                                                component="li"
-                                                key={option._id}
-                                                {...props}
-                                            >
-                                                <Avatar
-                                                    sx={{
-                                                        mr: 1.5,
-                                                        height: 32,
-                                                        width: 32,
-                                                    }}
-                                                    src={option?.image}
-                                                />
-                                                {option.categoryName}
-                                            </Box>
-                                        )} // Set the default value based on the criminal prop
-                                        renderInput={(params: any) => (
-                                            <TextField
-                                                {...params}
-                                                disabled={
-                                                    isFieldDisabled ||
-                                                    field.disabled
-                                                }
-                                                label={field.label}
-                                                required={
-                                                    field.required || false
-                                                }
+                                        )
+                                    }
+                                    // isOptionEqualToValue={(option, value) => {
+                                    //     if (value === null || value === undefined) {
+                                    //         return option === value;
+                                    //     }
+                                    //     return option.id === value.id;
+                                    // }}
+                                    onChange={(event, value: any) => {
+                                        setValue(value);
+                                        handleChange(
+                                            "category",
+                                            value.map((v: any) => v._id)
+                                        );
+                                    }}
+                                    value={value}
+                                    renderOption={(props, option: any) => (
+                                        <Box
+                                            component="li"
+                                            key={option._id}
+                                            {...props}
+                                        >
+                                            <Avatar
                                                 sx={{
-                                                    "& .MuiInputBase-input": {
-                                                        overflow: "hidden",
-                                                        textOverflow:
-                                                            "ellipsis",
-                                                    },
+                                                    mr: 1.5,
+                                                    height: 32,
+                                                    width: 32,
                                                 }}
+                                                src={option?.avatarUrl}
                                             />
-                                        )}
-                                    />
-                                ) : (
-                                    <TextField
-                                        error={
-                                            !!(
-                                                formik.touched[field.name] &&
-                                                formik.errors[field.name]
+                                            {option.categoryName}
+                                        </Box>
+                                    )} // Set the default value based on the criminal prop
+                                    renderInput={(params: any) => (
+                                        <TextField
+                                            {...params}
+                                            disabled={
+                                                isFieldDisabled ||
+                                                field.disabled
+                                            }
+                                            label={field.label}
+                                            required={field.required || false}
+                                            sx={{
+                                                "& .MuiInputBase-input": {
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                />
+                            ) : (
+                                <TextField
+                                    error={
+                                        !!(
+                                            formik.touched[field.name] &&
+                                            formik.errors[field.name]
+                                        )
+                                    }
+                                    fullWidth
+                                    helperText={
+                                        formik.touched[field.name] &&
+                                        formik.errors[field.name]
+                                    }
+                                    label={field.label}
+                                    name={field.name}
+                                    onBlur={formik.handleBlur}
+                                    onChange={(e) => {
+                                        if (e.target.name === "quantity") {
+                                            if (
+                                                e.target.value === "" ||
+                                                Number(e.target.value) === 0 ||
+                                                !isNumberic(e.target.value)
                                             )
+                                                formik.setFieldValue(
+                                                    "status",
+                                                    productStatus[
+                                                        "Out of stock"
+                                                    ]
+                                                );
+                                            else
+                                                formik.setFieldValue(
+                                                    "status",
+                                                    productStatus["Available"]
+                                                );
                                         }
-                                        fullWidth
-                                        // helperText={
-                                        //     formik.touched[field.name] &&
-                                        //     formik.errors[field.name]
-                                        // }
-                                        label={field.label}
-                                        name={field.name}
-                                        onBlur={formik.handleBlur}
-                                        onChange={(e) => {
-                                            setChangesMade(true);
-                                            formik.handleChange(e);
-                                        }}
-                                        type={field.type}
-                                        value={formik.values[field.name]}
-                                        multiline={field.textArea || false}
-                                        disabled={
-                                            isFieldDisabled || field.disabled
-                                        }
-                                        required={field.required || false}
-                                        select={field.select}
-                                        SelectProps={
-                                            field.select
-                                                ? { native: true }
-                                                : undefined
-                                        }
-                                        sx={{
-                                            "& .MuiInputBase-input": {
-                                                overflow: "hidden",
-                                                textOverflow: "ellipsis",
-                                            },
-                                        }}
-                                    >
-                                        {field.select &&
-                                            field.selectProps &&
-                                            Object.entries(
-                                                field.selectProps
-                                            ).map(([value, label]) => (
+                                        handleChange(
+                                            field.name,
+                                            e.target.value
+                                        );
+                                        // formik.handleChange(e);
+                                    }}
+                                    type={field.type}
+                                    value={formik.values[field.name]}
+                                    multiline={field.textArea || false}
+                                    disabled={isFieldDisabled || field.disabled}
+                                    required={field.required || false}
+                                    select={field.select}
+                                    SelectProps={
+                                        field.select
+                                            ? { native: true }
+                                            : undefined
+                                    }
+                                    sx={{
+                                        "& .MuiInputBase-input": {
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                        },
+                                    }}
+                                >
+                                    {field.select &&
+                                        field.selectProps &&
+                                        Object.entries(field.selectProps).map(
+                                            ([value, label]) => (
                                                 <option
                                                     key={value}
                                                     value={value}
+                                                    selected={
+                                                        value === field.selected
+                                                    }
                                                 >
                                                     {label as any}
                                                 </option>
-                                            ))}
-                                    </TextField>
-                                )}
-                            </Grid>
-                        ))}
-                    </Grid>
-                </CardContent>
-                <Divider />
-                {canEdit && (
-                    <CardActions sx={{ justifyContent: "flex-end" }}>
-                        {isClicked ? (
-                            loadingButtonDetails && (
-                                <LoadingButton
-                                    disabled
-                                    loading={loadingButtonDetails}
-                                    size="medium"
-                                    variant="contained"
-                                >
-                                    Lưu
-                                </LoadingButton>
-                            )
-                        ) : (
-                            <>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => {
-                                        if (isFieldDisabled)
-                                            handleEditGeneral();
-                                        else formik.handleSubmit();
-                                    }}
-                                    disabled={loadingButtonPicture}
-                                >
-                                    Cập nhật thông tin
-                                </Button>
-                                {!isFieldDisabled && (
-                                    <Button
-                                        variant="outlined"
-                                        onClick={handleCancelGeneral}
-                                    >
-                                        Hủy
-                                    </Button>
-                                )}
-                            </>
-                        )}
-                    </CardActions>
-                )}
-            </Card>
-        </form>
+                                            )
+                                        )}
+                                </TextField>
+                            )}
+                        </Grid>
+                    ))}
+                </Grid>
+            </CardContent>
+        </Card>
     );
 };
 

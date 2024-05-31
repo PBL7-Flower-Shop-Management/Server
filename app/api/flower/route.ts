@@ -292,13 +292,30 @@ export const PUT = async (req: NextRequest) => {
             return await checkRole([roleMap.Admin, roleMap.Employee])(
                 userToken,
                 async () => {
-                    let body = await new Response(req.body).json();
+                    let body = null;
+                    let imageVideoFiles: any = [];
+                    if (
+                        !req.headers
+                            .get("content-type")
+                            ?.includes("application/json")
+                    ) {
+                        const formData = await req.formData();
+                        imageVideoFiles = formData.getAll("imageVideoFiles");
+                        if (imageVideoFiles !== "null")
+                            await checkFiles(imageVideoFiles as [File]);
+                        else imageVideoFiles = [];
+
+                        body = JSON.parse(formData.get("body") as string);
+                    } else body = await new Response(req.body).json();
+
                     ({ req, body: body } = TrimRequest.all(req, null, body));
                     await validate(schemas.UpdateFlowerSchema)(
                         null,
                         null,
                         body
                     );
+                    body.imageVideoFiles =
+                        body.imageVideoFiles.concat(imageVideoFiles);
                     body.updatedBy = userToken.user.username;
                     return await FlowerController.UpdateFlower(body);
                 }

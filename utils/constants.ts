@@ -97,5 +97,15 @@ export const allowedVideoMimeTypes: string[] = [
     "audio/mpeg",
 ];
 
+export const mimeTypeMap: any = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    mp4: "video/mp4",
+    mpeg: "video/mpeg",
+    unknown: "unknown",
+};
+
 export const MAX_SIZE_IMAGE = 1 * 1024 * 1024;
 export const MAX_SIZE_VIDEO = 5 * 1024 * 1024;

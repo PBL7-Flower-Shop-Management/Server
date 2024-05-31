@@ -47,24 +47,27 @@ const schemas = {
                 care: yup.string().trim().nullable(),
                 unitPrice: yup.number().min(0).default(0),
                 discount: yup.number().min(0).max(100).default(0),
-                quantity: yup.number().integer().min(0).default(0),
-                soldQuantity: yup
+                quantity: yup
                     .number()
                     .integer()
                     .min(0)
                     .default(0)
                     .test(
-                        "soldQuantity-valid",
-                        "Sold quantity field can't be greater than quantiy field",
+                        "quantity-valid",
+                        "quantity field can't be less than sold quantiy field",
                         function (value) {
-                            if (!value || !this.parent.quantiy) {
-                                if (value > 0 && !this.parent.quantity)
+                            if (
+                                value === undefined ||
+                                this.parent.soldQuantity === undefined
+                            ) {
+                                if (!value && this.parent.soldQuantity > 0)
                                     return false;
                                 return true;
                             }
-                            return value <= this.parent.quantity;
+                            return value >= this.parent.soldQuantity;
                         }
                     ),
+                soldQuantity: yup.number().integer().min(0).default(0),
                 description: yup.string().trim().nullable(),
                 category: yup
                     .array()
@@ -124,24 +127,27 @@ const schemas = {
                 care: yup.string().trim().nullable(),
                 unitPrice: yup.number().min(0).default(0),
                 discount: yup.number().min(0).max(100).default(0),
-                quantity: yup.number().integer().min(0).default(0),
-                soldQuantity: yup
+                quantity: yup
                     .number()
                     .integer()
                     .min(0)
                     .default(0)
                     .test(
-                        "soldQuantity-valid",
-                        "Sold quantity field can't be greater than quantiy field",
+                        "quantity-valid",
+                        "quantity field can't be less than sold quantiy field",
                         function (value) {
-                            if (!value || !this.parent.quantiy) {
-                                if (value > 0 && !this.parent.quantity)
+                            if (
+                                value === undefined ||
+                                this.parent.soldQuantity === undefined
+                            ) {
+                                if (!value && this.parent.soldQuantity > 0)
                                     return false;
                                 return true;
                             }
-                            return value <= this.parent.quantity;
+                            return value >= this.parent.soldQuantity;
                         }
                     ),
+                soldQuantity: yup.number().integer().min(0).default(0),
                 imageVideoFiles: yup.array().nullable(),
                 description: yup.string().trim().nullable(),
                 category: yup

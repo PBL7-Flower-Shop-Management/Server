@@ -27,7 +27,7 @@ const NewProductInformation = (props: any) => {
         const getCategories = async () => {
             setLoading(true);
             const response = await FetchApi(
-                UrlConfig.category.getAll,
+                UrlConfig.category.getAll + "?isExport=true",
                 "GET",
                 true
             );
@@ -283,6 +283,7 @@ const NewProductInformation = (props: any) => {
                                     }}
                                 >
                                     {field.select &&
+                                        field.selectProps &&
                                         Object.entries(field.selectProps).map(
                                             ([value, label]) => (
                                                 <option

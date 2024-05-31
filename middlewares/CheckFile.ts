@@ -10,6 +10,7 @@ import {
 import httpStatus from "http-status";
 
 export const checkFiles = async (file: [File]) => {
+    for (const f of file) console.log(f);
     for (const f of file) await checkFile(f, f.type.startsWith("image"));
 };
 

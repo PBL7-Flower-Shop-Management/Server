@@ -243,12 +243,11 @@ class FlowerService {
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
-                if (
-                    !(await FlowerModel.findOne({
-                        _id: flower._id,
-                        isDeleted: false,
-                    }))
-                )
+                const flowerDb = await FlowerModel.findOne({
+                    _id: flower._id,
+                    isDeleted: false,
+                });
+                if (!flowerDb)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -272,6 +271,49 @@ class FlowerService {
                 }
 
                 //update image cloudinary
+                let listSaveFiles = [];
+
+                // Find existing image video
+                const existingFiles = flowerDb.imageVideoFiles;
+
+                // Create a map of existing image video for easy lookup
+                const existingFilesMap = new Map(
+                    existingFiles.map((file: any) => [file.public_id, file])
+                );
+
+                if (flower.imageVideoFiles) {
+                    // Loop through the new order details
+                    for (const newFile of flower.imageVideoFiles) {
+                        const existingFile = existingFilesMap.get(
+                            newFile.public_id
+                        );
+
+                        if (existingFile) {
+                            // Remove the processed file from the map
+                            existingFilesMap.delete(newFile.public_id);
+                            listSaveFiles.push(existingFile);
+                        } else {
+                            //upload
+                            const response = await CloudinaryService.Upload(
+                                newFile
+                            );
+
+                            listSaveFiles.push({
+                                url: response.url,
+                                public_id: response.public_id,
+                            });
+                        }
+                    }
+                }
+
+                // Delete remaining file that were not in request
+                const remainingFiles = Array.from(existingFilesMap.keys());
+
+                for (const file of remainingFiles) {
+                    if (file) await CloudinaryService.DeleteByPublicId(file);
+                }
+
+                flower.imageVideoFiles = listSaveFiles;
 
                 //check category id exists
                 if (flower.category) {
@@ -300,7 +342,17 @@ class FlowerService {
                             updatedBy: flower.updatedBy ?? "System",
                         },
                     },
-                    { session: session, new: true }
+                    {
+                        session: session,
+                        new: true,
+                        fields: {
+                            createdAt: 0,
+                            createdBy: 0,
+                            updatedAt: 0,
+                            updatedBy: 0,
+                            isDeleted: 0,
+                        },
+                    }
                 );
 
                 //Remove old categories associated with the flower

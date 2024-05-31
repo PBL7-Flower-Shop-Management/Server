@@ -17,7 +17,12 @@ class CloudinaryService {
     };
 
     DeleteByPublicId = async (public_id: any) => {
+        await cloudinary.uploader.destroy(public_id, {
+            resource_type: "video",
+            invalidate: true,
+        });
         return await cloudinary.uploader.destroy(public_id, {
+            resource_type: "image",
             invalidate: true,
         });
     };

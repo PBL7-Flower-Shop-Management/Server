@@ -14,242 +14,358 @@ import {
     Typography,
     Unstable_Grid2 as Grid,
     Link,
+    Button,
+    CardActions,
+    Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useSearchParams } from "next/navigation";
 import ProductInformation from "@/components/Product/Detail/ProductInformation";
 import ProductImages from "@/components/Product/Detail/ProductImages";
+import { useFormik } from "formik";
+import * as yup from "yup";
+import mongoose from "mongoose";
+import {
+    allowedImageExtensions,
+    allowedVideoExtensions,
+    MAX_SIZE_IMAGE,
+    MAX_SIZE_VIDEO,
+} from "@/utils/constants";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { showToast } from "@/components/Toast";
+import { LoadingButton } from "@mui/lab";
+import { appendJsonToFormData, getMimeType } from "@/utils/helper";
 
 const ProductDetail = ({ params }: any) => {
-    const [product, setProduct] = useState<any>(null);
-    const [categories, setCategories] = useState<any>([]);
+    const [originalproduct, setOriginalProduct] = useState<any>();
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
-    const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
     const searchParams = useSearchParams();
     const productId = params?.id;
-    const productName = searchParams.get("name");
     const canEdit = searchParams.get("edit") === "1";
-    const [open, setOpen] = useState(true);
+    const { setLoading } = useLoadingContext();
+    const [changesMade, setChangesMade] = useState(false);
+    const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
 
-    const getProduct = useCallback(async () => {
+    const formik = useFormik({
+        initialValues: {} as any,
+        validationSchema: yup.object({
+            _id: yup
+                .string()
+                .trim()
+                .required()
+                .test("is-objectid", "Invalid flower id format", (value) =>
+                    mongoose.Types.ObjectId.isValid(value)
+                ),
+            name: yup
+                .string()
+                .trim()
+                .required("Flower name field is required")
+                .matches(
+                    /^[\p{L} _-]+$/u,
+                    "Flower name only contains characters, number, space, slash and dash!"
+                ),
+            habitat: yup.string().trim().nullable(),
+            growthTime: yup.string().trim().nullable(),
+            care: yup.string().trim().nullable(),
+            unitPrice: yup
+                .number()
+                .typeError("unitPrice must be a number")
+                .min(0)
+                .default(0),
+            discount: yup
+                .number()
+                .typeError("discount must be a number")
+                .min(0)
+                .max(100)
+                .default(0),
+            quantity: yup
+                .number()
+                .typeError("quantity must be a number")
+                .integer()
+                .min(0)
+                .default(0)
+                .test(
+                    "quantity-valid",
+                    "quantity field can't be less than sold quantiy field",
+                    function (value) {
+                        if (
+                            value === undefined ||
+                            this.parent.soldQuantity === undefined
+                        ) {
+                            if (!value && this.parent.soldQuantity > 0)
+                                return false;
+                            return true;
+                        }
+                        return value >= this.parent.soldQuantity;
+                    }
+                ),
+            soldQuantity: yup.number().integer().min(0).default(0),
+            imageVideoFiles: yup
+                .array()
+                .nullable()
+                .test(
+                    "imageVideo-valid",
+                    "File is not an image or video",
+                    function (value: any) {
+                        if (value) {
+                            return (
+                                value.filter(
+                                    (v: any) =>
+                                        v.type &&
+                                        !v.type.startsWith("image") &&
+                                        !v.type.startsWith("video")
+                                ).length === 0
+                            );
+                        }
+                        return true;
+                    }
+                )
+                .test(
+                    "imageVideo-valid2",
+                    `File format not allowed, only allow (${allowedImageExtensions.join(
+                        ", "
+                    )}, ${allowedVideoExtensions.join(", ")})`,
+                    function (value: any) {
+                        if (value) {
+                            return (
+                                value.filter(
+                                    (v: any) =>
+                                        v.type &&
+                                        !(
+                                            (v.type.startsWith("image") &&
+                                                allowedImageExtensions.includes(
+                                                    v.type.split("/")[1]
+                                                )) ||
+                                            (v.type.startsWith("video") &&
+                                                allowedVideoExtensions.includes(
+                                                    v.type.split("/")[1]
+                                                ))
+                                        )
+                                ).length === 0
+                            );
+                        }
+                        return true;
+                    }
+                )
+                .test(
+                    "imageVideo-valid",
+                    "File size exceeds the allowable limit",
+                    function (value: any) {
+                        if (value) {
+                            return (
+                                value.filter(
+                                    (v: any) =>
+                                        v.type &&
+                                        !(
+                                            (v.type.startsWith("image") &&
+                                                v.size <= MAX_SIZE_IMAGE) ||
+                                            (v.type.startsWith("video") &&
+                                                v.size <= MAX_SIZE_VIDEO)
+                                        )
+                                ).length === 0
+                            );
+                        }
+                        return true;
+                    }
+                ),
+            description: yup.string().trim().nullable(),
+            category: yup
+                .array()
+                .nullable()
+                .test(
+                    "categoryIds-valid",
+                    "Invalid category id format in list of category ids",
+                    function (value) {
+                        if (value) {
+                            return (
+                                value.filter(
+                                    (v) =>
+                                        typeof v !== "string" ||
+                                        v.trim() === "" ||
+                                        !mongoose.Types.ObjectId.isValid(v)
+                                ).length === 0
+                            );
+                        }
+                        return true;
+                    }
+                )
+                .test(
+                    "categoryIds-distinct",
+                    "There can't be two categories that overlap",
+                    function (value) {
+                        if (value) {
+                            return new Set(value).size === value.length;
+                        }
+                        return true;
+                    }
+                ),
+        }),
+
+        onSubmit: async (values, helpers: any) => {
+            try {
+                console.log(values);
+                if (changesMade) {
+                    setIsFieldDisabled(true);
+                    const res = await updateInformation();
+                    setIsFieldDisabled(res);
+                } else setIsFieldDisabled(true);
+            } catch (err: any) {
+                helpers.setStatus({ success: false });
+                helpers.setErrors({ submit: err.message });
+                helpers.setSubmitting(false);
+            }
+        },
+    });
+
+    const getProduct = async () => {
+        setLoading(true);
         setLoadingSkeleton(true);
-        setError("");
-        try {
-            // const product = await productsApi.getProductById(
-            //     productId,
-            //     auth
-            // );
-            const product = {
-                _id: "6630456bfc13ae1b64a24116",
-                name: "Cheese - Brie, Triple Creme",
-                habitat: "Garden",
-                care: "Fusce consequat. Nulla nisl. Nunc nisl.",
-                growthTime: "3 tháng",
-                starsTotal: 4.6,
-                feedbacksTotal: 786,
-                unitPrice: 123,
-                discount: 86,
-                quantity: 459,
-                soldQuantity: 270,
-                imageVideoFiles: [
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                    "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                ],
-                description:
-                    "Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
-                categoryId: [
-                    "663047485c22d11402fcc6d3",
-                    "663047485c22d11402fcc6da",
-                ],
-                status: "Available",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Tanny Aspital",
-                updatedAt: "2024-04-01T00:00:00Z",
-                updatedBy: "Queenie Houchen",
-                isDeleted: true,
-            };
-            setProduct(product);
-            console.log(product);
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
-            setLoadingSkeleton(false);
-        }
-    }, []);
 
-    const getCategories = () => {
-        setCategories([
-            {
-                _id: "663047485c22d11402fcc6d3",
-                categoryName: "Hoa trồng vườn",
-                image: "https://th.bing.com/th/id/OIP.f-FXUJ0aDZgeT7USzI7CUgHaKW?rs=1&pid=ImgDetMain",
-                description:
-                    "Integer ac leo. Pellentesque ultrices mattis odio. Donec vitae nisi.",
-            },
-            {
-                _id: "663047485c22d11402fcc6d4",
-                categoryName: "Hoa trưng bày",
-                image: "https://th.bing.com/th/id/OIP.IDIBlRIRqoabOvqKdaToLgHaHg?rs=1&pid=ImgDetMain",
-                description:
-                    "Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.",
-            },
-            {
-                _id: "663047485c22d11402fcc6d8",
-                categoryName: "Hoa tốt nghiệp",
-                image: "https://file1.hutech.edu.vn/file/news/tot_nghiep_2-1561445014.png",
-                description:
-                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
-            },
-            {
-                _id: "663047485c22d11402fcc6d6",
-                categoryName: "Hoa khai trương",
-                image: "https://juro.com.vn/wp-content/uploads/mau-phong-nen-khai-truong-3.jpg",
-                description:
-                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
-            },
-            {
-                _id: "663047485c22d11402fcc6d7",
-                categoryName: "Hoa cưới",
-                image: "https://th.bing.com/th/id/R.94ced6306675d8e8950bc8dfebb6ba00?rik=9uxw5rY1bzM0kQ&pid=ImgRaw&r=0",
-                description:
-                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
-            },
-            {
-                _id: "663047485c22d11402fcc6d5",
-                categoryName: "Hoa sinh nhật",
-                image: "https://th.bing.com/th/id/R.1110331de5a4c5a98db02fe00f876b4e?rik=IfafVIxyoYdnLw&riu=http%3a%2f%2fhinhnenhd.com%2fwp-content%2fuploads%2f2021%2f11%2fHinh-anh-chuc-mung-sinh-nhat-dep-y-nghia-23.jpg&ehk=NiCTn3VrqMORZ1cxUpmybo4zEekg4tQQ5ozNFUeqqTg%3d&risl=&pid=ImgRaw&r=0",
-                description:
-                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
-            },
-            {
-                _id: "663047485c22d11402fcc6d9",
-                categoryName: "Hoa tang lễ",
-                image: "https://static.wixstatic.com/media/9d8ed5_63efad3fb2594010bd409d19d3ef8aa0~mv2.jpg/v1/fill/w_900,h_600,al_c,q_90/9d8ed5_63efad3fb2594010bd409d19d3ef8aa0~mv2.jpg",
-                description:
-                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
-            },
-            {
-                _id: "663047485c22d11402fcc6da",
-                categoryName: "Hoa chúc mừng",
-                image: "https://media.istockphoto.com/vectors/party-popper-with-confetti-vector-id1125716911?k=6&m=1125716911&s=170667a&w=0&h=2QJzLxp2RFqt96beEhaWzdHHIrLUD6FOK2h3Ns4WH0s=",
-                description:
-                    "Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.\n\nNullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.\n\nMorbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.",
-            },
-        ]);
+        const response = await FetchApi(
+            UrlConfig.flower.getById.replace("{id}", productId),
+            "GET",
+            true
+        );
+
+        if (response.canRefreshToken === false)
+            showToast(response.message, "warning");
+        else if (response.succeeded) {
+            formik.setValues({
+                ...response.data,
+                category: [...response.data.category.map((c: any) => c._id)],
+            });
+            setOriginalProduct({
+                ...response.data,
+                category: [...response.data.category.map((c: any) => c._id)],
+            });
+            setLoadingSkeleton(false);
+        } else {
+            showToast(response.message, "error");
+        }
+        setLoading(false);
+    };
+
+    const handleAddImage = (file: any) => {
+        formik.setValues({
+            ...formik.values,
+            imageVideoFiles: [...formik.values.imageVideoFiles, file],
+        });
+        setChangesMade(true);
+    };
+
+    const handleRemoveImage = async (file: any) => {
+        try {
+            formik.setValues({
+                ...formik.values,
+                imageVideoFiles: formik.values.imageVideoFiles.filter(
+                    (media: any) =>
+                        file.public_id
+                            ? media.public_id !== file.public_id
+                            : media.uid !== file.uid
+                ),
+            });
+        } catch (e) {
+            console.error(e);
+        }
+        setChangesMade(true);
+    };
+
+    const updateInformation = async () => {
+        try {
+            setIsFieldDisabled(true);
+            setLoadingButtonDetails(true);
+            const formData = new FormData();
+            let isFormData = false;
+            let listImageVideoUrl = [];
+            if (formik.values.imageVideoFiles.length > 0) {
+                for (const image of formik.values.imageVideoFiles) {
+                    if (image instanceof File)
+                        formData.append("imageVideoFiles", image);
+                    else listImageVideoUrl.push(image);
+                }
+                isFormData = formData.get("imageVideoFiles") !== "null";
+            }
+            const response = await FetchApi(
+                UrlConfig.flower.update,
+                "PUT",
+                true,
+                isFormData
+                    ? appendJsonToFormData(formData, {
+                          ...formik.values,
+                          imageVideoFiles: listImageVideoUrl,
+                          status: undefined,
+                          starsTotal: undefined,
+                          feedbacksTotal: undefined,
+                          unitPrice: Number(formik.values.unitPrice),
+                          discount: Number(formik.values.discount),
+                          quantity: Number(formik.values.quantity),
+                      })
+                    : {
+                          ...formik.values,
+                          imageVideoFiles: listImageVideoUrl,
+                          status: undefined,
+                          starsTotal: undefined,
+                          feedbacksTotal: undefined,
+                          unitPrice: Number(formik.values.unitPrice),
+                          discount: Number(formik.values.discount),
+                          quantity: Number(formik.values.quantity),
+                      },
+                isFormData
+            );
+            if (response.canRefreshToken === false) {
+                setIsFieldDisabled(false);
+                showToast(response.message, "warning");
+                return false;
+            } else if (response.succeeded) {
+                showToast("Cập nhật sản phẩm thành công.", "success");
+                formik.setValues({
+                    ...response.data,
+                    // imageVideoFiles: formik.values.imageVideoFiles,
+                });
+                return true;
+            } else {
+                setIsFieldDisabled(false);
+                showToast(response.message, "error");
+                return false;
+            }
+        } catch (error: any) {
+            setIsFieldDisabled(false);
+            showToast(error.message ?? error, "error");
+            return false;
+        } finally {
+            setLoadingButtonDetails(false);
+        }
+    };
+
+    const handleChange = (name: string, value: any) => {
+        formik.setFieldValue(name, value);
+        setChangesMade(true);
+    };
+
+    const handleClick = () => {
+        setOriginalProduct(formik.values);
+        setIsFieldDisabled(false);
+        setChangesMade(false);
+    };
+
+    const handleCancel = () => {
+        formik.setValues(originalproduct);
+        setIsFieldDisabled(true);
+        setChangesMade(false);
     };
 
     useEffect(() => {
         getProduct();
-        getCategories();
     }, []);
 
-    const updateDetails = useCallback(
-        async (updatedDetails: any) => {
-            try {
-                const updatedProduct = {
-                    id: productId, // dung params de truyen id
-                    ...product,
-                    ...updatedDetails,
-                };
-
-                const {
-                    relatedCases,
-                    charge,
-                    isWantedProduct,
-                    wantedProducts,
-                    avatarLink,
-                    ...updated
-                } = updatedProduct;
-                // console.log(updated);
-                // await productsApi.editProduct(updated, auth);
-                // getProduct();
-                setSuccess("Cập nhật thông tin chi tiết tội phạm thành công.");
-                setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [product]
-    );
-
-    const updateProductDetails = useCallback(
-        async (updatedDetails: any) => {
-            try {
-                setLoadingButtonDetails(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
-                    ...updatedDetails,
-                }));
-                setOpen(true);
-                await updateDetails(updatedDetails);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonDetails(false);
-            }
-        },
-        [setProduct, updateDetails]
-    );
-
-    const uploadImage = useCallback(
-        async (newImage: any) => {
-            try {
-                // const response = await imagesApi.uploadImage(newImage);
-                // const updatedProduct = {
-                //     id: productId,
-                //     ...product,
-                //     avatar: response[0].filePath,
-                // };
-                // const {
-                //     relatedCases,
-                //     charge,
-                //     isWantedProduct,
-                //     wantedProducts,
-                //     avatarLink,
-                //     ...updated
-                // } = updatedProduct;
-                // // console.log(updated);
-                // // await productsApi.editProduct(updated, auth);
-                // // getProduct();
-                // setSuccess("Cập nhật ảnh đại diện tội phạm thành công.");
-                // setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [product]
-    );
-
-    const updateProductPicture = useCallback(
-        async (newImage: any) => {
-            try {
-                setLoadingButtonPicture(true);
-                setProduct((prevProduct: any) => ({
-                    ...prevProduct,
-                    avatar: newImage,
-                }));
-                setOpen(true);
-                await uploadImage(newImage);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonPicture(false);
-            }
-        },
-        [setProduct, uploadImage]
-    );
-
+    useEffect(() => console.log(formik.errors), [formik.errors]);
     return (
         <>
             <Head>
-                <title>Sản phẩm | {product?.name}</title>
+                <title>Sản phẩm | {originalproduct?.name}</title>
             </Head>
             <Box
                 sx={{
@@ -287,6 +403,7 @@ const ProductDetail = ({ params }: any) => {
                                             alignItems: "center",
                                         }}
                                         href="/product"
+                                        onClick={() => setLoading(true)}
                                         color="text.primary"
                                     >
                                         <Typography
@@ -313,7 +430,7 @@ const ProductDetail = ({ params }: any) => {
                                             color: "primary.main",
                                         }}
                                     >
-                                        {product?.name}
+                                        {originalproduct?.name}
                                     </Typography>
                                 </Breadcrumbs>
                             )}
@@ -322,103 +439,90 @@ const ProductDetail = ({ params }: any) => {
                             <Grid container spacing={3}>
                                 <Grid xs={12} md={12} lg={12}>
                                     <ProductInformation
-                                        product={product}
-                                        initCategories={categories}
+                                        formik={formik}
+                                        handleChange={handleChange}
                                         loadingSkeleton={loadingSkeleton}
-                                        loadingButtonDetails={
-                                            loadingButtonDetails
-                                        }
-                                        loadingButtonPicture={
-                                            loadingButtonPicture
-                                        }
-                                        handleSubmit={updateProductDetails}
-                                        canEdit={canEdit}
+                                        isFieldDisabled={isFieldDisabled}
                                     />
                                 </Grid>
                                 <Grid xs={12} md={12} lg={12}>
                                     <ProductImages
-                                        productImages={product?.imageVideoFiles}
+                                        formik={formik}
                                         loadingSkeleton={loadingSkeleton}
-                                        loadingButtonDetails={
-                                            loadingButtonDetails
-                                        }
-                                        loadingButtonPicture={
-                                            loadingButtonPicture
-                                        }
-                                        onUpdate={updateProductPicture}
-                                        success={success}
-                                        canEdit={canEdit}
+                                        handleAddImage={handleAddImage}
+                                        handleRemoveImage={handleRemoveImage}
+                                        isFieldDisabled={isFieldDisabled}
                                     />
+                                    <Divider />
+                                    {canEdit && (
+                                        <CardActions
+                                            sx={{
+                                                justifyContent: "flex-end",
+                                            }}
+                                        >
+                                            {loadingSkeleton ? (
+                                                <>
+                                                    <Skeleton
+                                                        height={40}
+                                                        width={170}
+                                                        variant="rounded"
+                                                    ></Skeleton>
+                                                    <Skeleton
+                                                        height={40}
+                                                        width={170}
+                                                        variant="rounded"
+                                                    ></Skeleton>
+                                                </>
+                                            ) : loadingButtonDetails ? (
+                                                <>
+                                                    <LoadingButton
+                                                        disabled
+                                                        loading={
+                                                            loadingButtonDetails
+                                                        }
+                                                        size="medium"
+                                                        variant="contained"
+                                                    >
+                                                        Chỉnh sửa thông tin
+                                                    </LoadingButton>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={() => {
+                                                            if (isFieldDisabled)
+                                                                handleClick();
+                                                            else
+                                                                formik.handleSubmit();
+                                                        }}
+                                                        disabled={
+                                                            loadingButtonDetails
+                                                        }
+                                                    >
+                                                        {isFieldDisabled
+                                                            ? "Chỉnh sửa thông tin"
+                                                            : "Cập nhật thông tin"}
+                                                    </Button>
+                                                    {!isFieldDisabled && (
+                                                        <Button
+                                                            variant="outlined"
+                                                            onClick={
+                                                                handleCancel
+                                                            }
+                                                            disabled={
+                                                                loadingButtonDetails
+                                                            }
+                                                        >
+                                                            Hủy
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </CardActions>
+                                    )}
                                 </Grid>
                             </Grid>
-                        </div>
-                        <div>
-                            {success && (
-                                <Collapse in={open}>
-                                    {open && (
-                                        <Alert
-                                            variant="outlined"
-                                            severity="success"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="success"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
-                                                color="success"
-                                                variant="subtitle2"
-                                            >
-                                                {success}
-                                            </Typography>
-                                        </Alert>
-                                    )}
-                                </Collapse>
-                            )}
-                            {error && (
-                                <Collapse in={open}>
-                                    {open && (
-                                        <Alert
-                                            variant="outlined"
-                                            severity="error"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mt: 2,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
-                                                color="error"
-                                                variant="subtitle2"
-                                            >
-                                                {error}
-                                            </Typography>
-                                        </Alert>
-                                    )}
-                                </Collapse>
-                            )}
                         </div>
                     </Stack>
                 </Container>
