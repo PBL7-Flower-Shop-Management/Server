@@ -177,7 +177,11 @@ class AccountService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (
                     userRole === roleMap.Employee &&
@@ -332,7 +336,11 @@ class AccountService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const userDb = await UserModel.findOne({
                     _id: user._id,
@@ -447,7 +455,11 @@ class AccountService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const userDb = await UserModel.findOne({
                     _id: user._id,
@@ -597,7 +609,11 @@ class AccountService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const userDb = await UserModel.findOne({
                     _id: id,
@@ -678,7 +694,11 @@ class AccountService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (userRole === roleMap.Employee) {
                     for (const id of body.accountIds) {

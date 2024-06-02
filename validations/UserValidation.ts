@@ -103,7 +103,7 @@ const schemas = {
                 resetPasswordPageUrl: yup
                     .string()
                     .trim()
-                    .required("Reset Password Page URL is required")
+                    // .required("Reset Password Page URL is required")
                     // .url("Please provide a valid URL!")
                     .matches(
                         /^https?:\/\/(?:[\w-]+\.)+[a-z]{2,}(?::\d{1,5})?\/reset-password(?:\/|\?|$)|^http:\/\/localhost:\d{1,5}\/reset-password(?:\/|\?|$)/,

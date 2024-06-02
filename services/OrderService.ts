@@ -156,7 +156,11 @@ class OrderService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const userDb = await AccountModel.findOne({
                     userId: order.orderUserId,
@@ -272,7 +276,11 @@ class OrderService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const orderDb = await OrderModel.findOne({
                     _id: order._id,
@@ -532,7 +540,11 @@ class OrderService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const orderDb = await OrderModel.findOne({
                     _id: id,
@@ -594,7 +606,11 @@ class OrderService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const objectIds = body.orderIds.map(
                     (id: string) => new mongoose.Types.ObjectId(id)

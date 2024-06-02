@@ -106,7 +106,11 @@ class CartService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+            readConcern: { level: 'snapshot' },
+            writeConcern: { w: 'majority' },
+            maxTimeMS: 5000, // Adjust the timeout as needed
+        });
             try {
                 if (
                     !(await FlowerModel.findOne({
@@ -171,7 +175,11 @@ class CartService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+            readConcern: { level: 'snapshot' },
+            writeConcern: { w: 'majority' },
+            maxTimeMS: 5000, // Adjust the timeout as needed
+        });
             try {
                 cart.selected = cart.selected ?? false;
                 if (
@@ -236,7 +244,11 @@ class CartService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+            readConcern: { level: 'snapshot' },
+            writeConcern: { w: 'majority' },
+            maxTimeMS: 5000, // Adjust the timeout as needed
+        });
             try {
                 if (
                     !(await CartModel.findOne({
@@ -279,7 +291,11 @@ class CartService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+            readConcern: { level: 'snapshot' },
+            writeConcern: { w: 'majority' },
+            maxTimeMS: 5000, // Adjust the timeout as needed
+        });
             try {
                 //delete avatar dianary
                 const objectIds = body.flowerIds.map(

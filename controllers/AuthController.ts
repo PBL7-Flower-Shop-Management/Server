@@ -26,13 +26,13 @@ class AuthController {
         process.env.GOOGLE_SECRET
     );
 
-    private async verifyGoogleToken(token: any) {
+    private async verifyGoogleToken(token: string) {
         try {
             const ticket = await this.oAuth2Client.verifyIdToken({
                 idToken: token,
                 audience: [
-                    process.env.GOOGLE_ID!,
-                    // process.env.CLIENT_ID_ANDROID!,
+                    process.env.GOOGLE_ID_IOS!,
+                    process.env.GOOGLE_ID_ANDROID!,
                 ],
             });
             return { payload: ticket.getPayload() };
@@ -41,16 +41,14 @@ class AuthController {
         }
     }
 
-    async GoogleLogin(body: any) {
+    async GoogleLogin(accessToken: string) {
         try {
-            if (body.credential) {
-                const verificationResponse = await this.verifyGoogleToken(
-                    body.credential
-                );
+            const verificationResponse = await this.verifyGoogleToken(
+                accessToken
+            );
 
-                const profile = verificationResponse?.payload;
-                return await AuthService.HandleGoogleUser(profile);
-            }
+            const profile = verificationResponse?.payload;
+            return await AuthService.HandleGoogleUser(profile);
         } catch (error) {
             throw error;
         }

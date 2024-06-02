@@ -178,7 +178,11 @@ class FeedbackService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 //upload image cloudinary
 
@@ -276,7 +280,11 @@ class FeedbackService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const feedbackDb = await CommentModel.findOne({
                     _id: feedback._id,
@@ -382,7 +390,11 @@ class FeedbackService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 body.isLike = body.isLike ?? false;
                 const feedbackDb = await CommentModel.findOne({

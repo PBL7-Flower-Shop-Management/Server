@@ -94,8 +94,8 @@ export const POST = async (req: NextRequest) => {
     try {
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
-        await validate(schemas.LoginSchema)(null, null, body);
-        return await AuthController.GoogleLogin(body);
+        await validate(schemas.GoogleLoginSchema)(null, null, body);
+        return await AuthController.GoogleLogin(body.accessToken);
     } catch (error: any) {
         return ErrorHandler(error);
     }

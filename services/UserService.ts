@@ -179,7 +179,7 @@ class UserService {
                     {
                         $project: {
                             _id: 0,
-                            flowerId: "$f._id",
+                            id: "$f._id",
                             name: "$f.name",
                             numberOfFlowers: {
                                 $arrayElemAt: [
@@ -405,14 +405,21 @@ class UserService {
                 const encodedToken =
                     Buffer.from(resetToken).toString("base64url");
 
-                // Construct the password reset URL
-                const endpointUri = new URL(body.resetPasswordPageUrl);
-                endpointUri.searchParams.append("token", encodedToken);
-
-                const passwordResetUrl = endpointUri.toString();
-
+                let passwordResetUrl = "";
                 // Create the email content
-                const mailText = `Kích vào link sau để thiết lập lại mật khẩu của bạn:\n${passwordResetUrl}`;
+                let mailText = "";
+
+                if (body.resetPasswordPageUrl) {
+                    // Construct the password reset URL
+                    const endpointUri = new URL(body.resetPasswordPageUrl);
+                    endpointUri.searchParams.append("token", encodedToken);
+
+                    passwordResetUrl = endpointUri.toString();
+                    mailText = `Kích vào link sau để thiết lập lại mật khẩu của bạn:<br/>${passwordResetUrl}`;
+                } else {
+                    passwordResetUrl = encodedToken;
+                    mailText = `Token để thiết lập lại mật khẩu của bạn là (Hãy dán vào form thiết lập mật khẩu trên app):<br/>${passwordResetUrl}`;
+                }
 
                 await sendMail({
                     to: user.email,
@@ -577,7 +584,11 @@ class UserService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (
                     !(await UserModel.findOne({

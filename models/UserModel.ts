@@ -44,6 +44,7 @@ const UserSchema = new Schema(
         avatarId: {
             type: String,
         },
+        providers: { type: [String], default: [] },
         createdAt: {
             type: Date,
             required: true,

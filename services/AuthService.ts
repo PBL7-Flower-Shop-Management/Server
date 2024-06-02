@@ -7,13 +7,19 @@ import moment from "moment";
 import ApiResponse from "@/utils/ApiResponse";
 import UserModel from "@/models/UserModel";
 import mongoose from "mongoose";
+import { generateRandomPassword, unicodeToAscii } from "@/utils/helper";
+import { sendMail } from "@/utils/sendMail";
 
 class AuthService {
     async Register(user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (
                     await UserModel.findOne({ email: user.email.toLowerCase() })
@@ -101,7 +107,11 @@ class AuthService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 const account = await AccountModel.findOne({
                     username: username,
@@ -252,54 +262,151 @@ class AuthService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
+
             try {
                 let user = await UserModel.findOne({
                     email: googleUser.email,
                 });
 
                 if (user) {
+                    if (user.isDeleted)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.NOT_FOUND,
+                                message: "Account was deleted!",
+                            })
+                        );
+
+                    let account = await AccountModel.findOne({
+                        userId: user._id,
+                    });
+
+                    if (account.isDeleted)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.NOT_FOUND,
+                                message: "Account was deleted!",
+                            })
+                        );
+
+                    if (!account.isActived)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.NOT_FOUND,
+                                message: "Account isn't actived!",
+                            })
+                        );
                     if (!user.providers || !user.providers.includes("google")) {
-                        await UserModel.findByIdAndUpdate(user._id, {
-                            $push: { providers: "google" },
-                        });
+                        await UserModel.findByIdAndUpdate(
+                            user._id,
+                            { $push: { providers: "google" } },
+                            { session: session }
+                        );
                     }
                 } else {
-                    // const password = crypto.randomBytes(4).toString("hex");
-                    // const hashedPassword = await bcrypt.hash(
-                    //     password,
-                    //     parseInt(process.env.BCRYPT_SALT!)
-                    // );
-                    console.log(googleUser);
+                    const name =
+                        googleUser.family_name + " " + googleUser.given_name;
+                    const wordsInName = unicodeToAscii(name)
+                        .split(" ")
+                        .filter((c) => c !== "");
+
+                    if (wordsInName.length > 0) {
+                        const firstName = wordsInName.pop();
+                        if (firstName) {
+                            const start =
+                                firstName[0].toUpperCase() +
+                                firstName.slice(1).toLowerCase();
+
+                            const end = wordsInName
+                                .map((w: string) => w[0].toUpperCase())
+                                .join("");
+
+                            const username = start + end;
+                            googleUser.username = username;
+                            let count = 2;
+                            while (true) {
+                                if (
+                                    await AccountModel.findOne({
+                                        username: googleUser.username,
+                                        isDeleted: false,
+                                    })
+                                ) {
+                                    googleUser.username = username + count;
+                                    count++;
+                                } else break;
+                            }
+                        }
+                    }
+
+                    const randomPassword = generateRandomPassword();
+                    const hashedPassword = await bcrypt.hash(
+                        randomPassword,
+                        parseInt(process.env.BCRYPT_SALT!)
+                    );
+
                     user = await UserModel.create(
                         [
                             {
-                                first_name: googleUser.given_name,
-                                last_name: googleUser.family_name,
-                                avatar: googleUser.picture,
+                                name: name,
+                                avatarUrl: googleUser.picture,
                                 email: googleUser.email,
-                                isConfirmed: true,
-                                isRestricted: false,
                                 providers: ["google"],
-                                username: googleUser.email,
-                                // password: hashedPassword,
+                                createdAt: moment().toDate(),
+                                createdBy: "System",
+                                isDeleted: false,
+                            },
+                        ],
+                        { session: session }
+                    ).then((res) => res[0]);
+
+                    await AccountModel.create(
+                        [
+                            {
+                                userId: user._id,
+                                isActived: true,
+                                username: googleUser.username,
+                                password: hashedPassword,
+                                createdAt: moment().toDate(),
+                                createdBy: "System",
+                                isDeleted: false,
                             },
                         ],
                         { session: session }
                     );
 
-                    // sendMail({
-                    //     template: "newGoogleUserEmail",
-                    //     templateVars: {
-                    //         username: googleUser.email,
-                    //         password: password,
-                    //     },
-                    //     to: googleUser.email,
-                    //     subject: "New Account",
-                    // });
+                    sendMail({
+                        to: googleUser.email,
+                        subject: "Tài khoản mới",
+                        html: `Tài khoản của bạn đã được tạo trên website của chúng tôi, sau đây là thông tin đăng nhập cho bạn:<br>
+                        Tên tài khoản: ${googleUser.username}<br>
+                        Mật khẩu: ${randomPassword}<br>
+                        Hãy đăng nhập vào hệ thống ${
+                            process.env.NEXT_PUBLIC_HOST_URL + "/login"
+                        } và đổi mật khẩu ngay để tránh bị lộ thông tin cá nhân.<br>
+                        Liên hệ với người quản trị nếu bạn gặp bất kì vấn đề gì khi đăng nhập vào hệ thống!<br>`,
+                    });
                 }
 
                 const authTokens = await this.generateAuthTokens(user);
+
+                await AccountModel.updateOne(
+                    { userId: user._id },
+                    {
+                        $set: {
+                            tokenExpireTime:
+                                authTokens.accessTokenExpiresAt.toDate(),
+                            refreshToken: authTokens.refreshToken,
+                            refreshTokenExpireTime:
+                                authTokens.refreshTokenExpireAt.toDate(),
+                        },
+                    },
+                    { session: session }
+                );
 
                 await session.commitTransaction();
 
@@ -325,7 +432,11 @@ class AuthService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 let error = {};
                 const checkToken = await verify(

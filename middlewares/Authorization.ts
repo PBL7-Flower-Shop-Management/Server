@@ -17,6 +17,7 @@ const auth = async (next: any) => {
         }
 
         let accessToken = authHeader.split(" ")[1];
+
         const userToken = await verify(accessToken, process.env.JWT_SECRET);
 
         if (!userToken)

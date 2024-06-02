@@ -111,7 +111,11 @@ class CategoryService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (!category.avatar)
                     return reject(
@@ -180,7 +184,11 @@ class CategoryService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (!category.avatarUrl && !category.avatar)
                     return reject(
@@ -380,7 +388,7 @@ class CategoryService {
                 representCategories.unshift({
                     _id: 0,
                     name: "Tất cả",
-                    avatar: "https://th.bing.com/th/id/R.d10f6cdbdee788fc31cHttpStatus.OKa327335357?rik=Eqo%2bzTxQDGQmbg&pid=ImgRaw&r=0",
+                    avatar: "https://res.cloudinary.com/dh4qvjdoq/image/upload/v1717254857/all_category_orovma.jpg",
                     flowers: limit
                         ? flowers.slice(0, Math.min(limit, flowers.length))
                         : flowers,
@@ -594,7 +602,11 @@ class CategoryService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (
                     !(await CategoryModel.findOne({
@@ -646,7 +658,11 @@ class CategoryService {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
-            session.startTransaction();
+            session.startTransaction({
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 //delete avatar dianary
                 const objectIds = body.categoryIds.map(

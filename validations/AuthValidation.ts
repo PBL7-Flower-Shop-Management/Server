@@ -13,6 +13,14 @@ const schemas = {
                 .required("Password field is required!"),
         }),
     }),
+    GoogleLoginSchema: yup.object({
+        body: yup.object({
+            accessToken: yup
+                .string()
+                .trim()
+                .required("AccessToken field is required!"),
+        }),
+    }),
     RegisterSchema: yup.object({
         body: yup
             .object({
