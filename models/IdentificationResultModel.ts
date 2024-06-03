@@ -10,13 +10,19 @@ const IdentificationResultSchema = new Schema(
             ],
             ref: "IdentificationHistory", // Reference to the IdentificationHistory model
         },
-        flowerName: {
+        flowerEnglishName: {
+            type: String,
+        },
+        flowerVietnameseName: {
             type: String,
         },
         accuracy: {
             type: Number,
         },
-        image: {
+        imageUrl: {
+            type: String,
+        },
+        imageId: {
             type: String,
         },
     },

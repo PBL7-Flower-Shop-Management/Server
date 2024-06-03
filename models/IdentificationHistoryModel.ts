@@ -10,7 +10,10 @@ const IdentificationHistorySchema = new Schema(
         date: {
             type: Date,
         },
-        inputImage: {
+        inputImageUrl: {
+            type: String,
+        },
+        inputImageId: {
             type: String,
         },
         createdAt: {

@@ -13,6 +13,7 @@ import AuthService from "./AuthService";
 import { sendMail } from "@/utils/sendMail";
 import { verify } from "@/utils/JwtHelper";
 import IdentificationHistoryModel from "@/models/IdentificationHistoryModel";
+import { parseSortString } from "@/utils/helper";
 
 class UserService {
     async GetOrderByUserId(userId: string): Promise<ApiResponse> {
@@ -660,6 +661,7 @@ class UserService {
             try {
                 await connectToDB();
 
+                const orderBy = parseSortString("date:-1");
                 const histories = await IdentificationHistoryModel.aggregate([
                     {
                         $match: {
@@ -679,18 +681,24 @@ class UserService {
                         $project: {
                             _id: 0,
                             date: "$date",
-                            inputImage: "$inputImage",
+                            inputImageUrl: "$inputImageUrl",
                             results: {
                                 $map: {
                                     input: "$iResults",
                                     in: {
-                                        flowerName: "$$this.flowerName",
+                                        english_label:
+                                            "$$this.flowerEnglishName",
+                                        vietnamese_label:
+                                            "$$this.flowerVietnameseName",
                                         accuracy: "$$this.accuracy",
-                                        image: "$$this.image",
+                                        imageUrl: "$$this.imageUrl",
                                     },
                                 },
                             },
                         },
+                    },
+                    {
+                        $sort: orderBy,
                     },
                 ]);
 

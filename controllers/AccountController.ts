@@ -66,4 +66,5 @@ class AccountController {
     }
 }
 
-export default new AccountController();
+const accountController = new AccountController();
+export default accountController;

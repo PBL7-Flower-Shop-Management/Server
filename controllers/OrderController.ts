@@ -50,4 +50,5 @@ class OrderController {
     }
 }
 
-export default new OrderController();
+const orderController = new OrderController();
+export default orderController;

@@ -107,5 +107,5 @@ export const mimeTypeMap: any = {
     unknown: "unknown",
 };
 
-export const MAX_SIZE_IMAGE = 1 * 1024 * 1024;
-export const MAX_SIZE_VIDEO = 5 * 1024 * 1024;
+export const MAX_SIZE_IMAGE = 5 * 1024 * 1024;
+export const MAX_SIZE_VIDEO = 10 * 1024 * 1024;

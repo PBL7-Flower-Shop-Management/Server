@@ -90,4 +90,5 @@ class FlowerController {
     }
 }
 
-export default new FlowerController();
+const flowerController = new FlowerController();
+export default flowerController;

@@ -42,4 +42,5 @@ class FeedbackController {
     }
 }
 
-export default new FeedbackController();
+const feedbackController = new FeedbackController();
+export default feedbackController;

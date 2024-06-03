@@ -1,5 +1,17 @@
 import IdentificationService from "@/services/IdentificationService";
 
-class IdentificationController {}
+class IdentificationController {
+    async ClassifyFlower(flowerImage: any, user: any | null) {
+        try {
+            return await IdentificationService.ClassifyFlower(
+                flowerImage,
+                user
+            );
+        } catch (error) {
+            throw error;
+        }
+    }
+}
 
-export default new IdentificationController();
+const identificationController = new IdentificationController();
+export default identificationController;

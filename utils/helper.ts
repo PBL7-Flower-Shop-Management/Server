@@ -118,3 +118,20 @@ export const getMimeType = (url: string) => {
     const ext = arr && arr.length > 0 ? arr[arr.length - 1] : "unknown";
     return mimeTypeMap[ext];
 };
+
+export const Base64ImageToFile = (base64: string, filename: string): File => {
+    // Decode the base64 string
+    const byteString = atob(base64);
+
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const ui8a = new Uint8Array(arrayBuffer);
+
+    for (let i = 0; i < byteString.length; i++) {
+        ui8a[i] = byteString.charCodeAt(i);
+    }
+
+    const blob = new Blob([ui8a], { type: "image/png" });
+
+    // Create a File object from the Blob
+    return new File([blob], filename, { type: "image/png" });
+};
