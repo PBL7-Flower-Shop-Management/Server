@@ -75,7 +75,10 @@ class CartService {
                                         $ne: ["$f.imageVideoFiles", null],
                                     },
                                     {
-                                        $arrayElemAt: ["$f.imageVideoFiles", 0],
+                                        $arrayElemAt: [
+                                            "$f.imageVideoFiles.url",
+                                            0,
+                                        ],
                                     },
                                     null,
                                 ],
@@ -107,10 +110,10 @@ class CartService {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction({
-            readConcern: { level: 'snapshot' },
-            writeConcern: { w: 'majority' },
-            maxTimeMS: 5000, // Adjust the timeout as needed
-        });
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (
                     !(await FlowerModel.findOne({
@@ -176,10 +179,10 @@ class CartService {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction({
-            readConcern: { level: 'snapshot' },
-            writeConcern: { w: 'majority' },
-            maxTimeMS: 5000, // Adjust the timeout as needed
-        });
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 cart.selected = cart.selected ?? false;
                 if (
@@ -245,10 +248,10 @@ class CartService {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction({
-            readConcern: { level: 'snapshot' },
-            writeConcern: { w: 'majority' },
-            maxTimeMS: 5000, // Adjust the timeout as needed
-        });
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 if (
                     !(await CartModel.findOne({
@@ -292,10 +295,10 @@ class CartService {
             await connectToDB();
             const session = await mongoose.startSession();
             session.startTransaction({
-            readConcern: { level: 'snapshot' },
-            writeConcern: { w: 'majority' },
-            maxTimeMS: 5000, // Adjust the timeout as needed
-        });
+                readConcern: { level: "snapshot" },
+                writeConcern: { w: "majority" },
+                maxTimeMS: 5000, // Adjust the timeout as needed
+            });
             try {
                 //delete avatar dianary
                 const objectIds = body.flowerIds.map(

@@ -348,7 +348,7 @@ class CategoryService {
                                                 },
                                                 {
                                                     $arrayElemAt: [
-                                                        "$$this.imageVideoFiles",
+                                                        "$$this.imageVideoFiles.url",
                                                         0,
                                                     ],
                                                 },
@@ -377,7 +377,7 @@ class CategoryService {
                                     $ne: ["$imageVideoFiles", null],
                                 },
                                 {
-                                    $arrayElemAt: ["$imageVideoFiles", 0],
+                                    $arrayElemAt: ["$imageVideoFiles.url", 0],
                                 },
                                 null,
                             ],
@@ -487,7 +487,7 @@ class CategoryService {
                                                     },
                                                     {
                                                         $arrayElemAt: [
-                                                            "$$this.imageVideoFiles",
+                                                            "$$this.imageVideoFiles.url",
                                                             0,
                                                         ],
                                                     },
@@ -531,7 +531,10 @@ class CategoryService {
                                         $ne: ["$imageVideoFiles", null],
                                     },
                                     {
-                                        $arrayElemAt: ["$imageVideoFiles", 0],
+                                        $arrayElemAt: [
+                                            "$imageVideoFiles.url",
+                                            0,
+                                        ],
                                     },
                                     null,
                                 ],

@@ -81,7 +81,7 @@ class UserService {
                                         },
                                         {
                                             $arrayElemAt: [
-                                                "$flowerDetails.imageVideoFiles",
+                                                "$flowerDetails.imageVideoFiles.url",
                                                 0,
                                             ],
                                         },
@@ -196,7 +196,10 @@ class UserService {
                                         $ne: ["$f.imageVideoFiles", null],
                                     },
                                     {
-                                        $arrayElemAt: ["$f.imageVideoFiles", 0],
+                                        $arrayElemAt: [
+                                            "$f.imageVideoFiles.url",
+                                            0,
+                                        ],
                                     },
                                     null,
                                 ],
@@ -282,7 +285,10 @@ class UserService {
                                         $ne: ["$f.imageVideoFiles", null],
                                     },
                                     {
-                                        $arrayElemAt: ["$f.imageVideoFiles", 0],
+                                        $arrayElemAt: [
+                                            "$f.imageVideoFiles.url",
+                                            0,
+                                        ],
                                     },
                                     null,
                                 ],
@@ -559,7 +565,7 @@ class UserService {
                         $project: {
                             _id: 1,
                             username: "$acc.username",
-                            avatar: "$avatar",
+                            avatarUrl: "$avatarUrl",
                             name: "$name",
                             citizenId: "$citizenId",
                             email: "$email",

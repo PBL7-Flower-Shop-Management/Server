@@ -466,7 +466,7 @@ class FlowerService {
                                     $ne: ["$imageVideoFiles", null],
                                 },
                                 {
-                                    $arrayElemAt: ["$imageVideoFiles", 0],
+                                    $arrayElemAt: ["$imageVideoFiles.url", 0],
                                 },
                                 null,
                             ],
@@ -520,7 +520,7 @@ class FlowerService {
                                     $ne: ["$imageVideoFiles", null],
                                 },
                                 {
-                                    $arrayElemAt: ["$imageVideoFiles", 0],
+                                    $arrayElemAt: ["$imageVideoFiles.url", 0],
                                 },
                                 null,
                             ],
@@ -585,7 +585,7 @@ class FlowerService {
                                     $ne: ["$imageVideoFiles", null],
                                 },
                                 {
-                                    $arrayElemAt: ["$imageVideoFiles", 0],
+                                    $arrayElemAt: ["$imageVideoFiles.url", 0],
                                 },
                                 null,
                             ],
@@ -638,7 +638,10 @@ class FlowerService {
                                         $ne: ["$imageVideoFiles", null],
                                     },
                                     {
-                                        $arrayElemAt: ["$imageVideoFiles", 0],
+                                        $arrayElemAt: [
+                                            "$imageVideoFiles.url",
+                                            0,
+                                        ],
                                     },
                                     null,
                                 ],
