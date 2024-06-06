@@ -12,10 +12,10 @@ class AuthController {
         }
     }
 
-    async Login(body: any) {
+    async Login(body: any, isMobile: boolean) {
         try {
             const { username, password } = body;
-            return await AuthService.Login(username, password);
+            return await AuthService.Login(username, password, isMobile);
         } catch (error) {
             throw error;
         }
@@ -31,6 +31,7 @@ class AuthController {
             const ticket = await this.oAuth2Client.verifyIdToken({
                 idToken: token,
                 audience: [
+                    process.env.GOOGLE_ID!,
                     process.env.GOOGLE_ID_IOS!,
                     process.env.GOOGLE_ID_ANDROID!,
                 ],
@@ -41,14 +42,14 @@ class AuthController {
         }
     }
 
-    async GoogleLogin(accessToken: string) {
+    async GoogleLogin(accessToken: string, isMobile: boolean) {
         try {
             const verificationResponse = await this.verifyGoogleToken(
                 accessToken
             );
 
             const profile = verificationResponse?.payload;
-            return await AuthService.HandleGoogleUser(profile);
+            return await AuthService.HandleGoogleUser(profile, isMobile);
         } catch (error) {
             throw error;
         }

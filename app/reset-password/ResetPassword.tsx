@@ -2,6 +2,7 @@
 import {
     Button,
     Card,
+    CircularProgress,
     Container,
     Snackbar,
     Stack,
@@ -60,6 +61,18 @@ const ResetPassword = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const ResetPassword = async () => {
+        if (password.trim() === "" || confirmPassword.trim() === "") {
+            showToast("Password and confirm password is required!", "warning");
+            return;
+        }
+        if (password.length < 8) {
+            showToast("Password length can't less than 8!", "warning");
+            return;
+        }
+        if (password !== confirmPassword) {
+            showToast("Password and confirm password isn't match!", "warning");
+            return;
+        }
         setIsSubmitting(true);
         const response = await FetchApi(
             UrlConfig.user.resetPassword,
@@ -182,6 +195,14 @@ const ResetPassword = () => {
                             // type="submit"
                             variant="text"
                             loading={isSubmitting}
+                            loadingIndicator={
+                                <CircularProgress
+                                    size={24}
+                                    sx={{
+                                        color: "white",
+                                    }}
+                                />
+                            }
                             sx={{
                                 bgcolor: "black",
                                 "&:hover": {

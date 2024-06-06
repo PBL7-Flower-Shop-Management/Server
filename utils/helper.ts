@@ -135,3 +135,9 @@ export const Base64ImageToFile = (base64: string, filename: string): File => {
     // Create a File object from the Blob
     return new File([blob], filename, { type: "image/png" });
 };
+
+export const isMobileDevice = (userAgent: string): boolean => {
+    const mobileRegex =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    return mobileRegex.test(userAgent);
+};

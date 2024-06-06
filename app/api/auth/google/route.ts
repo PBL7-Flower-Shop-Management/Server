@@ -1,6 +1,7 @@
 import AuthController from "@/controllers/AuthController";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
+import { isMobileDevice } from "@/utils/helper";
 import TrimRequest from "@/utils/TrimRequest";
 import schemas from "@/validations/AuthValidation";
 import { NextRequest } from "next/server";
@@ -92,10 +93,13 @@ import { NextRequest } from "next/server";
 
 export const POST = async (req: NextRequest) => {
     try {
+        const userAgent = req.headers.get("user-agent") || "";
+        const isMobile = isMobileDevice(userAgent);
+
         let body = await new Response(req.body).json();
         ({ req, body: body } = TrimRequest.all(req, null, body));
         await validate(schemas.GoogleLoginSchema)(null, null, body);
-        return await AuthController.GoogleLogin(body.accessToken);
+        return await AuthController.GoogleLogin(body.accessToken, isMobile);
     } catch (error: any) {
         return ErrorHandler(error);
     }

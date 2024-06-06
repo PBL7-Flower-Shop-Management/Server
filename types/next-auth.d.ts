@@ -10,6 +10,7 @@ declare module "next-auth" {
             phoneNumber: string;
             role: string;
             avatar: string;
+            error: string;
             createdAt: date;
             createdBy: string;
             isDeleted: boolean;

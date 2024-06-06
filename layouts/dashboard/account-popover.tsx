@@ -9,19 +9,21 @@ import {
     Typography,
 } from "@mui/material";
 import { signOut } from "next-auth/react";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { removeItems } from "@/utils/auth";
 // import { useAuth } from "src/hooks/use-auth";
 
 export const AccountPopover = (props: any) => {
     const { user, anchorEl, onClose, open } = props;
     // const auth = useAuth();
 
-    const handleSignOut = useCallback(() => {
+    const handleSignOut = useCallback(async () => {
         onClose?.();
-        signOut({
+        await signOut({
             redirect: true,
             callbackUrl: "/login",
         });
+        await removeItems();
     }, [onClose]);
 
     return (

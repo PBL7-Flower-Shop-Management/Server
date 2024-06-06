@@ -35,7 +35,7 @@ export default function RootLayout({
                     sizes="32x32"
                     href="/images/flower-icon.png"
                 />
-                {/* <link rel="icon" href="" /> */}
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
             </head>
             <body>
                 <LocalizationProvider

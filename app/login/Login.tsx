@@ -3,6 +3,7 @@ import {
     Button,
     Card,
     Checkbox,
+    CircularProgress,
     Container,
     FormControlLabel,
     Link,
@@ -13,10 +14,10 @@ import {
     Typography,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import LoginPhoto from "@/public/images/login1.jpg";
 import ShowPwdPhoto from "@/public/images/showPwd.png";
 import HidePwdPhoto from "@/public/images/hidePwd.png";
@@ -56,19 +57,22 @@ const StyledContent = styled("form")(({ theme }) => ({
 const Login = () => {
     const { data: session } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const error = searchParams.get("error");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     // const { snack, setSnack } = useSnackbar();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
     const [isShowPwd, setIsShowPwd] = useState(false);
 
     const login = async () => {
-        if (username === "" || password === "") {
-            // setSnack({
-            //     open: true,
-            //     type: "error",
-            //     message: t("pleaseFillOutAllFields"),
-            // });
+        if (username.trim() === "" || password.trim() === "") {
+            showToast("Username or password can't be empty!", "warning");
+            return;
+        }
+        if (password.length < 8) {
+            showToast("Password length can't be less than 8!", "warning");
             return;
         }
         setIsSubmitting(true);
@@ -82,11 +86,38 @@ const Login = () => {
         setIsSubmitting(false);
     };
 
+    const googleLogin = async () => {
+        setIsGoogleSubmitting(true);
+        try {
+            const res = await signIn("google", { redirect: false });
+            if (res && res.error) {
+                showToast(res.error, "error");
+            }
+        } catch (error: any) {
+            showToast(error.message || "An error occurred", "error");
+        } finally {
+            setIsGoogleSubmitting(false);
+        }
+    };
+
     const mdUp = useResponsive("up", "md");
-    if (session) {
-        saveToken(session);
-        router.push("/");
-    }
+
+    useEffect(() => {
+        if (session) {
+            if (session.user?.error) {
+                showToast(session.user?.error, "error");
+                signOut({ redirect: false });
+            } else {
+                saveToken(session);
+                router.push("/");
+            }
+        }
+    }, [session, router]);
+
+    useEffect(() => {
+        if (error) showToast(error, "error");
+    }, []);
+
     return (
         <>
             <Head>
@@ -200,10 +231,18 @@ const Login = () => {
                         <LoadingButton
                             fullWidth
                             color="secondary"
-                            size="large"
+                            size="medium"
                             // type="submit"
                             variant="text"
                             loading={isSubmitting}
+                            loadingIndicator={
+                                <CircularProgress
+                                    size={24}
+                                    sx={{
+                                        color: "white",
+                                    }}
+                                />
+                            }
                             onClick={() => login()}
                             sx={{
                                 bgcolor: "black",
@@ -217,21 +256,24 @@ const Login = () => {
                             {/* {t("login")} */}
                             Login
                         </LoadingButton>
-                        {/* <Stack id="loginDiv" sx={{ mb: 2 }}>
-                            Login with Google
-                        </Stack> */}
-                        <Button
-                            onClick={() => signIn()}
+                        <LoadingButton
+                            size="medium"
+                            variant="outlined"
+                            loading={isGoogleSubmitting}
+                            onClick={() => googleLogin()}
                             sx={{
                                 bgcolor: "white",
-                                borderColor: "black",
-                                borderWidth: 1,
                                 color: "black",
+                                borderColor: "black",
+                                "&:hover": {
+                                    bgcolor: "#e8e8e8", // Change border color on hover if needed
+                                    borderColor: "black", // Change border color on hover if needed
+                                },
                                 mb: 2,
                             }}
                         >
                             Login with Google
-                        </Button>
+                        </LoadingButton>
                     </StyledContent>
                 </Container>
             </StyledRoot>

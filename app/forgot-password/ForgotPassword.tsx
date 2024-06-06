@@ -1,6 +1,7 @@
 "use client";
 import {
     Card,
+    CircularProgress,
     Container,
     Snackbar,
     styled,
@@ -50,6 +51,15 @@ const ForgotPassword = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const ResetPassword = async () => {
+        if (email.trim() === "") {
+            showToast("Email is required!", "warning");
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showToast("Email format is invalid!", "warning");
+            return;
+        }
         setIsSubmitting(true);
         const response = await FetchApi(
             UrlConfig.user.forgotPassword,
@@ -116,6 +126,14 @@ const ForgotPassword = () => {
                             // type="submit"
                             variant="text"
                             loading={isSubmitting}
+                            loadingIndicator={
+                                <CircularProgress
+                                    size={24}
+                                    sx={{
+                                        color: "white",
+                                    }}
+                                />
+                            }
                             sx={{
                                 bgcolor: "black",
                                 "&:hover": {

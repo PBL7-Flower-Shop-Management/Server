@@ -9,6 +9,7 @@ import UserModel from "@/models/UserModel";
 import mongoose from "mongoose";
 import { generateRandomPassword, unicodeToAscii } from "@/utils/helper";
 import { sendMail } from "@/utils/sendMail";
+import { roleMap } from "@/utils/constants";
 
 class AuthService {
     async Register(user: any): Promise<ApiResponse> {
@@ -103,7 +104,11 @@ class AuthService {
         });
     }
 
-    async Login(username: string, password: string): Promise<ApiResponse> {
+    async Login(
+        username: string,
+        password: string,
+        isMobile: boolean
+    ): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
@@ -149,11 +154,21 @@ class AuthService {
                 const user = await UserModel.findOne({
                     _id: account.userId,
                 });
-                if (user.isDeleted || account.isDeleted)
+
+                if (!user || user.isDeleted || account.isDeleted)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
                             message: "Account was deleted!",
+                        })
+                    );
+
+                if (!isMobile && user.role === roleMap.Customer)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.FORBIDDEN,
+                            message:
+                                "This website is for employee or admin only!",
                         })
                     );
 
@@ -258,7 +273,10 @@ class AuthService {
         return token;
     }
 
-    async HandleGoogleUser(googleUser: any): Promise<ApiResponse> {
+    async HandleGoogleUser(
+        googleUser: any,
+        isMobile: boolean
+    ): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
@@ -301,6 +319,16 @@ class AuthService {
                                 message: "Account isn't actived!",
                             })
                         );
+
+                    if (!isMobile && user.role === roleMap.Customer)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.FORBIDDEN,
+                                message:
+                                    "This website is for employee or admin only!",
+                            })
+                        );
+
                     if (!user.providers || !user.providers.includes("google")) {
                         await UserModel.findByIdAndUpdate(
                             user._id,
@@ -309,6 +337,15 @@ class AuthService {
                         );
                     }
                 } else {
+                    if (!isMobile)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.BAD_REQUEST,
+                                message:
+                                    "Your email does not match any accounts",
+                            })
+                        );
+
                     const name =
                         googleUser.family_name + " " + googleUser.given_name;
                     const wordsInName = unicodeToAscii(name)

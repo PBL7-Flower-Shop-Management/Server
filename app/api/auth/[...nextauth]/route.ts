@@ -66,9 +66,30 @@ const handler = NextAuth({
     ],
     callbacks: {
         // This callback is called whenever a JWT is created. `user` will only be defined during sign in.
-        async jwt({ token, user }) {
+        async jwt({ token, user, account }) {
             // console.log("user", user);
             // console.log("token", token);
+            if (account?.id_token) {
+                const response = await FetchApi(
+                    UrlConfig.authentication.google,
+                    "POST",
+                    false,
+                    {
+                        accessToken: account?.id_token,
+                    }
+                );
+                console.log(response);
+                if (response.succeeded) {
+                    return {
+                        ...token,
+                        ...user,
+                        ...response.data.user,
+                        ...response.data.token,
+                    };
+                } else {
+                    token.error = response.message || "Invalid credentials";
+                }
+            }
             return { ...token, ...user };
         },
         async session({ session, token }) {
@@ -80,8 +101,9 @@ const handler = NextAuth({
     session: {
         strategy: "jwt",
     },
-    // pages: {
-    // },
+    pages: {
+        error: "/login", // Custom error page to handle errors
+    },
     adapter: MongoDBAdapter(clientPromise) as Adapter,
 });
 

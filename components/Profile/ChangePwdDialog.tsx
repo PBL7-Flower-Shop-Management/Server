@@ -18,6 +18,7 @@ import { FetchApi } from "@/utils/FetchApi";
 import UrlConfig from "@/config/UrlConfig";
 import { zIndexLevel } from "@/utils/constants";
 import { showToast } from "../Toast";
+import { removeItems } from "@/utils/auth";
 
 export const ChangePwdDialog = ({ open, onClose }: any) => {
     const [password, setPassword] = useState("");
@@ -25,7 +26,11 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
     const [isShowPwd, setIsShowPwd] = useState(false);
     const router = useRouter();
-
+    async function logout() {
+        // await router.push("/");
+        await signOut({ redirect: false });
+        await removeItems();
+    }
     const handleChange = (event: any) => {
         if (event && event.target) {
             const { name, value } = event.target;
@@ -64,7 +69,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                 "Change your password successfully! Let's login",
                 "success"
             );
-            await signOut({ redirect: false });
+            await logout();
             router.push("/login");
         } else {
             showToast(response.message, "error");
