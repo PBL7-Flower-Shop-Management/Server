@@ -6,9 +6,11 @@ import {
     Unstable_Grid2 as Grid,
     Skeleton,
 } from "@mui/material";
-import { isActive, role } from "@/utils/constants";
+import { isActive, role, roleMap } from "@/utils/constants";
+import { useSession } from "next-auth/react";
 export const NewAccountInformation = (props: any) => {
     const { formik, loadingSkeleton, isFieldDisabled } = props;
+    const { data: session } = useSession();
 
     return (
         <Card>
@@ -51,6 +53,7 @@ export const NewAccountInformation = (props: any) => {
                             selectProps: role,
                             selected: "Customer",
                             md: 6,
+                            disabled: session?.user.role === roleMap.Employee,
                         },
                         {
                             label: "Trạng thái tài khoản",

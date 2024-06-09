@@ -9,7 +9,7 @@ declare module "next-auth" {
             citizenId: string;
             phoneNumber: string;
             role: string;
-            avatar: string;
+            avatarUrl: string;
             error: string;
             createdAt: date;
             createdBy: string;

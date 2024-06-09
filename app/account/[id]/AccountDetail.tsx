@@ -27,6 +27,8 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import mongoose from "mongoose";
 import { LoadingButton } from "@mui/lab";
+import { useSession } from "next-auth/react";
+import { roleMap } from "@/utils/constants";
 
 const AccountDetail = ({ params }: any) => {
     const [originalAccount, setOriginalAccount] = useState<any>();
@@ -40,6 +42,8 @@ const AccountDetail = ({ params }: any) => {
     const accountId = params?.id;
     const canEdit = searchParams.get("edit") === "1";
     const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
+    const [isEmployee, setIsEmployee] = useState(true);
+    const { data: session } = useSession();
 
     const formik = useFormik({
         initialValues: {} as any,
@@ -74,7 +78,7 @@ const AccountDetail = ({ params }: any) => {
                 .trim()
                 .transform((curr, orig) => (orig === "" ? null : curr))
                 .matches(
-                    /^[0-9]+$/u,
+                    /^[0-9]*$/u,
                     "Phone number field only contains numbers!"
                 ),
             avatarUrl: yup.string().nullable(),
@@ -280,6 +284,11 @@ const AccountDetail = ({ params }: any) => {
             getAccount();
         }
     }, []);
+    useEffect(() => {
+        if (session?.user) {
+            setIsEmployee(session?.user.role === roleMap.Employee);
+        }
+    }, [session?.user]);
 
     return (
         <>
@@ -384,11 +393,13 @@ const AccountDetail = ({ params }: any) => {
                                                     width={170}
                                                     variant="rounded"
                                                 ></Skeleton>
-                                                <Skeleton
-                                                    height={40}
-                                                    width={170}
-                                                    variant="rounded"
-                                                ></Skeleton>
+                                                {!isEmployee && (
+                                                    <Skeleton
+                                                        height={40}
+                                                        width={170}
+                                                        variant="rounded"
+                                                    ></Skeleton>
+                                                )}
                                                 <Skeleton
                                                     height={40}
                                                     width={170}
@@ -412,15 +423,17 @@ const AccountDetail = ({ params }: any) => {
                                                         ? "Khoá tài khoản"
                                                         : "Mở khoá tài khoản"}
                                                 </Button>
-                                                <Button
-                                                    variant="outlined"
-                                                    color="error"
-                                                    disabled={
-                                                        loadingButtonDetails
-                                                    }
-                                                >
-                                                    Đặt lại mật khẩu
-                                                </Button>
+                                                {!isEmployee && (
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="error"
+                                                        disabled={
+                                                            loadingButtonDetails
+                                                        }
+                                                    >
+                                                        Đặt lại mật khẩu
+                                                    </Button>
+                                                )}
                                                 <LoadingButton
                                                     disabled
                                                     loading={
@@ -460,26 +473,28 @@ const AccountDetail = ({ params }: any) => {
                                                         ? "Khoá tài khoản"
                                                         : "Mở khoá tài khoản"}
                                                 </Button>
-                                                <Button
-                                                    variant="outlined"
-                                                    color="error"
-                                                    onClick={async () => {
-                                                        const oldValue =
-                                                            isFieldDisabled;
-                                                        setIsFieldDisabled(
-                                                            true
-                                                        );
-                                                        await resetPassword();
-                                                        setIsFieldDisabled(
-                                                            oldValue
-                                                        );
-                                                    }}
-                                                    disabled={
-                                                        loadingButtonDetails
-                                                    }
-                                                >
-                                                    Đặt lại mật khẩu
-                                                </Button>
+                                                {!isEmployee && (
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="error"
+                                                        onClick={async () => {
+                                                            const oldValue =
+                                                                isFieldDisabled;
+                                                            setIsFieldDisabled(
+                                                                true
+                                                            );
+                                                            await resetPassword();
+                                                            setIsFieldDisabled(
+                                                                oldValue
+                                                            );
+                                                        }}
+                                                        disabled={
+                                                            loadingButtonDetails
+                                                        }
+                                                    >
+                                                        Đặt lại mật khẩu
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     variant="contained"
                                                     onClick={() => {

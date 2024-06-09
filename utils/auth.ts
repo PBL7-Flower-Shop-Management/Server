@@ -154,4 +154,15 @@ export const removeItems = () => {
     Cookies.remove("tokenExpiryTime");
     Cookies.remove("refreshToken");
     Cookies.remove("refreshTokenExpiryTime");
+    Cookies.remove("name");
+    Cookies.remove("email");
+    Cookies.remove("avatarUrl");
+};
+
+export const getCookiesItem = (name: string) => {
+    return Cookies.get(name);
+};
+
+export const setCookiesItem = (name: string, value: string) => {
+    Cookies.set(name, value);
 };

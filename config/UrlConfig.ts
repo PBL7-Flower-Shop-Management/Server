@@ -69,6 +69,13 @@ const UrlConfig = {
         getProfile: "/api/user",
         updateProfile: "/api/user",
     },
+    statistic: {
+        getEvolutionOfRevenue: "/api/statistic/evolution-of-revenue",
+        getFlowerProductStructure: "/api/statistic/flower-product-structure",
+        getOverview: "/api/statistic/overview",
+        getRevenueByCategory: "/api/statistic/revenue-by-category",
+        getMinShipDateYear: "/api/statistic/min-ship-date-year",
+    },
 };
 
 export default UrlConfig;

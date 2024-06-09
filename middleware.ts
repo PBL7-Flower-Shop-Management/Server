@@ -1,5 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import { roleMap } from "./utils/constants";
 
 export async function middleware(request: NextRequest, _next: NextFetchEvent) {
     const { pathname } = request.nextUrl;
@@ -26,6 +27,9 @@ export async function middleware(request: NextRequest, _next: NextFetchEvent) {
             // url.searchParams.set("callbackUrl", encodeURI(request.url));
             return NextResponse.redirect(url);
         }
+    } else if (token.role !== roleMap.Admin) {
+        if (pathname === "/statistic")
+            return NextResponse.rewrite(new URL(`/404`, request.url));
     } else if (matchesProtectedPath) {
         matchesProtectedPath = matchesProtectedPath.slice(1);
         // console.log("token", token);

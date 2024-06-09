@@ -36,7 +36,7 @@ const schemas = {
                     .string()
                     .trim()
                     .matches(
-                        /^[0-9]+$/u,
+                        /^[0-9]*$/u,
                         "CitizenId field only contains numbers!"
                     ),
                 email: yup
@@ -48,7 +48,7 @@ const schemas = {
                     .string()
                     .trim()
                     .matches(
-                        /^[0-9]+$/u,
+                        /^[0-9]*$/u,
                         "Phone number field only contains numbers!"
                     ),
                 avatar: yup.string().trim(),

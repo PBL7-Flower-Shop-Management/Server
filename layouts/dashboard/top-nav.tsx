@@ -1,17 +1,12 @@
 import PropTypes from "prop-types";
-// import BellIcon from "@heroicons/react/24/solid/BellIcon";
-// import UsersIcon from "@heroicons/react/24/solid/UsersIcon";
 import BarsIcon from "@mui/icons-material/DensityMediumOutlined";
-// import MagnifyingGlassIcon from "@heroicons/react/24/solid/MagnifyingGlassIcon";
 import {
     Avatar,
-    Badge,
     Box,
     Button,
     IconButton,
     Stack,
     SvgIcon,
-    Tooltip,
     Typography,
     useMediaQuery,
 } from "@mui/material";
@@ -20,6 +15,7 @@ import { useSession } from "next-auth/react";
 import { usePopover } from "@/hooks/usePopover";
 import { AccountPopover } from "./account-popover";
 import { zIndexLevel } from "@/utils/constants";
+import { useTopBarInfoContext } from "@/contexts/TopBarInfoContext";
 
 const SIDE_NAV_WIDTH = 280;
 const TOP_NAV_HEIGHT = 64;
@@ -28,9 +24,9 @@ export const TopNav = (props: any) => {
     const { onNavOpen } = props;
     const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
     const accountPopover = usePopover();
-    // const user = JSON.parse(localStorage.getItem("user"));
     const { data: session } = useSession();
     const user = session?.user;
+    const { userInfo } = useTopBarInfoContext();
 
     return (
         <>
@@ -83,7 +79,10 @@ export const TopNav = (props: any) => {
                             gap={1.2}
                         >
                             <Typography sx={{ color: "black" }}>
-                                {user?.name ?? user?.email}
+                                {userInfo?.name ??
+                                    userInfo?.email ??
+                                    user?.name ??
+                                    user?.email}
                             </Typography>
                             <Avatar
                                 sx={{
@@ -91,7 +90,7 @@ export const TopNav = (props: any) => {
                                     height: 40,
                                     width: 40,
                                 }}
-                                src={user?.avatar}
+                                src={userInfo?.avatarUrl ?? user?.avatarUrl}
                                 alt={"Avatar"}
                             />
                         </Box>
@@ -99,7 +98,7 @@ export const TopNav = (props: any) => {
                 </Stack>
             </Box>
             <AccountPopover
-                user={user}
+                user={userInfo ?? user}
                 anchorEl={accountPopover.anchorRef.current}
                 open={accountPopover.open}
                 onClose={accountPopover.handleClose}

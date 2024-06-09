@@ -7,18 +7,20 @@ import { items } from "./config";
 import { SideNavItem } from "./side-nav-item";
 import Image from "next/image";
 import ScrollBar from "react-perfect-scrollbar";
-import { zIndexLevel } from "@/utils/constants";
+import { roleMap, zIndexLevel } from "@/utils/constants";
+import { useSession } from "next-auth/react";
 // import { useAuth } from "src/hooks/use-auth";
 
 export const SideNav = (props: any) => {
     const { open, onClose } = props;
     const pathname = usePathname();
     const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
-    // const auth = useAuth();
-    // const isAdmin = auth.isAuthenticated ? auth.user.role === 0 : false;
-    let visibleItems = true
-        ? items
-        : items.filter((item: any) => item.path !== "/accounts");
+    const { data: session } = useSession();
+
+    let visibleItems =
+        session?.user?.role === roleMap.Admin
+            ? items
+            : items.filter((item: any) => item.path !== "/statistic");
 
     const content = (
         <ScrollBar

@@ -6,10 +6,12 @@ import {
     Unstable_Grid2 as Grid,
     Skeleton,
 } from "@mui/material";
-import { isActive, role } from "@/utils/constants";
+import { isActive, role, roleMap } from "@/utils/constants";
+import { useSession } from "next-auth/react";
 
 const AccountInformation = (props: any) => {
     const { formik, handleChange, loadingSkeleton, isFieldDisabled } = props;
+    const { data: session } = useSession();
 
     return (
         <form autoComplete="off" noValidate>
@@ -52,6 +54,8 @@ const AccountInformation = (props: any) => {
                                 select: true,
                                 selectProps: role,
                                 md: 6,
+                                disabled:
+                                    session?.user.role === roleMap.Employee,
                             },
                             {
                                 label: "Trạng thái tài khoán",

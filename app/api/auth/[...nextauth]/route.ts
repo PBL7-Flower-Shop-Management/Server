@@ -78,7 +78,6 @@ const handler = NextAuth({
                         accessToken: account?.id_token,
                     }
                 );
-                console.log(response);
                 if (response.succeeded) {
                     return {
                         ...token,

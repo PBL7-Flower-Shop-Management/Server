@@ -14,6 +14,7 @@ import { sendMail } from "@/utils/sendMail";
 import { verify } from "@/utils/JwtHelper";
 import IdentificationHistoryModel from "@/models/IdentificationHistoryModel";
 import { parseSortString } from "@/utils/helper";
+import CloudinaryService from "./CloudinaryService";
 
 class UserService {
     async GetOrderByUserId(userId: string): Promise<ApiResponse> {
@@ -597,16 +598,17 @@ class UserService {
                 maxTimeMS: 5000, // Adjust the timeout as needed
             });
             try {
-                if (
-                    !(await UserModel.findOne({
-                        _id: _id,
-                        isDeleted: false,
-                    })) ||
-                    !(await AccountModel.findOne({
-                        userId: _id,
-                        isDeleted: false,
-                    }))
-                )
+                const userDb = await UserModel.findOne({
+                    _id: _id,
+                    isDeleted: false,
+                });
+
+                const acc = await AccountModel.findOne({
+                    userId: _id,
+                    isDeleted: false,
+                });
+
+                if (!userDb || !acc)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.NOT_FOUND,
@@ -627,8 +629,31 @@ class UserService {
                         })
                     );
                 }
+                //update cloudinary
+                if (!user.avatarUrl && user.avatar) {
+                    // upload image and retrieve photo_url
+                    const response = await CloudinaryService.Upload(
+                        user.avatar
+                    );
+                    if (userDb.avatarId) {
+                        // delete old image async
+                        await CloudinaryService.DeleteByPublicId(
+                            userDb.avatarId
+                        );
+                    }
 
-                //update image cloudinary
+                    user.avatarUrl = response.url;
+                    user.avatarId = response.public_id;
+                } else if (!user.avatarUrl) {
+                    user.avatarUrl = null;
+                    user.avatarId = null;
+                    if (userDb.avatarId) {
+                        // delete old image async
+                        await CloudinaryService.DeleteByPublicId(
+                            userDb.avatarId
+                        );
+                    }
+                }
 
                 const updatedUser = await UserModel.findOneAndUpdate(
                     { _id: _id },
@@ -639,15 +664,23 @@ class UserService {
                             updatedBy: user.updatedBy ?? "System",
                         },
                     },
-                    { session: session, new: true }
+                    {
+                        session: session,
+                        new: true,
+                        select: "_id avatarUrl name citizenId email phoneNumber role",
+                    }
                 );
+
+                let updatedObj = updatedUser.toObject();
+                updatedObj.username = acc.username;
+                updatedObj.isActived = acc.isActived;
 
                 await session.commitTransaction();
 
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.OK,
-                        data: updatedUser,
+                        data: updatedObj,
                     })
                 );
             } catch (error: any) {

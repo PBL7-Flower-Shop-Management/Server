@@ -15,6 +15,7 @@ import viVN from "antd/lib/locale/vi_VN";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { zIndexLevel } from "@/utils/constants";
 import Toast from "@/components/Toast";
+import { TopBarInfoProvider } from "@/contexts/TopBarInfoContext";
 
 export default function RootLayout({
     children,
@@ -66,11 +67,13 @@ export default function RootLayout({
                                                 {children}
                                             </main>
                                         ) : (
-                                            <Layout>
-                                                <main className="app">
-                                                    {children}
-                                                </main>
-                                            </Layout>
+                                            <TopBarInfoProvider>
+                                                <Layout>
+                                                    <main className="app">
+                                                        {children}
+                                                    </main>
+                                                </Layout>
+                                            </TopBarInfoProvider>
                                         )}
                                     </LoadingProvider>
                                 </ThemeProvider>

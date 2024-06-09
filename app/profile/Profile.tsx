@@ -1,165 +1,202 @@
 "use client";
 
 import Head from "next/head";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
-    Alert,
     Box,
-    Collapse,
     Container,
-    IconButton,
     Stack,
     Typography,
     Unstable_Grid2 as Grid,
-    Snackbar,
+    Divider,
+    CardActions,
+    Skeleton,
+    Button,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { useSession } from "next-auth/react";
 import { ProfileAvatar } from "@/components/Profile/ProfileAvatar";
 import ProfileDetail from "@/components/Profile/ProfileDetail";
-import { zIndexLevel } from "@/utils/constants";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import { useFormik } from "formik";
+import * as yup from "yup";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { showToast } from "@/components/Toast";
+import { appendJsonToFormData } from "@/utils/helper";
+import { LoadingButton } from "@mui/lab";
+import { ChangePwdDialog } from "@/components/Profile/ChangePwdDialog";
+import { useTopBarInfoContext } from "@/contexts/TopBarInfoContext";
 
 const Profile = () => {
     const [profile, setProfile] = useState<any>();
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
-    const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
-    const [open, setOpen] = useState(true);
-    const { data: session } = useSession();
+    const alreadyRun = useRef(false);
+    const { setLoading } = useLoadingContext();
+    const [changesMade, setChangesMade] = useState(false);
+    const [isFieldDisabled, setIsFieldDisabled] = useState(true);
+    const [openChangePwdDialog, setOpenChangePwdDialog] = useState(false);
+    const { setUserInfo } = useTopBarInfoContext();
 
-    const getProfile = useCallback(async () => {
-        if (session?.user) {
-            setLoadingSkeleton(true);
+    const formik = useFormik({
+        initialValues: {} as any,
+        validationSchema: yup.object({
+            name: yup
+                .string()
+                .trim()
+                .required("Name is required")
+                .matches(
+                    /^[ \p{L}]+$/u,
+                    "Name field only contains unicode characters or spaces!"
+                ),
+            citizenId: yup
+                .string()
+                .trim()
+                .transform((curr, orig) => (orig === "" ? null : curr))
+                .matches(/^[0-9]*$/u, "CitizenId field only contains numbers!"),
+            email: yup
+                .string()
+                .trim()
+                .required("Email is required")
+                .email("Please provide a valid email!"),
+            phoneNumber: yup
+                .string()
+                .trim()
+                .transform((curr, orig) => (orig === "" ? null : curr))
+                .matches(
+                    /^[0-9]*$/u,
+                    "Phone number field only contains numbers!"
+                ),
+            avatarUrl: yup.string().nullable(),
+            // isActived: yup.boolean().nullable().default(false),
+            file: yup
+                .mixed()
+                .nullable()
+                .test(
+                    "fileFormat",
+                    "Ảnh tải lên không hợp lệ!",
+                    (value: any) => {
+                        if (value && value.type) {
+                            return value.type.startsWith("image/");
+                        }
+                        return true;
+                    }
+                ),
+        }),
+
+        onSubmit: async (values, helpers: any) => {
             try {
-                // const user = JSON.parse(localStorage.getItem("user"));
-                const profile = {
-                    _id: "6648c33bdacda77e9bdad9e6",
-                    username: "HoangG",
-                    avatar: "string",
-                    name: "gewhgo Hoàng",
-                    citizenId: "25445",
-                    email: "nguyenthedanghoan@gmail.com",
-                    phoneNumber: "5435",
-                    role: "Customer",
-                    isActived: true,
-                };
-                setProfile(profile);
-            } catch (error: any) {
-                setError(error.message);
-            } finally {
-                setLoadingSkeleton(false);
+                if (
+                    changesMade ||
+                    formik.values.file ||
+                    formik.values.file === null
+                ) {
+                    setIsFieldDisabled(true);
+                    const res = await updateInformation();
+                    setIsFieldDisabled(res);
+                } else setIsFieldDisabled(true);
+            } catch (err: any) {
+                helpers.setStatus({ success: false });
+                helpers.setErrors({ submit: err.message });
+                helpers.setSubmitting(false);
             }
+        },
+    });
+
+    const getProfile = async () => {
+        setLoading(true);
+        setLoadingSkeleton(true);
+
+        const response = await FetchApi(UrlConfig.user.getProfile, "GET", true);
+
+        if (response.canRefreshToken === false)
+            showToast(response.message, "warning");
+        else if (response.succeeded) {
+            formik.setValues(response.data);
+            setProfile(response.data);
+            setUserInfo(response.data);
+            setLoadingSkeleton(false);
+        } else {
+            showToast(response.message, "error");
         }
-    }, []);
+        setLoading(false);
+    };
 
-    useEffect(() => {
-        getProfile();
-    }, [session?.user]);
-
-    const updateLocalStorage = (updatedUser: any) => {
+    const updateInformation = async () => {
         try {
-            // Merge the updated account with the existing user data
-            const updatedUserData = {
-                ...profile,
-                ...updatedUser,
-            };
+            setLoadingButtonDetails(true);
+            const formData = new FormData();
+            let isFormData = false;
+            if (formik.values.file || formik.values.file === null) {
+                formData.set("avatar", formik.values.file);
+                isFormData = true;
+            }
 
-            // Update the user data in local storage
-            localStorage.setItem("user", JSON.stringify(updatedUserData));
+            const response = await FetchApi(
+                UrlConfig.user.updateProfile,
+                "PUT",
+                true,
+                isFormData
+                    ? appendJsonToFormData(formData, {
+                          ...formik.values,
+                          _id: undefined,
+                          username: undefined,
+                          isActived: undefined,
+                          avatarUrl: undefined,
+                          file: undefined,
+                          role: undefined,
+                      })
+                    : {
+                          ...formik.values,
+                          _id: undefined,
+                          username: undefined,
+                          isActived: undefined,
+                          file: undefined,
+                          role: undefined,
+                      },
+                isFormData
+            );
+            if (response.canRefreshToken === false) {
+                showToast(response.message, "warning");
+                return false;
+            } else if (response.succeeded) {
+                showToast("Cập nhật thông tin cá nhân thành công.", "success");
+                formik.setValues(response.data);
+                return true;
+            } else {
+                showToast(response.message, "error");
+                return false;
+            }
         } catch (error: any) {
-            console.error("Error updating local storage:", error);
-            setError("Error updating local storage:" + error);
+            showToast(error.message, "error");
+            return false;
+        } finally {
+            setLoadingButtonDetails(false);
         }
     };
 
-    const updateDetails = useCallback(
-        async (updatedDetails: any) => {
-            try {
-                setSuccess("");
-                setError("");
-                const { imageLink, ...userWithoutImageLink } = profile;
-                const updatedUser = {
-                    // id: window.sessionStorage.getItem("userId"),
-                    ...userWithoutImageLink,
-                    ...updatedDetails,
-                };
+    const handleChange = (e: any) => {
+        formik.handleChange(e);
+        setChangesMade(true);
+    };
 
-                // await profileApi.editProfile(updatedUser, auth);
-                // updateLocalStorage(updatedDetails);
-                // getUser();
-                setSuccess("Cập nhật thông tin cá nhân thành công.");
-                setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [profile]
-    );
+    const handleClick = () => {
+        setProfile(formik.values);
+        setIsFieldDisabled(false);
+        setChangesMade(false);
+    };
 
-    const updateUserDetails = useCallback(
-        async (updatedDetails: any) => {
-            try {
-                setLoadingButtonDetails(true);
-                // setUser((prevUser) => ({ ...prevUser, ...updatedDetails }));
-                setOpen(true);
-                await updateDetails(updatedDetails);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonDetails(false);
-            }
-        },
-        [setProfile, updateDetails]
-    );
+    const handleCancel = () => {
+        formik.setValues(profile);
+        setIsFieldDisabled(true);
+        setChangesMade(false);
+    };
 
-    const uploadImage = useCallback(
-        async (newImage: any) => {
-            try {
-                setSuccess("");
-                setError("");
-                // const response = await imagesApi.uploadImage(newImage);
-                // const { imageLink, ...userWithoutImageLink } = profile;
-                // const updatedUser = {
-                //     ...userWithoutImageLink,
-                //     image: response[0].filePath,
-                // };
-
-                // await profileApi.editProfile(updatedUser, auth);
-                // updateLocalStorage({
-                //     image: response[0].filePath,
-                //     imageLink: response[0].fileUrl,
-                // });
-                // getUser();
-                setSuccess("Cập nhật ảnh đại diện thành công.");
-                setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [profile]
-    );
-
-    const updateUserPicture = useCallback(
-        async (newImage: any) => {
-            try {
-                setLoadingButtonPicture(true);
-                // setProfile((prevUser) => ({ ...prevUser, image: newImage }));
-                setOpen(true);
-                await uploadImage(newImage);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonPicture(false);
-            }
-        },
-        [setProfile, uploadImage]
-    );
+    useEffect(() => {
+        if (!alreadyRun.current) {
+            alreadyRun.current = true;
+            getProfile();
+        }
+    }, []);
 
     return (
         <>
@@ -184,130 +221,118 @@ const Profile = () => {
                             <Grid container spacing={3}>
                                 <Grid xs={12} md={6} lg={4}>
                                     <ProfileAvatar
-                                        imageLink={profile?.avatar}
+                                        formik={formik}
                                         loadingSkeleton={loadingSkeleton}
                                         loadingButtonDetails={
                                             loadingButtonDetails
                                         }
-                                        loadingButtonPicture={
-                                            loadingButtonPicture
-                                        }
-                                        onUpdate={updateUserPicture}
-                                        success={success}
+                                        isFieldDisabled={isFieldDisabled}
                                     />
                                 </Grid>
                                 <Grid xs={12} md={6} lg={8}>
                                     <ProfileDetail
-                                        profile={profile}
+                                        formik={formik}
+                                        handleChange={handleChange}
                                         loadingSkeleton={loadingSkeleton}
-                                        loadingButtonDetails={
-                                            loadingButtonDetails
-                                        }
-                                        loadingButtonPicture={
-                                            loadingButtonPicture
-                                        }
-                                        onUpdate={updateUserDetails}
-                                        success={success}
+                                        isFieldDisabled={isFieldDisabled}
                                     />
+                                    <Divider />
+                                    <CardActions
+                                        sx={{ justifyContent: "flex-end" }}
+                                    >
+                                        {loadingSkeleton ? (
+                                            <>
+                                                <Skeleton
+                                                    height={40}
+                                                    width={170}
+                                                    variant="rounded"
+                                                ></Skeleton>
+                                                <Skeleton
+                                                    height={40}
+                                                    width={170}
+                                                    variant="rounded"
+                                                ></Skeleton>
+                                            </>
+                                        ) : loadingButtonDetails ? (
+                                            <>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="error"
+                                                    disabled={
+                                                        loadingButtonDetails
+                                                    }
+                                                    onClick={() =>
+                                                        setOpenChangePwdDialog(
+                                                            true
+                                                        )
+                                                    }
+                                                >
+                                                    Đổi mật khẩu
+                                                </Button>
+                                                <LoadingButton
+                                                    disabled
+                                                    loading={
+                                                        loadingButtonDetails
+                                                    }
+                                                    size="medium"
+                                                    variant="contained"
+                                                >
+                                                    Chỉnh sửa thông tin
+                                                </LoadingButton>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="error"
+                                                    disabled={
+                                                        loadingButtonDetails
+                                                    }
+                                                    onClick={() =>
+                                                        setOpenChangePwdDialog(
+                                                            true
+                                                        )
+                                                    }
+                                                >
+                                                    Đổi mật khẩu
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() => {
+                                                        if (isFieldDisabled)
+                                                            handleClick();
+                                                        else
+                                                            formik.handleSubmit();
+                                                    }}
+                                                    disabled={
+                                                        loadingButtonDetails
+                                                    }
+                                                >
+                                                    {isFieldDisabled
+                                                        ? "Chỉnh sửa thông tin"
+                                                        : "Cập nhật thông tin"}
+                                                </Button>
+                                                {!isFieldDisabled && (
+                                                    <Button
+                                                        variant="outlined"
+                                                        onClick={handleCancel}
+                                                    >
+                                                        Hủy
+                                                    </Button>
+                                                )}
+                                            </>
+                                        )}
+                                    </CardActions>
                                 </Grid>
                             </Grid>
                         </div>
-                        <Box
-                            sx={{
-                                position: "fixed",
-                                bottom: "0",
-                                right: "0",
-                                zIndex: zIndexLevel.four,
-                                mb: 2,
-                                mr: 2,
-                            }}
-                        >
-                            {success && (
-                                <Collapse in={open}>
-                                    <Snackbar
-                                        open={open}
-                                        autoHideDuration={6000}
-                                        onClose={() => setOpen(false)}
-                                        anchorOrigin={{
-                                            vertical: "top",
-                                            horizontal: "center",
-                                        }}
-                                    >
-                                        <Alert
-                                            variant="outlined"
-                                            severity="success"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="success"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mb: 1.5,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
-                                                color="success"
-                                                variant="subtitle2"
-                                            >
-                                                {success}
-                                            </Typography>
-                                        </Alert>
-                                    </Snackbar>
-                                </Collapse>
-                            )}
-                            {error && (
-                                <Collapse in={open}>
-                                    <Snackbar
-                                        open={open}
-                                        autoHideDuration={6000}
-                                        onClose={() => setOpen(false)}
-                                        anchorOrigin={{
-                                            vertical: "top",
-                                            horizontal: "center",
-                                        }}
-                                    >
-                                        <Alert
-                                            variant="outlined"
-                                            severity="error"
-                                            action={
-                                                <IconButton
-                                                    aria-label="close"
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                    }}
-                                                >
-                                                    <CloseIcon fontSize="inherit" />
-                                                </IconButton>
-                                            }
-                                            sx={{
-                                                mb: 1.5,
-                                                borderRadius: "12px",
-                                            }}
-                                        >
-                                            <Typography
-                                                color="error"
-                                                variant="subtitle2"
-                                            >
-                                                {error}
-                                            </Typography>
-                                        </Alert>
-                                    </Snackbar>
-                                </Collapse>
-                            )}
-                        </Box>
                     </Stack>
                 </Container>
             </Box>
+            <ChangePwdDialog
+                open={openChangePwdDialog}
+                onClose={() => setOpenChangePwdDialog(false)}
+            />
         </>
     );
 };

@@ -19,12 +19,14 @@ import UrlConfig from "@/config/UrlConfig";
 import { zIndexLevel } from "@/utils/constants";
 import { showToast } from "../Toast";
 import { removeItems } from "@/utils/auth";
+import { LoadingButton } from "@mui/lab";
 
 export const ChangePwdDialog = ({ open, onClose }: any) => {
     const [password, setPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
     const [isShowPwd, setIsShowPwd] = useState(false);
+    const [loadingButton, setLoadingButton] = useState(false);
     const router = useRouter();
     async function logout() {
         // await router.push("/");
@@ -51,6 +53,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
     };
 
     const handleConfirm = async () => {
+        setLoadingButton(true);
         const response = await FetchApi(
             UrlConfig.user.changePassword,
             "PATCH",
@@ -74,6 +77,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
         } else {
             showToast(response.message, "error");
         }
+        setLoadingButton(false);
     };
 
     const handleClearAll = () => {
@@ -106,6 +110,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                                 value={password}
                                 sx={{ width: "100%" }}
                                 required
+                                disabled={loadingButton}
                                 onChange={handleChange}
                                 fullWidth
                             />
@@ -139,6 +144,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                                 value={newPassword}
                                 sx={{ width: "100%" }}
                                 required
+                                disabled={loadingButton}
                                 onChange={handleChange}
                                 fullWidth
                             />
@@ -172,6 +178,7 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                                 value={confirmNewPassword}
                                 sx={{ width: "100%" }}
                                 required
+                                disabled={loadingButton}
                                 onChange={handleChange}
                                 fullWidth
                             />
@@ -199,30 +206,68 @@ export const ChangePwdDialog = ({ open, onClose }: any) => {
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button
-                    onClick={async () => await handleConfirm()}
-                    color="success"
-                    variant="outlined"
-                    sx={{ fontFamily: "sans-serif" }}
-                >
-                    Xác nhận
-                </Button>
-                <Button
-                    onClick={handleClearAll}
-                    color="warning"
-                    variant="outlined"
-                    sx={{ fontFamily: "sans-serif" }}
-                >
-                    Xoá tất cả
-                </Button>
-                <Button
-                    onClick={handleClose}
-                    color="error"
-                    variant="outlined"
-                    sx={{ fontFamily: "sans-serif" }}
-                >
-                    Thoát
-                </Button>
+                {loadingButton ? (
+                    <>
+                        <LoadingButton
+                            loading={loadingButton}
+                            onClick={async () => await handleConfirm()}
+                            color="success"
+                            variant="outlined"
+                            sx={{ fontFamily: "sans-serif" }}
+                            disabled={loadingButton}
+                        >
+                            Xác nhận
+                        </LoadingButton>
+                        <Button
+                            onClick={async () => await handleConfirm()}
+                            color="success"
+                            variant="outlined"
+                            sx={{ fontFamily: "sans-serif" }}
+                            disabled={loadingButton}
+                        >
+                            Xoá tất cả
+                        </Button>
+                        <Button
+                            onClick={async () => await handleConfirm()}
+                            color="success"
+                            variant="outlined"
+                            sx={{ fontFamily: "sans-serif" }}
+                            disabled={loadingButton}
+                        >
+                            Thoát
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        <LoadingButton
+                            onClick={async () => await handleConfirm()}
+                            color="success"
+                            variant="outlined"
+                            loading={loadingButton}
+                            sx={{ fontFamily: "sans-serif" }}
+                        >
+                            Xác nhận
+                        </LoadingButton>
+                        <LoadingButton
+                            onClick={handleClearAll}
+                            color="warning"
+                            variant="outlined"
+                            loading={loadingButton}
+                            sx={{ fontFamily: "sans-serif" }}
+                        >
+                            Xoá tất cả
+                        </LoadingButton>
+                        <LoadingButton
+                            onClick={handleClose}
+                            color="error"
+                            variant="outlined"
+                            loading={loadingButton}
+                            sx={{ fontFamily: "sans-serif" }}
+                        >
+                            Thoát
+                        </LoadingButton>
+                    </>
+                )}
             </DialogActions>
         </Dialog>
     );

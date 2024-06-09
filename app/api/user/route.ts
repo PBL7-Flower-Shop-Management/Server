@@ -1,5 +1,6 @@
 import UserController from "@/controllers/UserController";
 import { auth } from "@/middlewares/Authorization";
+import { checkFile } from "@/middlewares/CheckFile";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
 import validate from "@/middlewares/YupValidation";
 import TrimRequest from "@/utils/TrimRequest";
@@ -83,9 +84,22 @@ export const GET = async () => {
 export const PUT = async (req: NextRequest) => {
     try {
         return await auth(async (userToken: any) => {
-            let body = await new Response(req.body).json();
+            let body = null;
+            let avatar = null;
+            if (
+                !req.headers.get("content-type")?.includes("application/json")
+            ) {
+                const formData = await req.formData();
+                avatar = formData.get("avatar");
+                if (avatar !== "null") await checkFile(avatar as File, true);
+                else avatar = null;
+
+                body = JSON.parse(formData.get("body") as string);
+            } else body = await new Response(req.body).json();
             ({ req, body: body } = TrimRequest.all(req, null, body));
             await validate(schemas.EditProfileSchema)(null, null, body);
+            body.avatar = avatar;
+            body.updatedBy = userToken.user.username;
             return await UserController.EditProfile(body, userToken.user._id);
         });
     } catch (error: any) {

@@ -8,15 +8,6 @@ import { SvgIcon } from "@mui/material";
 
 export const items = [
     {
-        title: "Tổng quan",
-        path: "/",
-        icon: (
-            <SvgIcon fontSize="small">
-                <OverviewIcon />
-            </SvgIcon>
-        ),
-    },
-    {
         title: "Danh sách tài khoản",
         path: "/account",
         icon: (

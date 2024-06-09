@@ -109,7 +109,7 @@ const Login = () => {
                 signOut({ redirect: false });
             } else {
                 saveToken(session);
-                router.push("/");
+                router.push("/account");
             }
         }
     }, [session, router]);

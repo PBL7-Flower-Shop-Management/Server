@@ -163,12 +163,20 @@ class AuthService {
                         })
                     );
 
-                if (!isMobile && user.role === roleMap.Customer)
+                if (!isMobile) {
+                    if (user.role === roleMap.Customer)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.FORBIDDEN,
+                                message:
+                                    "This website is for employee or admin only!",
+                            })
+                        );
+                } else if (user.role !== roleMap.Customer)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.FORBIDDEN,
-                            message:
-                                "This website is for employee or admin only!",
+                            message: "This mobile app is for customer only!",
                         })
                     );
 
@@ -320,12 +328,21 @@ class AuthService {
                             })
                         );
 
-                    if (!isMobile && user.role === roleMap.Customer)
+                    if (!isMobile) {
+                        if (user.role === roleMap.Customer)
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.FORBIDDEN,
+                                    message:
+                                        "This website is for employee or admin only!",
+                                })
+                            );
+                    } else if (user.role !== roleMap.Customer)
                         return reject(
                             new ApiResponse({
                                 status: HttpStatus.FORBIDDEN,
                                 message:
-                                    "This website is for employee or admin only!",
+                                    "This mobile app is for customer only!",
                             })
                         );
 

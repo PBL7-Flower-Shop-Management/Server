@@ -83,7 +83,7 @@ const schemas = {
                     .trim()
                     .transform((curr, orig) => (orig === "" ? null : curr))
                     .matches(
-                        /^[0-9]+$/u,
+                        /^[0-9]*$/u,
                         "Phone number field only contains numbers!"
                     ),
                 avatarUrl: yup.string().nullable(),
