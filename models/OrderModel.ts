@@ -4,8 +4,11 @@ const OrderSchema = new Schema(
     {
         orderUserId: {
             type: Schema.Types.ObjectId,
-            required: [true, "A order must belong to a user"],
             ref: "User", // Reference to the User model
+        },
+        username: {
+            type: String,
+            trim: true,
         },
         orderDate: {
             type: Date,
@@ -19,7 +22,7 @@ const OrderSchema = new Schema(
             trim: true,
             validate: {
                 validator: function (value: any) {
-                    return /^[\p{L}\d\s\/\-]+$/u.test(value);
+                    return /^[\p{L}\d\s\/\-]*$/u.test(value);
                 },
                 message:
                     "Ship address only contains characters, number, space, slash and dash!",

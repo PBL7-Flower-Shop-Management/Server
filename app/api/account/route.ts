@@ -98,6 +98,14 @@ import { NextRequest } from "next/server";
  *     summary: Get all account
  *     tags: [Account]
  *     parameters:
+ *       - name: getCustomer
+ *         type: bool
+ *         in: query
+ *         description: true if get customer
+ *         schema:
+ *            type: boolean
+ *            enum: [true, false]
+ *            default: false
  *       - name: keyword
  *         type: string
  *         in: query

@@ -64,13 +64,33 @@ class OrderService {
                         },
                     },
                     {
-                        $unwind: "$acc",
+                        $addFields: {
+                            usernameFromAccount: {
+                                $arrayElemAt: ["$acc.username", 0],
+                            },
+                        },
+                    },
+                    {
+                        $addFields: {
+                            username: {
+                                $cond: {
+                                    if: {
+                                        $gt: [
+                                            { $type: "$orderUserId" },
+                                            "missing",
+                                        ],
+                                    },
+                                    then: "$usernameFromAccount",
+                                    else: "$username",
+                                },
+                            },
+                        },
                     },
                     {
                         $match: {
                             $or: [
                                 {
-                                    "acc.username": {
+                                    username: {
                                         $regex: query.keyword,
                                         $options: "i",
                                     },
@@ -93,7 +113,7 @@ class OrderService {
                     {
                         $project: {
                             _id: 1,
-                            username: "$acc.username",
+                            username: 1,
                             orderDate: 1,
                             shipDate: 1,
                             shipAddress: 1,
@@ -162,51 +182,61 @@ class OrderService {
                 maxTimeMS: 5000, // Adjust the timeout as needed
             });
             try {
-                const userDb = await AccountModel.findOne({
-                    userId: order.orderUserId,
-                    isDeleted: false,
-                    isActived: true,
-                });
-
-                if (
-                    !(await UserModel.findOne({
-                        _id: order.orderUserId,
-                        isDeleted: false,
-                    })) ||
-                    !userDb
-                ) {
+                if (userRole === roleMap.Customer && !order.orderUserId)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.BAD_REQUEST,
-                            message:
-                                "Order user don't exist or haven't been actived account!",
+                            message: "orderUserId field is required!",
                         })
                     );
-                }
 
-                if (userRole === roleMap.Customer) {
-                    if (userDb.username !== order.createdBy)
+                if (order.orderUserId) {
+                    const userDb = await AccountModel.findOne({
+                        userId: order.orderUserId,
+                        isDeleted: false,
+                        isActived: true,
+                    });
+
+                    if (
+                        !(await UserModel.findOne({
+                            _id: order.orderUserId,
+                            isDeleted: false,
+                        })) ||
+                        !userDb
+                    ) {
                         return reject(
                             new ApiResponse({
-                                status: HttpStatus.FORBIDDEN,
+                                status: HttpStatus.BAD_REQUEST,
                                 message:
-                                    "You don't have access to create order for other user!",
+                                    "Order user don't exist or haven't been actived account!",
                             })
                         );
+                    }
+
+                    if (userRole === roleMap.Customer) {
+                        if (userDb.username !== order.createdBy)
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.FORBIDDEN,
+                                    message:
+                                        "You don't have access to create order for other user!",
+                                })
+                            );
+                    }
                 }
 
                 if (order.orderDetails) {
                     //check flower id exists
                     for (let orderDetail of order.orderDetails) {
                         const flower = await FlowerModel.findOne({
-                            _id: orderDetail.flowerId,
+                            _id: orderDetail._id,
                             isDeleted: false,
                         });
                         if (!flower)
                             return reject(
                                 new ApiResponse({
                                     status: HttpStatus.BAD_REQUEST,
-                                    message: `Flower id ${orderDetail.flowerId} don't exists!`,
+                                    message: `Flower id ${orderDetail._id} don't exists!`,
                                 })
                             );
 
@@ -216,7 +246,7 @@ class OrderService {
                 }
 
                 const currentDate = moment().toDate();
-                console.log(order);
+
                 const newOrder = await OrderModel.create(
                     [
                         {
@@ -236,7 +266,7 @@ class OrderService {
                                 newOrder._id as string
                             ),
                             flowerId: new mongoose.Types.ObjectId(
-                                orderDetail.flowerId as string
+                                orderDetail._id as string
                             ),
                             unitPrice: orderDetail.unitPrice,
                             discount: orderDetail.discount,
@@ -295,36 +325,46 @@ class OrderService {
                         })
                     );
 
-                if (userRole === roleMap.Customer) {
-                    const userDb = await AccountModel.findOne({
-                        userId: orderDb.orderUserId,
-                        isDeleted: false,
-                        isActived: true,
-                    });
+                if (userRole === roleMap.Customer && !order.orderUserId)
+                    return reject(
+                        new ApiResponse({
+                            status: HttpStatus.BAD_REQUEST,
+                            message: "orderUserId field is required!",
+                        })
+                    );
 
-                    if (
-                        !(await UserModel.findOne({
-                            _id: orderDb.orderUserId,
+                if (order.orderUserId) {
+                    if (userRole === roleMap.Customer) {
+                        const userDb = await AccountModel.findOne({
+                            userId: orderDb.orderUserId,
                             isDeleted: false,
-                        })) ||
-                        !userDb
-                    )
-                        return reject(
-                            new ApiResponse({
-                                status: HttpStatus.NOT_FOUND,
-                                message:
-                                    "Order user don't exist or haven't been actived account!",
-                            })
-                        );
+                            isActived: true,
+                        });
 
-                    if (userDb.username !== order.updatedBy)
-                        return reject(
-                            new ApiResponse({
-                                status: HttpStatus.FORBIDDEN,
-                                message:
-                                    "You don't have access to update order of other user!",
-                            })
-                        );
+                        if (
+                            !(await UserModel.findOne({
+                                _id: orderDb.orderUserId,
+                                isDeleted: false,
+                            })) ||
+                            !userDb
+                        )
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.NOT_FOUND,
+                                    message:
+                                        "Order user don't exist or haven't been actived account!",
+                                })
+                            );
+
+                        if (userDb.username !== order.updatedBy)
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.FORBIDDEN,
+                                    message:
+                                        "You don't have access to update order of other user!",
+                                })
+                            );
+                    }
                 }
 
                 if (
@@ -343,14 +383,14 @@ class OrderService {
                     //check flower id exists
                     for (let orderDetail of order.orderDetails) {
                         const flower = await FlowerModel.findOne({
-                            _id: orderDetail.flowerId,
+                            _id: orderDetail._id,
                             isDeleted: false,
                         });
                         if (!flower)
                             return reject(
                                 new ApiResponse({
                                     status: HttpStatus.BAD_REQUEST,
-                                    message: `Flower id ${orderDetail.flowerId} don't exists!`,
+                                    message: `Flower id ${orderDetail._id} don't exists!`,
                                 })
                             );
 
@@ -390,7 +430,7 @@ class OrderService {
                     // Loop through the new order details
                     for (const newDetail of order.orderDetails) {
                         const existingDetail = existingOrderDetailsMap.get(
-                            newDetail.flowerId
+                            newDetail._id
                         );
 
                         if (existingDetail) {
@@ -400,12 +440,12 @@ class OrderService {
                             await existingDetail.save();
 
                             // Remove the processed detail from the map
-                            existingOrderDetailsMap.delete(newDetail.flowerId);
+                            existingOrderDetailsMap.delete(newDetail._id);
                         } else {
                             // Create new order detail
                             await OrderDetailModel.create({
                                 orderId: updatedOrder._id,
-                                flowerId: newDetail.flowerId,
+                                flowerId: newDetail._id,
                                 unitPrice: newDetail.unitPrice,
                                 discount: newDetail.discount,
                                 numberOfFlowers: newDetail.numberOfFlowers,

@@ -2,11 +2,8 @@
 
 import Head from "next/head";
 import {
-    Alert,
     Box,
-    Collapse,
     Container,
-    IconButton,
     Skeleton,
     Stack,
     Typography,
@@ -14,30 +11,33 @@ import {
     Breadcrumbs,
     Link,
     Button,
-    Snackbar,
 } from "@mui/material";
 import NextLink from "next/link";
 import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { LoadingButton } from "@mui/lab";
-import CloseIcon from "@mui/icons-material/Close";
-import { useRouter } from "next/navigation";
 import NewOrderInformation from "@/components/Order/NewOrder/NewOrderInformation";
 import NewOrderProducts from "@/components/Order/NewOrder/NewOrderProducts";
 import _ from "lodash";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import UrlConfig from "@/config/UrlConfig";
+import { FetchApi } from "@/utils/FetchApi";
+import {
+    appendJsonToFormData,
+    isIntegerNumber,
+    isNumberic,
+    stripSeconds,
+} from "@/utils/helper";
+import { showToast } from "@/components/Toast";
+import * as yup from "yup";
 
 const NewOrder = () => {
     const [loadingSkeleton, setLoadingSkeleton] = useState(false);
-    const [loadingButtonPicture, setLoadingButtonPicture] = useState(false);
     const [loadingButtonDetails, setLoadingButtonDetails] = useState(false);
     const [isFieldDisabled, setIsFieldDisabled] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
-    const [open, setOpen] = useState(true);
-    const router = useRouter();
-    const [products, setProducts] = useState<any>(null);
+    const [reset, setReset] = useState(false);
+    const { setLoading } = useLoadingContext();
 
     const formik = useFormik<any>({
         initialValues: {
@@ -45,18 +45,110 @@ const NewOrder = () => {
             orderDate: new Date(),
             shipDate: new Date(),
             shipAddress: "",
-            shipPrice: "",
-            discount: "",
-            totalPrice: "",
+            shipPrice: 0,
+            discount: 0,
+            totalPrice: 0,
             status: "Processing",
             paymentMethod: "",
             note: "",
             username: "",
+            orderUserId: "",
             orderDetails: [],
         },
-        validationSchema: Yup.object({}),
+        validationSchema: yup.object({
+            username: yup
+                .string()
+                .nullable()
+                .test(
+                    "username-valid",
+                    "order user is required!",
+                    function (value) {
+                        return (
+                            (this.parent.orderUserId !== null &&
+                                this.parent.orderUserId !== undefined &&
+                                this.parent.orderUserId.trim() !== "") ||
+                            (value !== null &&
+                                value !== undefined &&
+                                value.trim() !== "")
+                        );
+                    }
+                ),
+            orderDate: yup.date().nullable(),
+            shipDate: yup
+                .date()
+                .nullable()
+                .test(
+                    "is-greater",
+                    "Ship date must be greater than order date",
+                    function (value) {
+                        const { orderDate } = this.parent;
+                        if (!orderDate || !value) {
+                            return true;
+                        }
+
+                        const strippedOrderDate = stripSeconds(orderDate);
+                        const strippedShipDate = stripSeconds(value);
+                        return strippedShipDate > strippedOrderDate;
+                    }
+                ),
+            shipAddress: yup
+                .string()
+                .trim()
+                .nullable()
+                .max(200)
+                .matches(
+                    /^[\p{L}\d\s\/\-]*$/u,
+                    "Ship address only contains characters, number, space, slash and dash!"
+                ),
+            discount: yup.number().min(0).max(100).default(0),
+            shipPrice: yup.number().min(0).default(0),
+            paymentMethod: yup.string().trim().nullable(),
+            status: yup
+                .string()
+                .trim()
+                .nullable()
+                .oneOf(
+                    [
+                        "Pending payment processing",
+                        "Processing",
+                        "Shipped",
+                        "Delivered",
+                        "Cancelled",
+                    ],
+                    "Invalid order status"
+                )
+                .default("Processing"),
+            note: yup.string().trim().nullable(),
+            orderDetails: yup
+                .array()
+                .of(
+                    yup.object({
+                        key: yup.number(),
+                        _id: yup
+                            .string()
+                            .required("Product information is required"),
+                        numberOfFlowers: yup
+                            .mixed()
+                            .test(
+                                "numberOfFlowers-valid",
+                                "Invalid number of flowers' number format",
+                                (value) =>
+                                    typeof value === "number" &&
+                                    isIntegerNumber(value)
+                            )
+                            .test(
+                                "numberOfFlowers-value valid",
+                                "Number of flowers must be greater than 0",
+                                (value) => Number(value) > 0
+                            )
+                            .required("Number of flowers is required"),
+                    })
+                )
+                .min(1, "Order must have at least one product"),
+        }),
         onSubmit: async (values, helpers: any) => {
             try {
+                console.log(formik.values);
                 handleSubmit();
             } catch (err: any) {
                 helpers.setStatus({ success: false });
@@ -90,239 +182,105 @@ const NewOrder = () => {
             ...formik.values,
             orderDetails: productsDelete,
         });
-        // submitData({
-        //     ...caseDetail,
-        //     criminals: criminalsDelete,
-        //     wantedCriminalRequest: wantedsOfCase,
-        // });
     };
 
     const handleSubmit = async () => {
         try {
             setIsFieldDisabled(true);
             setLoadingButtonDetails(true);
-            // let { avatarLink, ...newCrimininal } = formik.values;
-            // newCrimininal = {
-            //     ...newCrimininal,
-            //     birthday:
-            //         newCrimininal.birthday &&
-            //         format(newCrimininal.birthday, "dd/MM/yyyy"),
-            //     fatherBirthday:
-            //         newCrimininal.fatherBirthday &&
-            //         format(newCrimininal.fatherBirthday, "dd/MM/yyyy"),
-            //     motherBirthday:
-            //         newCrimininal.motherBirthday &&
-            //         format(newCrimininal.motherBirthday, "dd/MM/yyyy"),
-            //     gender:
-            //         newCrimininal.gender === true ||
-            //         newCrimininal.gender === "true",
-            //     releaseDate:
-            //         newCrimininal.releaseDate &&
-            //         format(newCrimininal.releaseDate, "dd/MM/yyyy"),
-            //     status: Number(newCrimininal.status),
-            // };
-            // console.log(newCrimininal);
-            // await ordersApi.addOrder(newCrimininal, auth);
-            setSuccess("Thêm đơn hàng thành công.");
-            setError("");
-            setIsFieldDisabled(true);
-            setButtonDisabled(true);
+            const response = await FetchApi(
+                UrlConfig.order.create,
+                "POST",
+                true,
+                {
+                    ...formik.values,
+                    createdAt: undefined,
+                    createdBy: undefined,
+                    isDeleted: undefined,
+                    id: undefined,
+                    _id: undefined,
+                    __v: undefined,
+                    username:
+                        `${formik.values.username}`.trim() !== ""
+                            ? formik.values.username
+                            : undefined,
+                    orderUserId:
+                        `${formik.values.orderUserId}`.trim() !== ""
+                            ? formik.values.orderUserId
+                            : undefined,
+                    discount: parseInt(formik.values.discount, 10),
+                }
+            );
+            if (response.canRefreshToken === false) {
+                showToast(response.message, "warning");
+                setIsFieldDisabled(false);
+            } else if (response.succeeded) {
+                showToast("Add new order successfully!", "success");
+                formik.setValues({
+                    ...response.data,
+                    shipDate: new Date(response.data.shipDate),
+                    orderDate: new Date(response.data.orderDate),
+                });
+                setButtonDisabled(true);
+            } else {
+                showToast(response.message, "error");
+                setIsFieldDisabled(false);
+            }
         } catch (error: any) {
+            showToast(error.message, "error");
             setIsFieldDisabled(false);
-            setButtonDisabled(false);
-            setSuccess("");
-            setError(error.message);
             console.log(error);
         } finally {
             setLoadingButtonDetails(false);
         }
     };
 
-    const uploadImage = useCallback(
-        async (newImage: any) => {
-            try {
-                // const response = await imagesApi.uploadImage(newImage);
-                // formik.setValues({
-                //     ...formik.values,
-                //     avatar: response[0].filePath,
-                //     avatarLink: response[0].fileUrl,
-                // });
-                setSuccess("Thêm ảnh đại diện đơn hàng thành công.");
-                setError("");
-            } catch (error: any) {
-                setError(error.message);
-                setSuccess("");
-                console.log(error);
-            }
-        },
-        [formik.values]
-    );
-
-    const updateAccountPicture = useCallback(
-        async (newImage: any) => {
-            try {
-                setLoadingButtonPicture(true);
-                await uploadImage(newImage);
-                setOpen(true);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoadingButtonPicture(false);
-            }
-        },
-        [uploadImage]
-    );
-    const getProducts = () => {
-        setProducts([
-            {
-                _id: "6630456bfc13ae1b64a24116",
-                name: "Cheese - Brie, Triple Creme",
-                habitat: "Garden",
-                care: "Fusce consequat. Nulla nisl. Nunc nisl.",
-                starsTotal: 4.6,
-                feedbacksTotal: 786,
-                unitPrice: 123,
-                discount: 86,
-                quantity: 459,
-                soldQuantity: 270,
-                image: "https://th.bing.com/th/id/OIP.HSM7Z15cDV86T7YjP14MvQHaFF?pid=ImgDet&w=474&h=325&rs=1",
-                description:
-                    "Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
-                status: "Available",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Tanny Aspital",
-            },
-            {
-                _id: "6630456bfc13ae1b64a24111",
-                name: "Lobster - Tail 6 Oz",
-                habitat: "Outdoor",
-                care: "Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis.",
-                starsTotal: 3.6,
-                feedbacksTotal: 307,
-                unitPrice: 234,
-                discount: 42,
-                quantity: 512,
-                soldQuantity: 322,
-                image: "https://happyflower.vn/app/uploads/2019/12/RoseMixBaby-1024x1024.jpg",
-                description: "Mauris lacinia sapien quis libero.",
-                status: "Available",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Kathye Catterall",
-            },
-            {
-                _id: "6630456bfc13ae1b64a24222",
-                name: "Fenngreek Seed",
-                habitat: "Garden",
-                care: "Maecenas ut massa quis augue luctus tincidunt. Nulla mollis molestie lorem. Quisque ut erat.\n\nCurabitur gravida nisi at nibh. In hac habitasse platea dictumst. Aliquam augue quam, sollicitudin vitae, consectetuer eget, rutrum at, lorem.\n\nInteger tincidunt ante vel ipsum. Praesent blandit lacinia erat. Vestibulum sed magna at nunc commodo placerat.",
-                starsTotal: 0.8,
-                feedbacksTotal: 285,
-                unitPrice: 341,
-                discount: 34,
-                quantity: 616,
-                soldQuantity: 616,
-                image: "https://th.bing.com/th/id/R.f852bb117e8734ca0d7507781d76ad2e?rik=VtL1rYEsidWJsA&pid=ImgRaw&r=0",
-                description:
-                    "Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem. Duis aliquam convallis nunc. Proin at turpis a pede posuere nonummy. Integer non velit. Donec diam neque, vestibulum eget, vulputate ut, ultrices vel, augue.",
-                status: "Out of stock",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Tomas Gilkes",
-            },
-            {
-                _id: "66304519fc13ae1c4ca24110",
-                name: "Sobe - Orange Carrot",
-                habitat: "Garden",
-                care: "Morbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.\n\nFusce posuere felis sed lacus. Morbi sem mauris, laoreet ut, rhoncus aliquet, pulvinar sed, nisl. Nunc rhoncus dui vel sem.",
-                starsTotal: 1.9,
-                feedbacksTotal: 527,
-                unitPrice: 12,
-                discount: 99,
-                quantity: 147,
-                soldQuantity: 82,
-                image: "https://kenh14cdn.com/203336854389633024/2022/6/24/28819457758119662555006784473793327460682657n-16560409210941971678623.jpeg",
-                description:
-                    "Morbi odio odio, elementum eu, interdum eu, tincidunt in, leo. Maecenas pulvinar lobortis est. Phasellus sit amet erat. Nulla tempus. Vivamus in felis eu sapien cursus vestibulum. Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem. Duis aliquam convallis nunc. Proin at turpis a pede posuere nonummy.",
-                status: "Available",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Gretel Hune",
-            },
-            {
-                _id: "6630456bfc13ae1b64a24114",
-                name: "Soup - Campbells Chili Veg",
-                habitat: "Outdoor",
-                care: "Sed ante. Vivamus tortor. Duis mattis egestas metus.\n\nAenean fermentum. Donec ut mauris eget massa tempor convallis. Nulla neque libero, convallis eget, eleifend luctus, ultricies eu, nibh.\n\nQuisque id justo sit amet sapien dignissim vestibulum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nulla dapibus dolor vel est. Donec odio justo, sollicitudin ut, suscipit a, feugiat et, eros.",
-                starsTotal: 2.9,
-                feedbacksTotal: 405,
-                unitPrice: 100,
-                discount: 41,
-                quantity: 499,
-                soldQuantity: 499,
-                image: "https://th.bing.com/th/id/R.457063810526b38ec9be488a3e4f82b7?rik=ClllxYWMdKyCbw&pid=ImgRaw&r=0",
-                description:
-                    "Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat. In congue. Etiam justo. Etiam pretium iaculis justo. In hac habitasse platea dictumst.",
-                status: "Out of stock",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Matthias Inkpen",
-            },
-            {
-                _id: "6630b7a9ab6bbcc0cc10be20",
-                name: "Hoa đẹp cho khai trương",
-                habitat: "Thoáng mát, tránh ánh nắng mặt trời",
-                care: "Sed ante. Vivamus tortor. Duis mattis egestas metus.\n\nAenean fermentum. Donec ut mauris eget massa tempor convallis. Nulla neque libero, convallis eget, eleifend luctus, ultricies eu, nibh.\n\nQuisque id justo sit amet sapien dignissim vestibulum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nulla dapibus dolor vel est. Donec odio justo, sollicitudin ut, suscipit a, feugiat et, eros.",
-                starsTotal: 2.9,
-                feedbacksTotal: 405,
-                unitPrice: 100,
-                discount: 41,
-                quantity: 499,
-                soldQuantity: 499,
-                image: "https://th.bing.com/th/id/R.76f43775a11bfc3923c3cf2742a2e34e?rik=lCE4wtCIaWpwIg&pid=ImgRaw&r=0",
-                description:
-                    "Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat. In congue. Etiam justo. Etiam pretium iaculis justo. In hac habitasse platea dictumst.",
-                status: "Out of stock",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Matthias Inkpen",
-            },
-            {
-                _id: "6630b7e7ab6bbcc0cc10be22",
-                name: "Hoa huệ trưng bày",
-                habitat: "Thoáng mát, tránh ánh nắng mặt trời",
-                care: "Sed ante. Vivamus tortor. Duis mattis egestas metus.\n\nAenean fermentum. Donec ut mauris eget massa tempor convallis. Nulla neque libero, convallis eget, eleifend luctus, ultricies eu, nibh.\n\nQuisque id justo sit amet sapien dignissim vestibulum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nulla dapibus dolor vel est. Donec odio justo, sollicitudin ut, suscipit a, feugiat et, eros.",
-                starsTotal: 2.9,
-                feedbacksTotal: 405,
-                unitPrice: 100,
-                discount: 41,
-                quantity: 499,
-                soldQuantity: 499,
-                image: "https://th.bing.com/th/id/OIP.iJhafhQFYopOv4bZc7QOsAHaFh?rs=1&pid=ImgDetMain",
-                description:
-                    "Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat. In congue. Etiam justo. Etiam pretium iaculis justo. In hac habitasse platea dictumst.",
-                status: "Out of stock",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Matthias Inkpen",
-            },
-            {
-                _id: "6630ba23ab6bbcc0cc10be2c",
-                name: "Hoa mai trang trí nhà cửa",
-                habitat: "Thoáng mát, tránh ánh nắng mặt trời",
-                care: "Tưới nước ấm thường xuyên",
-                starsTotal: 3,
-                feedbacksTotal: 405,
-                unitPrice: 100,
-                discount: 50,
-                quantity: 499,
-                soldQuantity: 499,
-                image: "https://product.hstatic.net/1000075734/product/z2263784349173_217f043c2489235a996b35d1222a4071_e69a60258edf485398d296858a85e2de_master.jpg",
-                description:
-                    "Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat. In congue. Etiam justo. Etiam pretium iaculis justo. In hac habitasse platea dictumst.",
-                status: "Out of stock",
-                createdAt: "2023-12-01T00:00:00Z",
-                createdBy: "Matthias Inkpen",
-            },
-        ]);
+    const handleAddOtherOrder = () => {
+        setButtonDisabled(false);
+        setIsFieldDisabled(false);
     };
 
+    const handleReset = (e: any) => {
+        formik.handleReset(e);
+        setReset(!reset);
+        formik.setErrors({});
+        formik.setTouched({}, false);
+    };
+
+    useEffect(() => console.log("touched", formik.touched), [formik.touched]);
+    useEffect(() => console.log(formik.values), [formik.values]);
+    useEffect(() => console.log(formik.errors), [formik.errors]);
+
     useEffect(() => {
-        getProducts();
-    }, []);
+        const totalProductPrice = formik.values.orderDetails.reduce(
+            (acc: number, val: any) => {
+                const validNumberOfFlowers = isNumberic(val.numberOfFlowers)
+                    ? val.numberOfFlowers
+                    : `${val.numberOfFlowers}`.trim() === ""
+                    ? 0
+                    : NaN;
+
+                const itemTotal = val._id
+                    ? val.unitPrice *
+                      (1 - val.discount / 100) *
+                      validNumberOfFlowers
+                    : 0;
+
+                return acc + itemTotal;
+            },
+            0
+        );
+
+        const totalPrice =
+            (totalProductPrice + formik.values.shipPrice) *
+            (1 - formik.values.discount / 100);
+
+        formik.setFieldValue("totalPrice", parseFloat(totalPrice.toFixed(2)));
+    }, [
+        formik.values.discount,
+        formik.values.shipPrice,
+        formik.values.orderDetails,
+    ]);
 
     return (
         <>
@@ -366,6 +324,7 @@ const NewOrder = () => {
                                                 alignItems: "center",
                                             }}
                                             href="/order"
+                                            onClick={() => setLoading(true)}
                                             color="text.primary"
                                         >
                                             <Typography
@@ -405,20 +364,18 @@ const NewOrder = () => {
                                             formik={formik}
                                             loadingSkeleton={loadingSkeleton}
                                             isFieldDisabled={isFieldDisabled}
+                                            reset={reset}
                                         />
                                     </Grid>
                                     <Grid xs={12} md={12} lg={12}>
                                         <NewOrderProducts
-                                            productInfos={
-                                                formik.values?.orderDetails
-                                            }
-                                            products={products}
-                                            // handleSubmit = {() => {}}
+                                            formik={formik}
+                                            loadingSkeleton={loadingSkeleton}
                                             handleAddProduct={handleAddProduct}
                                             handleDeleteProduct={
                                                 handleDeleteProduct
                                             }
-                                            // isSubmitting = {}
+                                            isFieldDisabled={isFieldDisabled}
                                         />
                                     </Grid>
 
@@ -429,9 +386,36 @@ const NewOrder = () => {
                                             alignItems="center"
                                             spacing={1}
                                         >
-                                            {formik.isSubmitting ||
-                                            loadingButtonDetails ? (
+                                            {buttonDisabled ? (
                                                 <>
+                                                    <LoadingButton
+                                                        loading={
+                                                            formik.isSubmitting ||
+                                                            loadingButtonDetails
+                                                        }
+                                                        onClick={(e) => {
+                                                            handleReset(e);
+                                                            handleAddOtherOrder();
+                                                        }}
+                                                        size="medium"
+                                                        variant="contained"
+                                                    >
+                                                        Thêm đơn hàng khác
+                                                    </LoadingButton>
+                                                </>
+                                            ) : formik.isSubmitting ||
+                                              loadingButtonDetails ? (
+                                                <>
+                                                    <Button
+                                                        disabled={
+                                                            formik.isSubmitting ||
+                                                            loadingButtonDetails
+                                                        }
+                                                        variant="outlined"
+                                                        color="error"
+                                                    >
+                                                        Khôi phục biểu mẫu
+                                                    </Button>
                                                     <LoadingButton
                                                         disabled
                                                         loading={
@@ -443,32 +427,25 @@ const NewOrder = () => {
                                                     >
                                                         Thêm đơn hàng
                                                     </LoadingButton>
-                                                    <Button
-                                                        disabled={
-                                                            formik.isSubmitting ||
-                                                            loadingButtonPicture ||
-                                                            loadingButtonDetails ||
-                                                            buttonDisabled
-                                                        }
-                                                        variant="outlined"
-                                                        component={NextLink}
-                                                        href="/order"
-                                                        sx={{
-                                                            color: "neutral.500",
-                                                            borderColor:
-                                                                "neutral.500",
-                                                        }}
-                                                    >
-                                                        Huỷ
-                                                    </Button>
                                                 </>
                                             ) : (
                                                 <>
                                                     <Button
                                                         disabled={
                                                             formik.isSubmitting ||
-                                                            loadingButtonPicture ||
-                                                            buttonDisabled
+                                                            loadingButtonDetails
+                                                        }
+                                                        variant="outlined"
+                                                        onClick={(e) => {
+                                                            handleReset(e);
+                                                        }}
+                                                        color="error"
+                                                    >
+                                                        Khôi phục biểu mẫu
+                                                    </Button>
+                                                    <Button
+                                                        disabled={
+                                                            formik.isSubmitting
                                                         }
                                                         type="submit"
                                                         variant="contained"
@@ -478,24 +455,14 @@ const NewOrder = () => {
                                                     <Button
                                                         disabled={
                                                             formik.isSubmitting ||
-                                                            loadingButtonPicture ||
-                                                            loadingButtonDetails ||
-                                                            buttonDisabled
+                                                            loadingButtonDetails
                                                         }
                                                         variant="outlined"
                                                         component={NextLink}
+                                                        onClick={() =>
+                                                            setLoading(true)
+                                                        }
                                                         href="/order"
-                                                        sx={{
-                                                            color: "neutral.500",
-                                                            borderColor:
-                                                                "neutral.500",
-                                                            "&:hover": {
-                                                                borderColor:
-                                                                    "neutral.600",
-                                                                backgroundColor:
-                                                                    "neutral.100",
-                                                            },
-                                                        }}
                                                     >
                                                         Huỷ
                                                     </Button>
@@ -504,96 +471,6 @@ const NewOrder = () => {
                                         </Stack>
                                     </Grid>
                                 </Grid>
-                            </div>
-                            <div>
-                                {success && (
-                                    <Collapse in={open}>
-                                        <Snackbar
-                                            open={open}
-                                            autoHideDuration={6000}
-                                            onClose={() => setOpen(false)}
-                                            anchorOrigin={{
-                                                vertical: "top",
-                                                horizontal: "center",
-                                            }}
-                                        >
-                                            <Alert
-                                                variant="outlined"
-                                                severity="success"
-                                                action={
-                                                    <IconButton
-                                                        aria-label="close"
-                                                        color="success"
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setOpen(false);
-                                                            router.push(
-                                                                "/order"
-                                                            );
-                                                        }}
-                                                    >
-                                                        <CloseIcon fontSize="inherit" />
-                                                    </IconButton>
-                                                }
-                                                sx={{
-                                                    mt: 2,
-                                                    borderRadius: "12px",
-                                                }}
-                                            >
-                                                <Typography
-                                                    color="success"
-                                                    variant="subtitle2"
-                                                >
-                                                    {success}
-                                                </Typography>
-                                            </Alert>
-                                        </Snackbar>
-                                    </Collapse>
-                                )}
-                                {error && (
-                                    <Collapse in={open}>
-                                        <Snackbar
-                                            open={open}
-                                            autoHideDuration={6000}
-                                            onClose={() => setOpen(false)}
-                                            anchorOrigin={{
-                                                vertical: "top",
-                                                horizontal: "center",
-                                            }}
-                                        >
-                                            <Alert
-                                                variant="outlined"
-                                                severity="error"
-                                                action={
-                                                    <IconButton
-                                                        aria-label="close"
-                                                        color="error"
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setOpen(false);
-                                                            router.push(
-                                                                "/order"
-                                                            );
-                                                        }}
-                                                    >
-                                                        <CloseIcon fontSize="inherit" />
-                                                    </IconButton>
-                                                }
-                                                sx={{
-                                                    mt: 2,
-                                                    borderRadius: "12px",
-                                                }}
-                                            >
-                                                <Typography
-                                                    color="error"
-                                                    variant="subtitle2"
-                                                >
-                                                    {error}
-                                                </Typography>
-                                            </Alert>
-                                        </Snackbar>
-                                    </Collapse>
-                                )}
                             </div>
                         </Stack>
                     </Container>

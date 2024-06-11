@@ -35,14 +35,23 @@ const schemas = {
     CreateOrderSchema: yup.object({
         body: yup
             .object({
-                orderUserId: yup
+                orderUserId: yup.string().nullable(),
+                username: yup
                     .string()
-                    .trim()
-                    .required()
+                    .nullable()
                     .test(
-                        "is-objectid",
-                        "Invalid order user id format",
-                        (value) => mongoose.Types.ObjectId.isValid(value)
+                        "username-valid",
+                        "order user is required!",
+                        function (value) {
+                            return (
+                                (this.parent.orderUserId !== null &&
+                                    this.parent.orderUserId !== undefined &&
+                                    this.parent.orderUserId.trim() !== "") ||
+                                (value !== null &&
+                                    value !== undefined &&
+                                    value.trim() !== "")
+                            );
+                        }
                     ),
                 // orderDate: yup.date()
                 // .transform((value, originalValue) => {
@@ -59,7 +68,7 @@ const schemas = {
                     .nullable()
                     .max(200)
                     .matches(
-                        /^[\p{L}\d\s\/\-]+$/u,
+                        /^[\p{L}\d\s\/\-]*$/u,
                         "Ship address only contains characters, number, space, slash and dash!"
                     ),
                 discount: yup.number().min(0).max(100).default(0),
@@ -93,10 +102,10 @@ const schemas = {
                                 return (
                                     value.filter(
                                         (v) =>
-                                            typeof v.flowerId !== "string" ||
-                                            v.flowerId.trim() === "" ||
+                                            typeof v._id !== "string" ||
+                                            v._id.trim() === "" ||
                                             !mongoose.Types.ObjectId.isValid(
-                                                v.flowerId
+                                                v._id
                                             )
                                     ).length === 0
                                 );
@@ -165,7 +174,7 @@ const schemas = {
                     .nullable()
                     .max(200)
                     .matches(
-                        /^[\p{L}\d\s\/\-]+$/u,
+                        /^[\p{L}\d\s\/\-]*$/u,
                         "Ship address only contains characters, number, space, slash and dash!"
                     ),
                 discount: yup.number().min(0).max(100).default(0),
@@ -199,10 +208,10 @@ const schemas = {
                                 return (
                                     value.filter(
                                         (v) =>
-                                            typeof v.flowerId !== "string" ||
-                                            v.flowerId.trim() === "" ||
+                                            typeof v._id !== "string" ||
+                                            v._id.trim() === "" ||
                                             !mongoose.Types.ObjectId.isValid(
-                                                v.flowerId
+                                                v._id
                                             )
                                     ).length === 0
                                 );

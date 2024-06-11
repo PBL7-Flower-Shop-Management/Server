@@ -150,3 +150,10 @@ export const generateRandomColor = () => {
     }
     return color;
 };
+
+export const stripSeconds = (date: any) => {
+    if (!date) return date;
+    const newDate = new Date(date.getTime());
+    newDate.setSeconds(0, 0);
+    return newDate;
+};

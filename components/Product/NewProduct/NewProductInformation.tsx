@@ -77,7 +77,7 @@ const NewProductInformation = (props: any) => {
                         {
                             label: "Tên sản phẩm",
                             name: "name",
-                            md: 8,
+                            md: 12,
                             required: true,
                         },
                         {
@@ -99,17 +99,17 @@ const NewProductInformation = (props: any) => {
                         {
                             label: "Đơn giá ($)",
                             name: "unitPrice",
-                            md: 3,
+                            md: 4,
                         },
                         {
                             label: "Giảm giá (%)",
                             name: "discount",
-                            md: 3,
+                            md: 4,
                         },
                         {
                             label: "Số lượng",
                             name: "quantity",
-                            md: 3,
+                            md: 4,
                         },
                         {
                             label: "Mô tả",
@@ -144,6 +144,7 @@ const NewProductInformation = (props: any) => {
                                     // name={field.name}
                                     // label={field.label}
                                     disablePortal
+                                    disableCloseOnSelect
                                     fullWidth
                                     options={categories}
                                     getOptionLabel={(option: any) =>

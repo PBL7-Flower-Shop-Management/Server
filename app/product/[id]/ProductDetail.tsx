@@ -73,8 +73,9 @@ const ProductDetail = ({ params }: any) => {
             unitPrice: yup
                 .number()
                 .typeError("unitPrice must be a number")
-                .min(0)
-                .default(0),
+                .required("unitPrice is required")
+                .positive("unitPrice must greater than 0")
+                .typeError("unitPrice must be a number"),
             discount: yup
                 .number()
                 .typeError("discount must be a number")

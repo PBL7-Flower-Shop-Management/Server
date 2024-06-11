@@ -148,6 +148,7 @@ const schemas = {
     GetAllAccountSchema: yup.object({
         query: yup
             .object({
+                getCustomer: yup.boolean().nullable().default(false),
                 keyword: yup
                     .string()
                     .trim()

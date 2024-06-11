@@ -41,7 +41,8 @@ class AccountService {
                     {
                         $match: {
                             isDeleted: false,
-                            ...(userRole === roleMap.Employee && {
+                            ...((userRole === roleMap.Employee ||
+                                query.getCustomer) && {
                                 role: roleMap.Customer,
                             }),
                         },

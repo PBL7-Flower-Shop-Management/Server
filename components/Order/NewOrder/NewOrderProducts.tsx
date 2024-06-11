@@ -1,32 +1,63 @@
-import { Box, Button, Card, CardContent, SvgIcon } from "@mui/material";
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    FormHelperText,
+    SvgIcon,
+} from "@mui/material";
 import NewOrderProduct from "./NewOrderProduct";
 import { Space } from "antd";
 import PlusIcon from "@mui/icons-material/Add";
+import { useEffect, useState } from "react";
+import { FetchApi } from "@/utils/FetchApi";
+import UrlConfig from "@/config/UrlConfig";
+import { showToast } from "@/components/Toast";
+import { useLoadingContext } from "@/contexts/LoadingContext";
+import { isNumberic } from "@/utils/helper";
 
 const NewOrderProducts = (props: any) => {
     const {
-        productInfos,
-        products,
-        loading,
-        handleSubmit,
+        formik,
+        loadingSkeleton,
         handleAddProduct,
         handleDeleteProduct,
-        canEdit,
-        isSubmitting,
+        isFieldDisabled,
     } = props;
 
-    const handleSubmitInfo = (index: any, values: any) => {
-        console.log("submit info");
-        console.log([
-            ...productInfos.slice(0, index),
-            { ...values },
-            ...productInfos.slice(index + 1),
-        ]);
-        handleSubmit([
-            ...productInfos.slice(0, index),
-            { ...values },
-            ...productInfos.slice(index + 1),
-        ]);
+    const [products, setProducts] = useState<any>([]);
+    const { setLoading } = useLoadingContext();
+
+    const getProducts = async () => {
+        setLoading(true);
+        const response = await FetchApi(
+            UrlConfig.flower.getAll + "?isExport=true",
+            "GET",
+            true
+        );
+        if (response.canRefreshToken === false) {
+            showToast(response.message, "warning");
+        } else if (response.succeeded) {
+            setProducts(response.data);
+        } else {
+            showToast(response.message, "error");
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        getProducts();
+    }, []);
+
+    const handleUpdateOrderDetails = (index: any, field: any, value: any) => {
+        if (field === "all")
+            formik.setFieldValue(`orderDetails[${index}]`, value);
+        else if (field === "numberOfFlowers")
+            formik.setFieldValue(
+                `orderDetails[${index}].${field}`,
+                isNumberic(value) ? parseInt(value, 10) : value
+            );
+        else formik.setFieldValue(`orderDetails[${index}].${field}`, value);
     };
 
     return (
@@ -46,37 +77,64 @@ const NewOrderProducts = (props: any) => {
                         display: "flex",
                     }}
                 >
-                    {productInfos &&
-                        productInfos.map((product: any, index: any) => {
-                            return (
-                                <NewOrderProduct
-                                    key={product.key}
-                                    product={product}
-                                    products={products}
-                                    productsOfOrder={productInfos}
-                                    index={index}
-                                    loading={loading}
-                                    handleSubmit={(values: any) =>
-                                        handleSubmitInfo(index, values)
-                                    }
-                                    handleDeleteProduct={handleDeleteProduct}
-                                    canEdit={canEdit}
-                                />
-                            );
-                        })}
+                    {formik.values.orderDetails &&
+                        formik.values.orderDetails.map(
+                            (product: any, index: any) => {
+                                return (
+                                    <NewOrderProduct
+                                        key={product.key}
+                                        product={product}
+                                        error={
+                                            formik.errors.orderDetails?.[index]
+                                        }
+                                        touched={
+                                            formik.touched.orderDetails?.[index]
+                                        }
+                                        products={products}
+                                        orderDetails={
+                                            formik.values.orderDetails
+                                        }
+                                        index={index}
+                                        loading={loadingSkeleton}
+                                        handleChangeProduct={(
+                                            key: any,
+                                            value: any
+                                        ) =>
+                                            handleUpdateOrderDetails(
+                                                index,
+                                                key,
+                                                value
+                                            )
+                                        }
+                                        handleDeleteProduct={
+                                            handleDeleteProduct
+                                        }
+                                        isFieldDisabled={isFieldDisabled}
+                                    />
+                                );
+                            }
+                        )}
                 </Space>
-                <Button
-                    onClick={handleAddProduct}
-                    startIcon={
-                        <SvgIcon fontSize="small">
-                            <PlusIcon />
-                        </SvgIcon>
-                    }
-                    // sx={{ marginTop: 2 }}
-                    // variant="contained"
-                >
-                    Thêm sản phẩm
-                </Button>
+                <Box>
+                    {typeof formik.errors["orderDetails"] === "string" &&
+                        formik.touched["orderDetails"] && (
+                            <FormHelperText error>
+                                {formik.errors["orderDetails"]}
+                            </FormHelperText>
+                        )}
+                </Box>
+                {!isFieldDisabled && (
+                    <Button
+                        onClick={handleAddProduct}
+                        startIcon={
+                            <SvgIcon fontSize="small">
+                                <PlusIcon />
+                            </SvgIcon>
+                        }
+                    >
+                        Thêm sản phẩm
+                    </Button>
+                )}
             </CardContent>
         </Card>
     );
