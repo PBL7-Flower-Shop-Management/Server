@@ -59,7 +59,7 @@ class StatisticService {
                 ]);
 
                 const totalSales = await OrderModel.aggregate([
-                    { $match: { isDeleted: false } },
+                    { $match: { status: orderStatusMap.Delivered } },
                     {
                         $project: {
                             totalPrice: 1,
@@ -102,7 +102,6 @@ class StatisticService {
                 const evolutionOfRevenue = await OrderModel.aggregate([
                     {
                         $match: {
-                            isDeleted: false,
                             status: orderStatusMap.Delivered,
                             ...(year !== null &&
                                 year !== undefined && {
@@ -243,9 +242,6 @@ class StatisticService {
                                             $and: [
                                                 {
                                                     $eq: ["$_id", "$$orderId"],
-                                                },
-                                                {
-                                                    $eq: ["$isDeleted", false],
                                                 },
                                                 {
                                                     $eq: [
@@ -439,7 +435,6 @@ class StatisticService {
                 let minShipDateYear = await OrderModel.aggregate([
                     {
                         $match: {
-                            isDeleted: false,
                             status: orderStatusMap.Delivered,
                         },
                     },
