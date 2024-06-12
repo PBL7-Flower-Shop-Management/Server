@@ -282,7 +282,7 @@ export const POST = async (req: NextRequest) => {
             ({ req, body: body } = TrimRequest.all(req, null, body));
             await validate(schemas.CreateOrderSchema)(null, null, body);
             body.createdBy = userToken.user.username;
-            return await OrderController.CreateOrder(body, userToken.user.role);
+            return await OrderController.CreateOrder(body, userToken.user);
         });
     } catch (error: any) {
         return ErrorHandler(error);
@@ -296,7 +296,7 @@ export const PUT = async (req: NextRequest) => {
             ({ req, body: body } = TrimRequest.all(req, null, body));
             await validate(schemas.UpdateOrderSchema)(null, null, body);
             body.updatedBy = userToken.user.username;
-            return await OrderController.UpdateOrder(body, userToken.user.role);
+            return await OrderController.UpdateOrder(body, userToken.user);
         });
     } catch (error: any) {
         return ErrorHandler(error);

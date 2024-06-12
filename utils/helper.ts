@@ -153,7 +153,10 @@ export const generateRandomColor = () => {
 
 export const stripSeconds = (date: any) => {
     if (!date) return date;
-    const newDate = new Date(date.getTime());
+    const newDate =
+        typeof date === "string"
+            ? new Date(new Date(date).getTime())
+            : new Date(date.getTime());
     newDate.setSeconds(0, 0);
     return newDate;
 };

@@ -172,7 +172,7 @@ class OrderService {
         });
     }
 
-    async CreateOrder(order: any, userRole: string): Promise<ApiResponse> {
+    async CreateOrder(order: any, user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
@@ -182,13 +182,32 @@ class OrderService {
                 maxTimeMS: 5000, // Adjust the timeout as needed
             });
             try {
-                if (userRole === roleMap.Customer && !order.orderUserId)
-                    return reject(
-                        new ApiResponse({
-                            status: HttpStatus.BAD_REQUEST,
-                            message: "orderUserId field is required!",
-                        })
-                    );
+                if (user.role === roleMap.Customer) {
+                    if (order.orderUserId || order.username)
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.BAD_REQUEST,
+                                message:
+                                    "orderUserId or username field is unknown!",
+                            })
+                        );
+                    else order.orderUserId = user._id;
+                } else {
+                    if (
+                        (order.orderUserId === null ||
+                            order.orderUserId === undefined ||
+                            `${order.orderUserId}`.trim() === "") &&
+                        (order.username === null ||
+                            order.username === undefined ||
+                            `${order.username}`.trim() === "")
+                    )
+                        return reject(
+                            new ApiResponse({
+                                status: HttpStatus.BAD_REQUEST,
+                                message: "Order user is required!",
+                            })
+                        );
+                }
 
                 if (order.orderUserId) {
                     const userDb = await AccountModel.findOne({
@@ -211,17 +230,6 @@ class OrderService {
                                     "Order user don't exist or haven't been actived account!",
                             })
                         );
-                    }
-
-                    if (userRole === roleMap.Customer) {
-                        if (userDb.username !== order.createdBy)
-                            return reject(
-                                new ApiResponse({
-                                    status: HttpStatus.FORBIDDEN,
-                                    message:
-                                        "You don't have access to create order for other user!",
-                                })
-                            );
                     }
                 }
 
@@ -302,7 +310,7 @@ class OrderService {
         });
     }
 
-    async UpdateOrder(order: any, userRole: string): Promise<ApiResponse> {
+    async UpdateOrder(order: any, user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             await connectToDB();
             const session = await mongoose.startSession();
@@ -324,48 +332,6 @@ class OrderService {
                             message: "Order not found!",
                         })
                     );
-
-                if (userRole === roleMap.Customer && !order.orderUserId)
-                    return reject(
-                        new ApiResponse({
-                            status: HttpStatus.BAD_REQUEST,
-                            message: "orderUserId field is required!",
-                        })
-                    );
-
-                if (order.orderUserId) {
-                    if (userRole === roleMap.Customer) {
-                        const userDb = await AccountModel.findOne({
-                            userId: orderDb.orderUserId,
-                            isDeleted: false,
-                            isActived: true,
-                        });
-
-                        if (
-                            !(await UserModel.findOne({
-                                _id: orderDb.orderUserId,
-                                isDeleted: false,
-                            })) ||
-                            !userDb
-                        )
-                            return reject(
-                                new ApiResponse({
-                                    status: HttpStatus.NOT_FOUND,
-                                    message:
-                                        "Order user don't exist or haven't been actived account!",
-                                })
-                            );
-
-                        if (userDb.username !== order.updatedBy)
-                            return reject(
-                                new ApiResponse({
-                                    status: HttpStatus.FORBIDDEN,
-                                    message:
-                                        "You don't have access to update order of other user!",
-                                })
-                            );
-                    }
-                }
 
                 if (
                     orderDb.status === orderStatusMap.Delivered ||
@@ -458,6 +424,7 @@ class OrderService {
                 const remainingDetailIds = Array.from(
                     existingOrderDetailsMap.keys()
                 );
+
                 await OrderDetailModel.deleteMany({
                     orderId: updatedOrder._id,
                     flowerId: { $in: remainingDetailIds },
@@ -465,6 +432,17 @@ class OrderService {
 
                 let updatedObj = updatedOrder.toObject();
                 updatedObj.orderDetails = order.orderDetails;
+
+                updatedObj.username = "";
+                if (orderDb.orderUserId) {
+                    const acc = await AccountModel.findOne({
+                        userId: orderDb.orderUserId,
+                    });
+                    if (acc) updatedObj.username = acc.username;
+                } else
+                    updatedObj.username = orderDb.username
+                        ? orderDb.username
+                        : "";
 
                 await session.commitTransaction();
 
@@ -509,6 +487,9 @@ class OrderService {
                     {
                         $project: {
                             orderUserId: 1,
+                            username: {
+                                $ifNull: ["$orderUserId", "$username"],
+                            },
                             orderDate: 1,
                             shipDate: 1,
                             shipAddress: 1,
@@ -531,25 +512,27 @@ class OrderService {
                         })
                     );
 
-                const userDb = await AccountModel.findOne({
-                    userId: orders[0].orderUserId,
-                });
+                if (orders[0].orderUserId) {
+                    const userDb = await AccountModel.findOne({
+                        userId: orders[0].orderUserId,
+                    });
 
-                if (!userDb) orders[0].username = "";
-                else {
-                    if (user.role === roleMap.Customer) {
-                        if (user.username !== userDb.username)
-                            return reject(
-                                new ApiResponse({
-                                    status: HttpStatus.FORBIDDEN,
-                                    message:
-                                        "You don't have access to view order detail of other user",
-                                })
-                            );
-                    } else orders[0].username = userDb.username;
+                    if (!userDb) orders[0].username = "";
+                    else {
+                        if (user.role === roleMap.Customer) {
+                            if (user.username !== orders[0].username)
+                                return reject(
+                                    new ApiResponse({
+                                        status: HttpStatus.FORBIDDEN,
+                                        message:
+                                            "You don't have access to view order detail of other user",
+                                    })
+                                );
+                        } else orders[0].username = userDb.username;
+                    }
+
+                    orders[0].orderUserId = undefined;
                 }
-
-                orders[0].orderUserId = undefined;
 
                 for (let i = 0; i < orders[0].orderDetails.length; i++) {
                     let orderDetail = orders[0].orderDetails[i];

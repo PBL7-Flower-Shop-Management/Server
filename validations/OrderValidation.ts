@@ -1,4 +1,4 @@
-import { isIntegerNumber } from "@/utils/helper";
+import { isIntegerNumber, stripSeconds } from "@/utils/helper";
 import mongoose from "mongoose";
 import * as yup from "yup";
 
@@ -36,32 +36,25 @@ const schemas = {
         body: yup
             .object({
                 orderUserId: yup.string().nullable(),
-                username: yup
+                username: yup.string().nullable(),
+                orderDate: yup.string().nullable(),
+                shipDate: yup
                     .string()
                     .nullable()
                     .test(
-                        "username-valid",
-                        "order user is required!",
+                        "is-greater",
+                        "Ship date must be greater than order date",
                         function (value) {
-                            return (
-                                (this.parent.orderUserId !== null &&
-                                    this.parent.orderUserId !== undefined &&
-                                    this.parent.orderUserId.trim() !== "") ||
-                                (value !== null &&
-                                    value !== undefined &&
-                                    value.trim() !== "")
-                            );
+                            const { orderDate } = this.parent;
+                            if (!orderDate || !value) {
+                                return true;
+                            }
+
+                            const strippedOrderDate = stripSeconds(orderDate);
+                            const strippedShipDate = stripSeconds(value);
+                            return strippedShipDate > strippedOrderDate;
                         }
                     ),
-                // orderDate: yup.date()
-                // .transform((value, originalValue) => {
-                //   // Transform string to Date if it's not already a Date object
-                //   return originalValue ? new Date(originalValue) : null;
-                // })
-                // .nullable(),
-                // shipDate: yup.date().nullable(),
-                orderDate: yup.string().trim().nullable(),
-                shipDate: yup.string().trim().nullable(),
                 shipAddress: yup
                     .string()
                     .trim()
@@ -93,7 +86,7 @@ const schemas = {
                 note: yup.string().trim().nullable(),
                 orderDetails: yup
                     .array()
-                    .nullable()
+                    .min(1, "Order must have at least one product")
                     .test(
                         "flowerid-valid",
                         "Invalid flower id format in list of products",
@@ -159,15 +152,24 @@ const schemas = {
                     .test("is-objectid", "Invalid order id format", (value) =>
                         mongoose.Types.ObjectId.isValid(value)
                     ),
-                // orderDate: yup.date()
-                // .transform((value, originalValue) => {
-                //   // Transform string to Date if it's not already a Date object
-                //   return originalValue ? new Date(originalValue) : null;
-                // })
-                // .nullable(),
-                // shipDate: yup.date().nullable(),
-                orderDate: yup.string().trim().nullable(),
-                shipDate: yup.string().trim().nullable(),
+                orderDate: yup.string().nullable(),
+                shipDate: yup
+                    .string()
+                    .nullable()
+                    .test(
+                        "is-greater",
+                        "Ship date must be greater than order date",
+                        function (value) {
+                            const { orderDate } = this.parent;
+                            if (!orderDate || !value) {
+                                return true;
+                            }
+
+                            const strippedOrderDate = stripSeconds(orderDate);
+                            const strippedShipDate = stripSeconds(value);
+                            return strippedShipDate > strippedOrderDate;
+                        }
+                    ),
                 shipAddress: yup
                     .string()
                     .trim()
@@ -199,7 +201,7 @@ const schemas = {
                 note: yup.string().trim().nullable(),
                 orderDetails: yup
                     .array()
-                    .nullable()
+                    .min(1, "Order must have at least one product")
                     .test(
                         "flowerid-valid",
                         "Invalid flower id format in list of products",

@@ -5,7 +5,7 @@ const TopBarInfoContext = createContext<any>(undefined);
 
 export const TopBarInfoProvider = ({ children }: any) => {
     const [userInfo, setUserInfo] = useState({});
-    useEffect(() => console.log(userInfo), [userInfo]);
+    // useEffect(() => console.log(userInfo), [userInfo]);
     return (
         <TopBarInfoContext.Provider value={{ userInfo, setUserInfo }}>
             {children}

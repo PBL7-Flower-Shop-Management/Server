@@ -467,9 +467,6 @@ const NewOrderInformation = (props: any) => {
                                                 <option
                                                     key={value}
                                                     value={value}
-                                                    selected={
-                                                        value === field.selected
-                                                    }
                                                 >
                                                     {label as any}
                                                 </option>

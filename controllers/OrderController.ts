@@ -9,17 +9,17 @@ class OrderController {
         }
     }
 
-    async CreateOrder(body: any, userRole: string) {
+    async CreateOrder(body: any, user: any) {
         try {
-            return await OrderService.CreateOrder(body, userRole);
+            return await OrderService.CreateOrder(body, user);
         } catch (error) {
             throw error;
         }
     }
 
-    async UpdateOrder(body: any, userRole: string) {
+    async UpdateOrder(body: any, user: any) {
         try {
-            return await OrderService.UpdateOrder(body, userRole);
+            return await OrderService.UpdateOrder(body, user);
         } catch (error) {
             throw error;
         }

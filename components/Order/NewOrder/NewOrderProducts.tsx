@@ -45,10 +45,6 @@ const NewOrderProducts = (props: any) => {
         setLoading(false);
     };
 
-    useEffect(() => {
-        getProducts();
-    }, []);
-
     const handleUpdateOrderDetails = (index: any, field: any, value: any) => {
         if (field === "all")
             formik.setFieldValue(`orderDetails[${index}]`, value);
@@ -59,6 +55,10 @@ const NewOrderProducts = (props: any) => {
             );
         else formik.setFieldValue(`orderDetails[${index}].${field}`, value);
     };
+
+    useEffect(() => {
+        getProducts();
+    }, []);
 
     return (
         <Card

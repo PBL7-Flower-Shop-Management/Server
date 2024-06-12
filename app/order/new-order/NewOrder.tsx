@@ -22,12 +22,7 @@ import _ from "lodash";
 import { useLoadingContext } from "@/contexts/LoadingContext";
 import UrlConfig from "@/config/UrlConfig";
 import { FetchApi } from "@/utils/FetchApi";
-import {
-    appendJsonToFormData,
-    isIntegerNumber,
-    isNumberic,
-    stripSeconds,
-} from "@/utils/helper";
+import { isIntegerNumber, isNumberic, stripSeconds } from "@/utils/helper";
 import { showToast } from "@/components/Toast";
 import * as yup from "yup";
 
@@ -148,7 +143,6 @@ const NewOrder = () => {
         }),
         onSubmit: async (values, helpers: any) => {
             try {
-                console.log(formik.values);
                 handleSubmit();
             } catch (err: any) {
                 helpers.setStatus({ success: false });
@@ -246,10 +240,6 @@ const NewOrder = () => {
         formik.setErrors({});
         formik.setTouched({}, false);
     };
-
-    useEffect(() => console.log("touched", formik.touched), [formik.touched]);
-    useEffect(() => console.log(formik.values), [formik.values]);
-    useEffect(() => console.log(formik.errors), [formik.errors]);
 
     useEffect(() => {
         const totalProductPrice = formik.values.orderDetails.reduce(

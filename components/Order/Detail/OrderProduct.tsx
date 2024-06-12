@@ -15,36 +15,29 @@ import {
     DialogActions,
     Button as ButtonMUI,
 } from "@mui/material";
-// import * as constants from "../../../../constants/constants";
 import { Collapse, Button } from "antd";
 import { useState, useEffect } from "react";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import PencilSquareIcon from "@mui/icons-material/EditOutlined";
 import TrashIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import CheckCircleIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
-import XCircleIcon from "@mui/icons-material/CancelOutlined";
 import NextLink from "next/link";
-import { format, parse } from "date-fns";
-import { useFormik } from "formik";
-import * as Yup from "yup";
 
 const OrderProduct = (props: any) => {
     const {
         product,
+        error,
+        touched,
         products,
-        productsOfOrder,
+        orderDetails,
         index,
         loading,
-        handleSubmit,
+        handleChangeProduct,
         handleDeleteProduct,
-        canEdit,
+        isFieldDisabled,
     } = props;
-    const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
+
     const [isExpanded, setIsExpanded] = useState(false);
     const [options, setOptions] = useState([]);
     const [value, setValue] = useState<any>({});
     const [openDeletePopup, setOpenDeletePopup] = useState(false);
-    const [changesMade, setChangesMade] = useState(false);
 
     const getAllowedItems = (
         originalList: any,
@@ -73,167 +66,27 @@ const OrderProduct = (props: any) => {
         setOpenDeletePopup(true);
     };
 
-    useEffect(() => {
-        if (!product._id) {
-            setIsFieldDisabled(false);
-        }
-    }, [product]);
     const fillEmpty = () => {
-        if (!product._id) setChangesMade(false);
         setValue(null);
-        formik.setValues({
+        handleChangeProduct("all", {
             key: product.key,
             _id: null,
-            name: "",
-            anotherName: "",
-            birthday: "",
-            gender: "",
-            citizenId: "",
-            homeTown: "",
-            permanentResidence: "",
-            currentAccommodation: "",
-            nationality: "",
-            ethnicity: "",
-            charge: "",
-            reason: "",
-            testimony: "",
-            date: new Date(),
-            typeOfViolation: 0,
-            weapon: "",
+            numberOfFlowers: product.numberOfFlowers
+                ? product.numberOfFlowers
+                : "",
         });
-    };
-
-    const handleSubmitProduct = () => {
-        if (value === null) return;
-        console.log("changemade", changesMade);
-        console.log("submit", {
-            ...formik.values,
-            date:
-                formik.values.date &&
-                format(formik.values.date, "HH:mm dd/MM/yyyy"),
-        });
-        // e.stopPropagation();
-        setIsFieldDisabled((prev) => !prev);
-        if (changesMade) {
-            handleSubmit({
-                ...formik.values,
-                date:
-                    formik.values.date &&
-                    format(formik.values.date, "HH:mm dd/MM/yyyy"),
-                typeOfViolation:
-                    formik.values.typeOfViolation &&
-                    parseInt(formik.values.typeOfViolation, 10),
-            });
-        }
-    };
-
-    const handleCancelProduct = (e: any) => {
-        e.stopPropagation();
-        setIsFieldDisabled((prev) => !prev);
-        if (product._id) {
-            setValue(options.find((option: any) => option._id === product._id));
-
-            console.log("product on cancel: ", product);
-            console.log("value on cancel: ", value);
-            formik.setValues({
-                ...product,
-                date:
-                    product.date &&
-                    parse(product.date, "HH:mm dd/MM/yyyy", new Date()),
-                typeOfViolation: parseInt(product.typeOfViolation, 10),
-            });
-            setChangesMade(false);
-        } else fillEmpty();
-        formik.setTouched({}, false);
-    };
-
-    const handleEditProduct = (e: any) => {
-        e.stopPropagation();
-        setIsFieldDisabled((prev) => !prev);
-        setChangesMade(false);
     };
 
     useEffect(() => {
         if (products && product) {
             const options = getAllowedItems(
                 products,
-                productsOfOrder,
+                orderDetails,
                 product._id
             );
             setOptions(options);
         }
-    }, [product, productsOfOrder, products]);
-
-    useEffect(() => {
-        if (options) {
-            if (
-                changesMade &&
-                value &&
-                !options.find((option: any) => option._id === value._id)
-                // productsOfOrder.find((c) => c._id === value._id) &&
-                // formik.values.key &&
-                // productsOfOrder.find((c) => c._id === value._id).key !== formik.values.key
-            ) {
-                fillEmpty();
-            } else if (!changesMade) {
-                setValue(
-                    options.find((option: any) => option._id === product._id)
-                );
-                console.log("product on useeffect: ", product);
-                console.log("value on useeffect: ", value);
-                formik.setValues({
-                    ...product,
-                    date:
-                        product.date &&
-                        parse(product.date, "HH:mm dd/MM/yyyy", new Date()),
-                    typeOfViolation:
-                        product.typeOfViolation &&
-                        parseInt(product.typeOfViolation, 10),
-                });
-            }
-        }
-    }, [product, options]);
-
-    const formik = useFormik({
-        // enableReinitialize: true,
-        initialValues: product
-            ? {
-                  ...product,
-                  date:
-                      product.date &&
-                      parse(product.date, "HH:mm dd/MM/yyyy", new Date()),
-                  typeOfViolation: parseInt(product.typeOfViolation, 10),
-              }
-            : null,
-        validationSchema: Yup.object({
-            // id: Yup.string().required(messages.REQUIRED_CRIMINAL),
-            // testimony: Yup.string()
-            //     .max(65535, messages.LIMIT_TESTIMONY)
-            //     .required(messages.REQUIRED_TESTIMONY),
-            // charge: Yup.string()
-            //     .max(100, messages.LIMIT_CHARGE)
-            //     .required(messages.REQUIRED_CHARGE)
-            //     .matches(/^[\p{L} ,]+$/u, messages.CHARGE_VALID_CHARACTER),
-            // reason: Yup.string().nullable().max(500, messages.LIMIT_REASON),
-            // // .matches(/^[\p{L} ,]+$/u, messages.CHARGE_VALID_CHARACTER),
-            // weapon: Yup.string()
-            //     .nullable()
-            //     .max(100, messages.LIMIT_WEAPON)
-            //     .matches(
-            //         /^[\p{L}0-9, ]+$/u,
-            //         messages.WEAPON_NAME_VALID_CHARACTER
-            //     ),
-        }),
-        onSubmit: async (values, helpers) => {
-            try {
-                handleSubmitProduct();
-            } catch (err: any) {
-                helpers.setStatus({ success: false });
-                helpers.setErrors({ submit: err.message });
-                helpers.setSubmitting(false);
-            }
-        },
-    });
+    }, [product, orderDetails, products]);
 
     const extraBtns = () => (
         <Stack
@@ -242,65 +95,40 @@ const OrderProduct = (props: any) => {
             justifyContent="flex-end"
             alignItems="center"
         >
-            {isFieldDisabled && canEdit && (
-                <Tooltip title="Chỉnh sửa">
-                    <Button
-                        type="text"
-                        icon={
-                            <SvgIcon fontSize="small">
-                                <PencilSquareIcon />
-                            </SvgIcon>
-                        }
-                        shape="circle"
-                        onClick={handleEditProduct}
-                    />
-                </Tooltip>
-            )}
-
-            {!isFieldDisabled && (
-                <>
-                    <Tooltip title="Cập nhật">
-                        <Button
-                            type="text"
-                            icon={
-                                <SvgIcon fontSize="small">
-                                    <CheckCircleIcon />
-                                </SvgIcon>
-                            }
-                            shape="circle"
-                            onClick={() => formik.handleSubmit()}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Hủy">
-                        <Button
-                            type="text"
-                            icon={
-                                <SvgIcon fontSize="small">
-                                    <XCircleIcon />
-                                </SvgIcon>
-                            }
-                            shape="circle"
-                            onClick={handleCancelProduct}
-                        />
-                    </Tooltip>
-                </>
-            )}
-            {canEdit && (
-                <Tooltip title="Xóa">
-                    <Button
-                        type="text"
-                        icon={
-                            <SvgIcon fontSize="small">
-                                <TrashIcon />
-                            </SvgIcon>
-                        }
-                        shape="circle"
-                        onClick={handleDeleteClick}
-                    />
-                </Tooltip>
-            )}
+            <Tooltip title="Xóa">
+                <Button
+                    type="text"
+                    icon={
+                        <SvgIcon fontSize="small">
+                            <TrashIcon />
+                        </SvgIcon>
+                    }
+                    shape="circle"
+                    onClick={handleDeleteClick}
+                />
+            </Tooltip>
         </Stack>
     );
+
+    useEffect(() => {
+        if (options) {
+            if (
+                value &&
+                !options.find((option: any) => option._id === value._id) &&
+                orderDetails.find((c: any) => c._id === value._id) &&
+                product.key &&
+                orderDetails.find((c: any) => c._id === value._id).key !==
+                    product.key
+            ) {
+                fillEmpty();
+            } else {
+                setValue(
+                    options.find((option: any) => option._id === product._id)
+                );
+                handleChangeProduct("all", product);
+            }
+        }
+    }, [product, options]);
 
     const handleCollapseChange = () => {
         setIsExpanded((prevExpanded) => !prevExpanded);
@@ -308,12 +136,15 @@ const OrderProduct = (props: any) => {
 
     return (
         options && (
-            <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
+            <>
                 <Collapse
                     onChange={handleCollapseChange}
                     items={[
                         {
-                            extra: isExpanded ? extraBtns() : null,
+                            extra:
+                                isExpanded && !isFieldDisabled
+                                    ? extraBtns()
+                                    : null,
                             label: (
                                 <Stack direction="row" spacing={0.5}>
                                     <Typography>
@@ -329,6 +160,9 @@ const OrderProduct = (props: any) => {
                                                     href={{
                                                         pathname: `/product/${value._id}`,
                                                     }}
+                                                    onClick={(e) =>
+                                                        e.stopPropagation()
+                                                    }
                                                 >
                                                     {value?.name}
                                                 </Typography>
@@ -421,8 +255,6 @@ const OrderProduct = (props: any) => {
                                                         isFieldDisabled ||
                                                         field.disabled
                                                     }
-                                                    // name={field.name}
-                                                    // label={field.label}
                                                     disablePortal
                                                     fullWidth
                                                     options={options}
@@ -465,48 +297,27 @@ const OrderProduct = (props: any) => {
                                                                 value._id ===
                                                                 product._id
                                                             ) {
-                                                                console.log(
-                                                                    "product on change: ",
-                                                                    product
-                                                                );
-                                                                console.log(
-                                                                    "value on change: ",
-                                                                    value
-                                                                );
-                                                                formik.setValues(
+                                                                handleChangeProduct(
+                                                                    "all",
                                                                     {
                                                                         ...product,
-                                                                        date: parse(
-                                                                            product.date,
-                                                                            "HH:mm dd/MM/yyyy",
-                                                                            new Date()
-                                                                        ),
-                                                                        typeOfViolation:
-                                                                            parseInt(
-                                                                                product.typeOfViolation,
-                                                                                10
-                                                                            ),
+                                                                        numberOfFlowers:
+                                                                            product.numberOfFlowers
+                                                                                ? product
+                                                                                : "",
                                                                     }
                                                                 );
-                                                                setChangesMade(
-                                                                    false
-                                                                );
                                                             } else {
-                                                                formik.setValues(
+                                                                handleChangeProduct(
+                                                                    "all",
                                                                     {
                                                                         ...value,
                                                                         key: product.key,
-                                                                        charge: "",
-                                                                        reason: "",
-                                                                        testimony:
-                                                                            "",
-                                                                        date: new Date(),
-                                                                        typeOfViolation: 0,
-                                                                        weapon: "",
+                                                                        numberOfFlowers:
+                                                                            product.numberOfFlowers
+                                                                                ? product.numberOfFlowers
+                                                                                : "",
                                                                     }
-                                                                );
-                                                                setChangesMade(
-                                                                    true
                                                                 );
                                                             }
                                                         }
@@ -533,32 +344,34 @@ const OrderProduct = (props: any) => {
                                                             />
                                                             {option.name}
                                                         </Box>
-                                                    )} // Set the default value based on the product prop
+                                                    )}
                                                     renderInput={(params) => (
                                                         <TextField
                                                             {...params}
                                                             error={
                                                                 !!(
-                                                                    formik
-                                                                        .touched[
+                                                                    touched &&
+                                                                    touched[
                                                                         field
                                                                             .name
                                                                     ] &&
-                                                                    formik
-                                                                        .errors[
+                                                                    error &&
+                                                                    error[
                                                                         field
                                                                             .name
                                                                     ]
                                                                 )
                                                             }
-                                                            // helperText={
-                                                            //     formik.touched[
-                                                            //         field.name
-                                                            //     ] &&
-                                                            //     formik.errors[
-                                                            //         field.name
-                                                            //     ]
-                                                            // }
+                                                            helperText={
+                                                                touched &&
+                                                                touched[
+                                                                    field.name
+                                                                ] &&
+                                                                error &&
+                                                                error[
+                                                                    field.name
+                                                                ]
+                                                            }
                                                             disabled={
                                                                 isFieldDisabled ||
                                                                 field.disabled
@@ -580,103 +393,39 @@ const OrderProduct = (props: any) => {
                                                         />
                                                     )}
                                                 />
-                                            ) : field.dateTimePicker ? (
-                                                <DateTimePicker
-                                                    // error={
-                                                    //     !!(
-                                                    //         formik.touched[
-                                                    //             field.name
-                                                    //         ] &&
-                                                    //         formik.errors[
-                                                    //             field.name
-                                                    //         ]
-                                                    //     )
-                                                    // }
-                                                    // fullWidth
-                                                    // helperText={
-                                                    //     formik.touched[
-                                                    //         field.name
-                                                    //     ] &&
-                                                    //     formik.errors[
-                                                    //         field.name
-                                                    //     ]
-                                                    // }
-                                                    label={field.label}
-                                                    name={field.name}
-                                                    // onBlur={formik.handleBlur}
-                                                    onChange={(date) => {
-                                                        setChangesMade(true);
-                                                        formik.setFieldValue(
-                                                            field.name,
-                                                            date
-                                                        );
-                                                    }}
-                                                    // type={field.type}
-                                                    value={
-                                                        formik.values[
-                                                            field.name
-                                                        ]
-                                                    }
-                                                    disabled={
-                                                        isFieldDisabled ||
-                                                        field.disabled
-                                                    }
-                                                    // renderInput={(
-                                                    //     params: any
-                                                    // ) => (
-                                                    //     <TextField
-                                                    //         {...params}
-                                                    //         disabled={
-                                                    //             isFieldDisabled ||
-                                                    //             field.disabled
-                                                    //         }
-                                                    //         fullWidth
-                                                    //         InputLabelProps={{
-                                                    //             shrink: true,
-                                                    //         }}
-                                                    //         required={
-                                                    //             field.required ||
-                                                    //             false
-                                                    //         }
-                                                    //         onKeyDown={(e) =>
-                                                    //             e.preventDefault()
-                                                    //         }
-                                                    //     />
-                                                    // )}
-                                                    maxDate={new Date()}
-                                                />
                                             ) : (
                                                 <TextField
                                                     error={
                                                         !!(
-                                                            formik.touched[
+                                                            touched &&
+                                                            touched[
                                                                 field.name
                                                             ] &&
-                                                            formik.errors[
-                                                                field.name
-                                                            ]
+                                                            error &&
+                                                            error[field.name]
                                                         )
                                                     }
                                                     fullWidth
-                                                    // helperText={
-                                                    //     formik.touched[
-                                                    //         field.name
-                                                    //     ] &&
-                                                    //     formik.errors[
-                                                    //         field.name
-                                                    //     ]
-                                                    // }
+                                                    helperText={
+                                                        touched &&
+                                                        touched[field.name] &&
+                                                        error &&
+                                                        error[field.name]
+                                                    }
                                                     label={field.label}
                                                     name={field.name}
-                                                    onBlur={formik.handleBlur}
+                                                    // onBlur={
+                                                    // formik.handleBlur
+                                                    // }
                                                     onChange={(e) => {
-                                                        setChangesMade(true);
-                                                        formik.handleChange(e);
+                                                        handleChangeProduct(
+                                                            field.name,
+                                                            e.target.value
+                                                        );
                                                     }}
                                                     value={
-                                                        formik.values[
-                                                            field.name
-                                                        ] ?? ""
+                                                        product[field.name] ??
+                                                        ""
                                                     }
                                                     multiline={
                                                         field.textArea || false
@@ -691,7 +440,9 @@ const OrderProduct = (props: any) => {
                                                     select={field.select}
                                                     SelectProps={
                                                         field.select
-                                                            ? { native: true }
+                                                            ? {
+                                                                  native: true,
+                                                              }
                                                             : undefined
                                                     }
                                                     sx={{
@@ -750,7 +501,7 @@ const OrderProduct = (props: any) => {
                         </ButtonMUI>
                     </DialogActions>
                 </Dialog>
-            </form>
+            </>
         )
     );
 };
