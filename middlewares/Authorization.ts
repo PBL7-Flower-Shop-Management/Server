@@ -32,8 +32,8 @@ const auth = async (next: any) => {
         });
 
         if (
-            !acc ||
-            Math.floor(acc.tokenExpireTime.getTime() / 1000) !== userToken.exp
+            !acc
+            //     Math.floor(acc.tokenExpireTime.getTime() / 1000) !== userToken.exp
         )
             return new ApiResponse({
                 status: httpStatus.UNAUTHORIZED,

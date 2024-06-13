@@ -234,6 +234,7 @@ import { NextRequest } from "next/server";
 export const GET = async (req: NextRequest) => {
     try {
         // return await auth(async () => {
+        console.log("start2");
         let query;
         ({ req, query: query } = TrimRequest.all(req));
         await validate(schemas.GetAllFlowerSchema)(null, query);

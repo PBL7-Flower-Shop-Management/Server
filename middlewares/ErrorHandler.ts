@@ -24,6 +24,17 @@ export const ErrorHandler = (err: any) => {
             message: message,
         });
     } else if (!(err instanceof ApiResponse)) {
+        if (err) {
+            if (
+                err.message.includes(
+                    "Caused by :: Write conflict during plan execution and yielding is disabled"
+                )
+            )
+                return new ApiResponse({
+                    status: HttpStatus.BAD_REQUEST,
+                    message: "Update multiple times at the same time!",
+                });
+        }
         convertedError = new ApiResponse({
             status: HttpStatus.INTERNAL_SERVER_ERROR,
             message: err.message ?? err,

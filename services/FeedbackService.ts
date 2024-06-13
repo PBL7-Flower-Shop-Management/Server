@@ -21,7 +21,6 @@ class FeedbackService {
                     {
                         $sort: { commentDate: -1 },
                     },
-                    ...(limit ? [{ $limit: limit }] : []),
                     {
                         $lookup: {
                             from: "users",
@@ -34,11 +33,44 @@ class FeedbackService {
                         $unwind: "$feedbackBy",
                     },
                     {
+                        $lookup: {
+                            from: "orderdetails",
+                            localField: "orderDetailId",
+                            foreignField: "_id",
+                            as: "od",
+                        },
+                    },
+                    {
+                        $unwind: "$od",
+                    },
+                    {
+                        $lookup: {
+                            from: "flowers",
+                            localField: "od.flowerId",
+                            foreignField: "_id",
+                            as: "flower",
+                        },
+                    },
+                    {
+                        $unwind: "$flower",
+                    },
+                    {
+                        $match: {
+                            "flower.isDeleted": false,
+                        },
+                    },
+                    ...(limit ? [{ $limit: limit }] : []),
+                    {
                         $project: {
                             content: 1,
                             numberOfStars: 1,
                             feedbackBy: "$feedbackBy.name",
+                            commentDate: "$commentDate",
+                            flowerId: "$od.flowerId",
                         },
+                    },
+                    {
+                        $sort: { commentDate: -1 },
                     },
                 ]);
 

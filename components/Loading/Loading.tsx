@@ -1,6 +1,6 @@
 import Image from "next/image";
 import styles from "./Loading.module.css";
-import loadingPhoto from "@/Public/images/loading.gif";
+import loadingPhoto from "@/public/images/loading.gif";
 import { zIndexLevel } from "@/utils/constants";
 
 const Loading = ({ isShow }: any) => {

@@ -50,17 +50,22 @@ import { NextRequest } from "next/server";
 
 export const POST = async (req: NextRequest) => {
     try {
-        const authHeader = headers().get("authorization");
+        let authHeader = headers().get("authorization");
         let userToken: any = null;
-        if (authHeader)
-            await auth((token: any) => {
-                userToken = token;
-            });
+        if (authHeader) {
+            authHeader = authHeader?.split(" ")[1];
+            if (authHeader !== "undefined")
+                await auth((token: any) => {
+                    userToken = token;
+                });
+        }
 
         let flowerImage = null;
         if (!req.headers.get("content-type")?.includes("application/json")) {
+            console.log(req);
             const formData = await req.formData();
             flowerImage = formData.get("flowerImage");
+            console.log("check file");
             await checkFile(flowerImage as File, true);
         }
         return await IdentificationController.ClassifyFlower(

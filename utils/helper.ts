@@ -10,6 +10,7 @@ export const isIntegerNumber = (value: any) => {
 };
 
 export const ShortenString = (str = "", numberOfCharacters = 10) => {
+    if (!str) return "";
     if (str.length > numberOfCharacters)
         return str.substring(0, numberOfCharacters) + "...";
     else return str.substring(0, numberOfCharacters);
@@ -137,6 +138,7 @@ export const Base64ImageToFile = (base64: string, filename: string): File => {
 };
 
 export const isMobileDevice = (userAgent: string): boolean => {
+    if (userAgent.includes("Expo")) return true;
     const mobileRegex =
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
     return mobileRegex.test(userAgent);

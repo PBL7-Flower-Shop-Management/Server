@@ -303,6 +303,7 @@ const ProductDetail = ({ params }: any) => {
                           unitPrice: Number(formik.values.unitPrice),
                           discount: Number(formik.values.discount),
                           quantity: Number(formik.values.quantity),
+                          __v: undefined,
                       })
                     : {
                           ...formik.values,
@@ -313,6 +314,7 @@ const ProductDetail = ({ params }: any) => {
                           unitPrice: Number(formik.values.unitPrice),
                           discount: Number(formik.values.discount),
                           quantity: Number(formik.values.quantity),
+                          __v: undefined,
                       },
                 isFormData
             );

@@ -243,7 +243,7 @@ const NewProduct = () => {
                       })
                     : {
                           ...formik.values,
-                          imageVideoFiles: [],
+                          imageVideoFiles: undefined,
                           status: undefined,
                           unitPrice: Number(formik.values.unitPrice),
                           discount: Number(formik.values.discount),

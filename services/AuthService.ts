@@ -44,6 +44,7 @@ class AuthService {
                         })
                     );
                 }
+
                 const hashedPassword = await bcrypt.hash(
                     user.password,
                     parseInt(process.env.BCRYPT_SALT!)
@@ -56,13 +57,12 @@ class AuthService {
                         {
                             ...user,
                             createdAt: currentDate,
-                            createdBy: user.createdBy ?? "System",
+                            createdBy: user.username ?? "System",
                             isDeleted: false,
                         },
                     ],
                     { session: session }
                 ).then((res) => res[0]);
-                const authTokens = await this.generateAuthTokens(newUser);
 
                 await AccountModel.create(
                     [
@@ -71,13 +71,8 @@ class AuthService {
                             isActived: true,
                             username: user.username,
                             password: hashedPassword,
-                            tokenExpireTime:
-                                authTokens.accessTokenExpiresAt.toDate(),
-                            refreshToken: authTokens.refreshToken,
-                            refreshTokenExpireTime:
-                                authTokens.refreshTokenExpireAt.toDate(),
                             createdAt: currentDate,
-                            createdBy: user.createdBy ?? "System",
+                            createdBy: user.username ?? "System",
                             isDeleted: false,
                         },
                     ],
@@ -89,7 +84,6 @@ class AuthService {
                 resolve(
                     new ApiResponse({
                         status: HttpStatus.CREATED,
-                        data: { user: newUser, token: authTokens },
                     })
                 );
             } catch (error: any) {
@@ -411,7 +405,7 @@ class AuthService {
                                 email: googleUser.email,
                                 providers: ["google"],
                                 createdAt: moment().toDate(),
-                                createdBy: "System",
+                                createdBy: googleUser.username,
                                 isDeleted: false,
                             },
                         ],
@@ -426,7 +420,7 @@ class AuthService {
                                 username: googleUser.username,
                                 password: hashedPassword,
                                 createdAt: moment().toDate(),
-                                createdBy: "System",
+                                createdBy: googleUser.username,
                                 isDeleted: false,
                             },
                         ],
@@ -530,13 +524,13 @@ class AuthService {
                     isDeleted: false,
                 });
 
-                if (acc.refreshToken !== body.refreshToken)
-                    return reject(
-                        new ApiResponse({
-                            status: HttpStatus.BAD_REQUEST,
-                            message: "Invalid refresh token!",
-                        })
-                    );
+                // if (acc.refreshToken !== body.refreshToken)
+                //     return reject(
+                //         new ApiResponse({
+                //             status: HttpStatus.BAD_REQUEST,
+                //             message: "Invalid refresh token!",
+                //         })
+                //     );
 
                 if (!user || !acc)
                     return reject(

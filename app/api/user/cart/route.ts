@@ -172,6 +172,7 @@ export const PUT = async (req: NextRequest) => {
             return await checkRole([roleMap.Customer])(userToken, async () => {
                 let body = await new Response(req.body).json();
                 ({ req, body: body } = TrimRequest.all(req, null, body));
+                console.log(body);
                 await validate(schemas.UpdateCartSchema)(null, null, body);
                 return await CartController.UpdateCart(
                     body,

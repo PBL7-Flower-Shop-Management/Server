@@ -24,6 +24,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.2.0",
     "date-fns": "^2.29.3",
+    "formidable": "^3.5.1",
     "formik": "^2.4.6",
     "google-auth-library": "^9.9.0",
     "http-status": "^1.7.4",
@@ -52,6 +53,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
+    "@types/formidable": "^3.4.5",
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/lodash": "^4.17.4",

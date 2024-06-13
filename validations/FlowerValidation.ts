@@ -26,6 +26,7 @@ const schemas = {
                     .default(10),
                 isExport: yup.boolean().nullable().default(false),
                 orderBy: yup.string().trim().nullable(),
+                _: yup.mixed().nullable(),
             })
             .noUnknown(true, "Unknown field in request params: ${unknown}")
             .strict(),

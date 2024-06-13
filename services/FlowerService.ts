@@ -35,6 +35,34 @@ class FlowerService {
 
                 const results = await FlowerModel.aggregate([
                     {
+                        $lookup: {
+                            from: "flowercategories",
+                            localField: "_id",
+                            foreignField: "flowerId",
+                            as: "fc",
+                        },
+                    },
+                    {
+                        $unwind: {
+                            path: "$fc",
+                            preserveNullAndEmptyArrays: true,
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: "categories",
+                            localField: "fc.categoryId",
+                            foreignField: "_id",
+                            as: "category",
+                        },
+                    },
+                    {
+                        $unwind: {
+                            path: "$category",
+                            preserveNullAndEmptyArrays: true,
+                        },
+                    },
+                    {
                         $match: {
                             isDeleted: false,
                             $or: [
@@ -52,6 +80,12 @@ class FlowerService {
                                 },
                                 {
                                     description: {
+                                        $regex: query.keyword,
+                                        $options: "i",
+                                    },
+                                },
+                                {
+                                    "category.categoryName": {
                                         $regex: query.keyword,
                                         $options: "i",
                                     },
@@ -77,6 +111,7 @@ class FlowerService {
                                 ],
                             },
                             name: 1,
+                            // categoryName: "$category.categoryName",
                             habitat: 1,
                             unitPrice: 1,
                             discount: 1,
@@ -86,6 +121,22 @@ class FlowerService {
                             description: 1,
                             createdAt: 1,
                             createdBy: 1,
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: "$_id",
+                            image: { $first: "$image" },
+                            name: { $first: "$name" },
+                            habitat: { $first: "$habitat" },
+                            unitPrice: { $first: "$unitPrice" },
+                            discount: { $first: "$discount" },
+                            quantity: { $first: "$quantity" },
+                            soldQuantity: { $first: "$soldQuantity" },
+                            status: { $first: "$status" },
+                            description: { $first: "$description" },
+                            createdAt: { $first: "$createdAt" },
+                            createdBy: { $first: "$createdBy" },
                         },
                     },
                     {

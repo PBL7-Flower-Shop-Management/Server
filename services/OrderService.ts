@@ -520,7 +520,7 @@ class OrderService {
                     if (!userDb) orders[0].username = "";
                     else {
                         if (user.role === roleMap.Customer) {
-                            if (user.username !== orders[0].username)
+                            if (user.username !== userDb.username)
                                 return reject(
                                     new ApiResponse({
                                         status: HttpStatus.FORBIDDEN,
