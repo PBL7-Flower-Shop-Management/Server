@@ -2,8 +2,10 @@ import IdentificationController from "@/controllers/IdentificationController";
 import { auth } from "@/middlewares/Authorization";
 import { checkFile } from "@/middlewares/CheckFile";
 import { ErrorHandler } from "@/middlewares/ErrorHandler";
+import { createFileFromBuffer } from "@/utils/helper";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
+import fetch from "node-fetch";
 
 /**
  * @swagger
@@ -61,15 +63,31 @@ export const POST = async (req: NextRequest) => {
         }
 
         let flowerImage = null;
+        let body = null;
+
         if (!req.headers.get("content-type")?.includes("application/json")) {
-            console.log(req);
             const formData = await req.formData();
             flowerImage = formData.get("flowerImage");
-            console.log("check file");
+            await checkFile(flowerImage as File, true);
+        } else {
+            body = await new Response(req.body).json();
+
+            const imageUrl = new URL(body.url);
+            const response = await fetch(imageUrl);
+
+            const buffer = await response.arrayBuffer();
+            flowerImage = createFileFromBuffer(
+                buffer,
+                "image.jpg",
+                "image/jpeg"
+            );
+
             await checkFile(flowerImage as File, true);
         }
+
         return await IdentificationController.ClassifyFlower(
             flowerImage,
+            body,
             userToken?.user
         );
     } catch (error: any) {

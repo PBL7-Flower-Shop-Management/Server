@@ -11,6 +11,7 @@ import { Base64ImageToFile } from "@/utils/helper";
 class IdentificationService {
     async ClassifyFlower(
         flowerImage: any,
+        cloudinaryImage: any,
         user: any | null
     ): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
@@ -50,9 +51,12 @@ class IdentificationService {
                 else resultData = resultData.result;
 
                 const currentDate = moment().toDate();
-
-                //upload image cloudinary
-                let response = await CloudinaryService.Upload(flowerImage);
+                if (!cloudinaryImage) {
+                    //upload image cloudinary
+                    cloudinaryImage = await CloudinaryService.Upload(
+                        flowerImage
+                    );
+                }
 
                 const newIdentificationHistory = user
                     ? await IdentificationHistoryModel.create(
@@ -60,8 +64,8 @@ class IdentificationService {
                               {
                                   userId: user._id,
                                   date: currentDate,
-                                  inputImageUrl: response.url,
-                                  inputImageId: response.public_id,
+                                  inputImageUrl: cloudinaryImage.url,
+                                  inputImageId: cloudinaryImage.public_id,
                                   createdAt: currentDate,
                                   createdBy: user.username ?? "System",
                                   isDeleted: false,
@@ -69,13 +73,13 @@ class IdentificationService {
                           ],
                           { session: session }
                       ).then((res) => res[0])
-                    : { date: currentDate, inputImageUrl: response.url };
+                    : { date: currentDate, inputImageUrl: cloudinaryImage.url };
 
                 let results = [];
 
                 for (const res of resultData) {
                     //upload image cloudinary
-                    response = await CloudinaryService.Upload(
+                    let response = await CloudinaryService.Upload(
                         Base64ImageToFile(
                             res.image,
                             res.label.english_label + ".png"

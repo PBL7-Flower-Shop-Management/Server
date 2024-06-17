@@ -162,3 +162,13 @@ export const stripSeconds = (date: any) => {
     newDate.setSeconds(0, 0);
     return newDate;
 };
+
+export const createFileFromBuffer = (
+    buffer: ArrayBuffer,
+    filename: string,
+    mimeType: string
+) => {
+    const blob = new Blob([buffer], { type: mimeType });
+    const file = new File([blob], filename, { type: mimeType });
+    return file;
+};
