@@ -653,6 +653,13 @@ class UserService {
                             userDb.avatarId
                         );
                     }
+                } else if (user.avatarId !== userDb.avatarId) {
+                    if (userDb.avatarId) {
+                        // delete old image async
+                        await CloudinaryService.DeleteByPublicId(
+                            userDb.avatarId
+                        );
+                    }
                 }
 
                 const updatedUser = await UserModel.findOneAndUpdate(

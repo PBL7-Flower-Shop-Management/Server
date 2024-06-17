@@ -205,6 +205,7 @@ const schemas = {
                         "Phone number field only contains numbers!"
                     ),
                 avatarUrl: yup.string().nullable(),
+                avatarId: yup.string().nullable(),
             })
             .noUnknown(true, "Unknown field in request body: ${unknown}")
             .strict(),
