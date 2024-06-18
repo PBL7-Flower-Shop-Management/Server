@@ -15,7 +15,7 @@ import {
     CardActions,
     Button,
 } from "@mui/material";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import OrderInformation from "@/components/Order/Detail/OrderInformation";
 import OrderProducts from "@/components/Order/Detail/OrderProducts";
 import _ from "lodash";
@@ -27,6 +27,7 @@ import * as yup from "yup";
 import { isIntegerNumber, isNumberic, stripSeconds } from "@/utils/helper";
 import { useFormik } from "formik";
 import { LoadingButton } from "@mui/lab";
+import { orderStatusMap } from "@/utils/constants";
 
 const OrderDetail = ({ params }: any) => {
     const [order, setOrder] = useState<any>(null);
@@ -38,6 +39,7 @@ const OrderDetail = ({ params }: any) => {
     const canEdit = searchParams.get("edit") === "1";
     const [changesMade, setChangesMade] = useState(false);
     const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
+    const router = useRouter();
 
     const formik = useFormik<any>({
         initialValues: {} as any,
@@ -113,6 +115,8 @@ const OrderDetail = ({ params }: any) => {
                         _id: yup
                             .string()
                             .required("Product information is required"),
+                        quantity: yup.number(),
+                        soldQuantity: yup.number(),
                         numberOfFlowers: yup
                             .mixed()
                             .test(
@@ -126,6 +130,17 @@ const OrderDetail = ({ params }: any) => {
                                 "numberOfFlowers-value valid",
                                 "Number of flowers must be greater than 0",
                                 (value) => Number(value) > 0
+                            )
+                            .test(
+                                "numberOfFlowers-maxvalue valid",
+                                "Number of flowers must be less than remain quantity of product",
+                                function (value) {
+                                    return (
+                                        Number(value) <=
+                                        this.parent.quantity -
+                                            this.parent.soldQuantity
+                                    );
+                                }
                             )
                             .required("Number of flowers is required"),
                     })
@@ -286,6 +301,20 @@ const OrderDetail = ({ params }: any) => {
         setLoading(true);
         getOrder();
     }, []);
+
+    useEffect(() => {
+        if (canEdit) {
+            if (order)
+                if (order.status === orderStatusMap.Delivered) {
+                    showToast(
+                        "Order that has been delivered cannot be edited!",
+                        "error"
+                    );
+                    setIsFieldDisabled(true);
+                    router.push("/order/" + orderId);
+                }
+        }
+    }, [canEdit, order]);
 
     useEffect(() => {
         if (formik.values) {

@@ -28,14 +28,18 @@ import TrashIcon from "@mui/icons-material/DeleteOutline";
 import { alpha, styled } from "@mui/material/styles";
 import React, { useEffect, useState } from "react";
 import { Stack } from "@mui/system";
-import { orderStatus, orderStatusColor, zIndexLevel } from "@/utils/constants";
+import {
+    orderStatus,
+    orderStatusColor,
+    orderStatusMap,
+    zIndexLevel,
+} from "@/utils/constants";
 import Chip from "@mui/material/Chip";
 import { ShortenString } from "@/utils/helper";
 import moment from "moment-timezone";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useLoadingContext } from "@/contexts/LoadingContext";
+import { showToast } from "../Toast";
 
 export const OrderTable = (props: any) => {
     const {
@@ -353,12 +357,29 @@ export const OrderTable = (props: any) => {
                                                             LinkComponent={
                                                                 NextLink
                                                             }
-                                                            href={`/order/${encodeURIComponent(
-                                                                order._id
-                                                            )}?edit=1`}
-                                                            onClick={() =>
-                                                                setLoading(true)
+                                                            href={
+                                                                order.status !==
+                                                                orderStatusMap.Delivered
+                                                                    ? `/order/${encodeURIComponent(
+                                                                          order._id
+                                                                      )}?edit=1`
+                                                                    : ""
                                                             }
+                                                            onClick={() => {
+                                                                if (
+                                                                    order.status !==
+                                                                    orderStatusMap.Delivered
+                                                                )
+                                                                    setLoading(
+                                                                        true
+                                                                    );
+                                                                else {
+                                                                    showToast(
+                                                                        "Order that has been delivered cannot be edited!",
+                                                                        "error"
+                                                                    );
+                                                                }
+                                                            }}
                                                         >
                                                             <SvgIcon
                                                                 color="warning"
