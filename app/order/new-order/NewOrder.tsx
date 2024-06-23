@@ -53,6 +53,7 @@ const NewOrder = () => {
         validationSchema: yup.object({
             username: yup
                 .string()
+                .trim()
                 .nullable()
                 .test(
                     "username-valid",
@@ -121,6 +122,7 @@ const NewOrder = () => {
                         key: yup.number(),
                         _id: yup
                             .string()
+                            .trim()
                             .required("Product information is required"),
                         numberOfFlowers: yup
                             .mixed()

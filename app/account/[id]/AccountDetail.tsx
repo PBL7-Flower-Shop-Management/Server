@@ -81,7 +81,7 @@ const AccountDetail = ({ params }: any) => {
                     /^[0-9]*$/u,
                     "Phone number field only contains numbers!"
                 ),
-            avatarUrl: yup.string().nullable(),
+            avatarUrl: yup.string().trim().nullable(),
             // isActived: yup.boolean().nullable().default(false),
             role: yup
                 .string()

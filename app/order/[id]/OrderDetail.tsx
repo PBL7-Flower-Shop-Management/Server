@@ -46,6 +46,7 @@ const OrderDetail = ({ params }: any) => {
         validationSchema: yup.object({
             username: yup
                 .string()
+                .trim()
                 .nullable()
                 .test(
                     "username-valid",
@@ -114,6 +115,7 @@ const OrderDetail = ({ params }: any) => {
                         key: yup.number(),
                         _id: yup
                             .string()
+                            .trim()
                             .required("Product information is required"),
                         quantity: yup.number(),
                         soldQuantity: yup.number(),

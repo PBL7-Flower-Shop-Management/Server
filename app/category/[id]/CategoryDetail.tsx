@@ -59,7 +59,7 @@ const CategoryDetail = ({ params }: any) => {
                     /^[\p{L}\d\s\/\-]+$/u,
                     "Category name only contains characters, number, space, slash and dash!"
                 ),
-            avatarUrl: yup.string().nullable(),
+            avatarUrl: yup.string().trim().nullable(),
             description: yup.string().trim().nullable(),
             avatar: yup
                 .mixed()

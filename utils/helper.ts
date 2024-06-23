@@ -138,7 +138,8 @@ export const Base64ImageToFile = (base64: string, filename: string): File => {
 };
 
 export const isMobileDevice = (userAgent: string): boolean => {
-    if (userAgent.includes("Expo")) return true;
+    console.log(userAgent);
+    if (userAgent.includes("Expo") || userAgent.includes("okhttp")) return true;
     const mobileRegex =
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
     return mobileRegex.test(userAgent);

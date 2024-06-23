@@ -27,8 +27,6 @@ import { showToast } from "@/components/Toast";
 import {
     allowedImageExtensions,
     allowedVideoExtensions,
-    MAX_SIZE_IMAGE,
-    MAX_SIZE_VIDEO,
     productStatus,
 } from "@/utils/constants";
 
@@ -142,9 +140,17 @@ const NewProduct = () => {
                                         v.type &&
                                         !(
                                             (v.type.startsWith("image") &&
-                                                v.size <= MAX_SIZE_IMAGE) ||
+                                                v.size <=
+                                                    Number(
+                                                        process.env
+                                                            .MAX_SIZE_IMAGE
+                                                    )) ||
                                             (v.type.startsWith("video") &&
-                                                v.size <= MAX_SIZE_VIDEO)
+                                                v.size <=
+                                                    Number(
+                                                        process.env
+                                                            .MAX_SIZE_VIDEO
+                                                    ))
                                         )
                                 ).length === 0
                             );

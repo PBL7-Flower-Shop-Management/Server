@@ -35,11 +35,12 @@ const schemas = {
     CreateOrderSchema: yup.object({
         body: yup
             .object({
-                orderUserId: yup.string().nullable(),
-                username: yup.string().nullable(),
-                orderDate: yup.string().nullable(),
+                orderUserId: yup.string().trim().nullable(),
+                username: yup.string().trim().nullable(),
+                orderDate: yup.string().trim().nullable(),
                 shipDate: yup
                     .string()
+                    .trim()
                     .nullable()
                     .test(
                         "is-greater",
@@ -152,9 +153,10 @@ const schemas = {
                     .test("is-objectid", "Invalid order id format", (value) =>
                         mongoose.Types.ObjectId.isValid(value)
                     ),
-                orderDate: yup.string().nullable(),
+                orderDate: yup.string().trim().nullable(),
                 shipDate: yup
                     .string()
+                    .trim()
                     .nullable()
                     .test(
                         "is-greater",

@@ -28,8 +28,6 @@ import mongoose from "mongoose";
 import {
     allowedImageExtensions,
     allowedVideoExtensions,
-    MAX_SIZE_IMAGE,
-    MAX_SIZE_VIDEO,
 } from "@/utils/constants";
 import { useLoadingContext } from "@/contexts/LoadingContext";
 import { FetchApi } from "@/utils/FetchApi";
@@ -162,9 +160,17 @@ const ProductDetail = ({ params }: any) => {
                                         v.type &&
                                         !(
                                             (v.type.startsWith("image") &&
-                                                v.size <= MAX_SIZE_IMAGE) ||
+                                                v.size <=
+                                                    Number(
+                                                        process.env
+                                                            .MAX_SIZE_IMAGE
+                                                    )) ||
                                             (v.type.startsWith("video") &&
-                                                v.size <= MAX_SIZE_VIDEO)
+                                                v.size <=
+                                                    Number(
+                                                        process.env
+                                                            .MAX_SIZE_VIDEO
+                                                    ))
                                         )
                                 ).length === 0
                             );
