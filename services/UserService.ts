@@ -567,6 +567,7 @@ class UserService {
                             _id: 1,
                             username: "$acc.username",
                             avatarUrl: "$avatarUrl",
+                            avatarId: "$avatarId",
                             name: "$name",
                             citizenId: "$citizenId",
                             email: "$email",
@@ -674,7 +675,7 @@ class UserService {
                     {
                         session: session,
                         new: true,
-                        select: "_id avatarUrl name citizenId email phoneNumber role",
+                        select: "_id avatarUrl avatarId name citizenId email phoneNumber role",
                     }
                 );
 

@@ -87,6 +87,7 @@ const schemas = {
                         "Phone number field only contains numbers!"
                     ),
                 avatarUrl: yup.string().trim().nullable(),
+                avatarId: yup.string().trim().nullable(),
                 // isActived: yup.boolean().nullable().default(false),
                 role: yup
                     .string()
