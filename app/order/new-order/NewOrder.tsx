@@ -124,6 +124,8 @@ const NewOrder = () => {
                             .string()
                             .trim()
                             .required("Product information is required"),
+                        quantity: yup.number(),
+                        soldQuantity: yup.number(),
                         numberOfFlowers: yup
                             .mixed()
                             .test(
@@ -137,6 +139,17 @@ const NewOrder = () => {
                                 "numberOfFlowers-value valid",
                                 "Number of flowers must be greater than 0",
                                 (value) => Number(value) > 0
+                            )
+                            .test(
+                                "numberOfFlowers-maxvalue valid",
+                                "Number of flowers must be less than remain quantity of product",
+                                function (value) {
+                                    return (
+                                        Number(value) <=
+                                        this.parent.quantity -
+                                            this.parent.soldQuantity
+                                    );
+                                }
                             )
                             .required("Number of flowers is required"),
                     })

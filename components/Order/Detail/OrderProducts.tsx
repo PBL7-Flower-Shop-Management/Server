@@ -15,10 +15,12 @@ import { showToast } from "@/components/Toast";
 import { useLoadingContext } from "@/contexts/LoadingContext";
 import { useEffect, useState } from "react";
 import { isNumberic } from "@/utils/helper";
+import { orderStatusMap } from "@/utils/constants";
 
 const OrderProducts = (props: any) => {
     const {
         formik,
+        originalOrder,
         handleChange,
         loadingSkeleton,
         handleAddProduct,
@@ -47,9 +49,21 @@ const OrderProducts = (props: any) => {
     };
 
     const handleUpdateOrderDetails = (index: any, field: any, value: any) => {
-        if (field === "all")
-            formik.setFieldValue(`orderDetails[${index}]`, value);
-        else if (field === "numberOfFlowers")
+        if (field === "all") {
+            const originalProduct = originalOrder.orderDetails?.find(
+                (od: any) => od._id === value._id
+            );
+
+            if (
+                originalOrder.status !== orderStatusMap.Cancelled &&
+                originalOrder.orderDetails &&
+                originalProduct
+            ) {
+                formik.setFieldValue(`orderDetails[${index}]`, originalProduct);
+            } else formik.setFieldValue(`orderDetails[${index}]`, value);
+            // console.log("value", value);
+            // console.log("original", originalOrderDetails[index]);
+        } else if (field === "numberOfFlowers")
             formik.setFieldValue(
                 `orderDetails[${index}].${field}`,
                 isNumberic(value) ? parseInt(value, 10) : value
@@ -93,7 +107,7 @@ const OrderProducts = (props: any) => {
                                         touched={
                                             formik.touched.orderDetails?.[index]
                                         }
-                                        products={products}
+                                        products={products} //all products (to fill for product select dropdown)
                                         orderDetails={
                                             formik.values.orderDetails
                                         }

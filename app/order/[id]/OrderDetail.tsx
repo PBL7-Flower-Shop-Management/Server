@@ -39,6 +39,7 @@ const OrderDetail = ({ params }: any) => {
     const canEdit = searchParams.get("edit") === "1";
     const [changesMade, setChangesMade] = useState(false);
     const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
+    const [isUpdateSoldQuantity, setIsUpdateSoldQuantity] = useState(false);
     const router = useRouter();
 
     const formik = useFormik<any>({
@@ -178,6 +179,7 @@ const OrderDetail = ({ params }: any) => {
             numberOfFlower: "",
         });
         formik.setValues({ ...formik.values, orderDetails: productsAdd });
+        setChangesMade(true);
     };
 
     const handleDeleteProduct = (index: string) => {
@@ -189,6 +191,8 @@ const OrderDetail = ({ params }: any) => {
             ...formik.values,
             orderDetails: productsDelete,
         });
+
+        setChangesMade(true);
     };
 
     const handleSubmit = async () => {
@@ -224,6 +228,12 @@ const OrderDetail = ({ params }: any) => {
                     shipDate: new Date(response.data.shipDate),
                     orderDate: new Date(response.data.orderDate),
                 });
+                setOrder({
+                    ...response.data,
+                    shipDate: new Date(response.data.shipDate),
+                    orderDate: new Date(response.data.orderDate),
+                });
+                setIsUpdateSoldQuantity(!isUpdateSoldQuantity);
                 return true;
             } else {
                 showToast(response.message, "error");
@@ -271,6 +281,7 @@ const OrderDetail = ({ params }: any) => {
                         }
                     ),
                 });
+                setIsUpdateSoldQuantity(!isUpdateSoldQuantity);
             } else {
                 showToast(response.message, "error");
             }
@@ -353,6 +364,37 @@ const OrderDetail = ({ params }: any) => {
         formik.values.shipPrice,
         formik.values.orderDetails,
     ]);
+
+    useEffect(() => {
+        if (
+            //isUpdateSoldQuantity &&
+            formik.values.orderDetails &&
+            formik.values.status !== orderStatusMap.Cancelled
+        ) {
+            console.log("o", order);
+            formik.setFieldValue(
+                `orderDetails`,
+                formik.values.orderDetails.map((od: any) => {
+                    const originalProduct = order.orderDetails.find(
+                        (o: any) => o._id === od._id
+                    );
+                    if (originalProduct)
+                        return {
+                            ...od,
+                            soldQuantity:
+                                originalProduct.soldQuantity -
+                                originalProduct.numberOfFlowers,
+                        };
+
+                    return od;
+                })
+            );
+
+            setIsUpdateSoldQuantity(false);
+        }
+    }, [isUpdateSoldQuantity]);
+
+    useEffect(() => console.log("formik", formik.values), [formik.values]);
 
     return (
         <>
@@ -440,9 +482,13 @@ const OrderDetail = ({ params }: any) => {
                                 <Grid xs={12} md={12} lg={12}>
                                     <OrderProducts
                                         formik={formik}
-                                        handleChange={() =>
-                                            setChangesMade(true)
-                                        }
+                                        originalOrder={order}
+                                        handleChange={() => {
+                                            setChangesMade(true);
+                                            // setIsUpdateSoldQuantity(
+                                            //     !isUpdateSoldQuantity
+                                            // );
+                                        }}
                                         loadingSkeleton={loadingSkeleton}
                                         handleAddProduct={handleAddProduct}
                                         handleDeleteProduct={

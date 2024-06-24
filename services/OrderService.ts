@@ -4,11 +4,7 @@ import ApiResponse from "@/utils/ApiResponse";
 import mongoose from "mongoose";
 import OrderModel from "@/models/OrderModel";
 import moment from "moment";
-import {
-    calculateTotalPrice,
-    isNumberic,
-    parseSortString,
-} from "@/utils/helper";
+import { calculateTotalPrice, parseSortString } from "@/utils/helper";
 import UserModel from "@/models/UserModel";
 import AccountModel from "@/models/AccountModel";
 import FlowerModel from "@/models/FlowerModel";
@@ -377,6 +373,10 @@ class OrderService {
                     order.orderDetails
                 );
 
+                const isUndoCancel =
+                    order.status !== orderStatusMap.Cancelled &&
+                    orderDb.status === orderStatusMap.Cancelled;
+
                 if (order.orderDetails) {
                     //check flower id exists
                     for (let orderDetail of order.orderDetails) {
@@ -397,6 +397,12 @@ class OrderService {
                         orderDetail.remain =
                             flower.quantity - flower.soldQuantity;
                         orderDetail.flowerName = flower.name;
+
+                        if (isUndoCancel) {
+                            flower.soldQuantity += orderDetail.numberOfFlowers;
+                            orderDetail.soldQuantity += flower.soldQuantity;
+                            flower.save({ session });
+                        }
                     }
                 }
 
@@ -423,10 +429,6 @@ class OrderService {
                     order.status === orderStatusMap.Cancelled &&
                     orderDb.status !== orderStatusMap.Cancelled;
 
-                const isUndoCancel =
-                    order.status !== orderStatusMap.Cancelled &&
-                    orderDb.status === orderStatusMap.Cancelled;
-
                 if (isFirstCancelled) {
                     for (let orderDetailDb of existingOrderDetails) {
                         const flower = await FlowerModel.findOne({
@@ -437,6 +439,18 @@ class OrderService {
                         if (flower) {
                             flower.soldQuantity -=
                                 orderDetailDb.numberOfFlowers;
+
+                            order.orderDetails = order.orderDetails.map(
+                                (od: any) => {
+                                    if (od._id === orderDetailDb.orderId)
+                                        return {
+                                            ...od,
+                                            soldQuantity: flower.soldQuantity,
+                                        };
+
+                                    return od;
+                                }
+                            );
                             flower.save({ session });
                         }
                     }
@@ -480,6 +494,23 @@ class OrderService {
                                         message: `The remain quantity of flower "${newDetail.flowerName}" not enough for this order!`,
                                     })
                                 );
+                            else if (
+                                order.status !== orderStatusMap.Cancelled &&
+                                orderDb.status !== orderStatusMap.Cancelled
+                            ) {
+                                const flower = await FlowerModel.findOne({
+                                    _id: existingDetail.flowerId,
+                                }).session(session);
+                                if (flower) {
+                                    flower.soldQuantity -=
+                                        existingDetail.numberOfFlowers;
+                                    flower.soldQuantity +=
+                                        newDetail.numberOfFlowers;
+                                    newDetail.soldQuantity =
+                                        flower.soldQuantity;
+                                    flower.save({ session });
+                                }
+                            }
 
                             // Update existing order detail
                             existingDetail.numberOfFlowers =
@@ -497,6 +528,21 @@ class OrderService {
                                         message: `The quantity of flower "${newDetail.flowerName}" not enough for this order!`,
                                     })
                                 );
+                            else if (
+                                order.status !== orderStatusMap.Cancelled &&
+                                orderDb.status !== orderStatusMap.Cancelled
+                            ) {
+                                const flower = await FlowerModel.findOne({
+                                    _id: newDetail.flowerId,
+                                }).session(session);
+                                if (flower) {
+                                    flower.soldQuantity +=
+                                        newDetail.numberOfFlowers;
+                                    newDetail.soldQuantity =
+                                        flower.soldQuantity;
+                                    flower.save({ session });
+                                }
+                            }
 
                             // Create new order detail
                             await OrderDetailModel.create(
@@ -517,6 +563,24 @@ class OrderService {
                 }
 
                 // Delete remaining order details that were not in request
+                for (const remainOrderDetail of existingOrderDetailsMap) {
+                    if (
+                        order.status !== orderStatusMap.Cancelled &&
+                        orderDb.status !== orderStatusMap.Cancelled
+                    ) {
+                        const flower = await FlowerModel.findOne({
+                            _id: remainOrderDetail[1].flowerId,
+                        }).session(session);
+
+                        if (flower) {
+                            flower.soldQuantity -=
+                                remainOrderDetail[1].numberOfFlowers;
+
+                            flower.save({ session });
+                        }
+                    }
+                }
+
                 const remainingDetailIds = Array.from(
                     existingOrderDetailsMap.keys()
                 );

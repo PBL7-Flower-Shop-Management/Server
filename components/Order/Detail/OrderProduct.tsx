@@ -40,13 +40,14 @@ const OrderProduct = (props: any) => {
     const [openDeletePopup, setOpenDeletePopup] = useState(false);
 
     const getAllowedItems = (
+        //get all id that not in list booked products or equal current product id
         originalList: any,
         valuesList: any,
         idToExclude: any
     ) => {
-        const idsToRemove = valuesList.map((item: any) => item._id);
+        const idsToRemove = valuesList.map((item: any) => item._id); //id of booked products in order
         return originalList.filter((item: any) => {
-            const isIdToExclude = item._id === idToExclude;
+            const isIdToExclude = item._id === idToExclude; //id of current product
             const isIdInValuesList = idsToRemove.includes(item._id);
             return isIdToExclude || !isIdInValuesList;
         });
@@ -112,27 +113,31 @@ const OrderProduct = (props: any) => {
 
     useEffect(() => {
         if (options) {
-            if (
-                value &&
-                !options.find((option: any) => option._id === value._id) &&
-                orderDetails.find((c: any) => c._id === value._id) &&
-                product.key &&
-                orderDetails.find((c: any) => c._id === value._id).key !==
-                    product.key
-            ) {
-                fillEmpty();
-            } else {
-                setValue(
-                    options.find((option: any) => option._id === product._id)
-                );
-                handleChangeProduct("all", product);
-            }
+            // if (!value)
+            setValue(options.find((option: any) => option._id === product._id));
+            // if (
+            //     value &&
+            //     !options.find((option: any) => option._id === value._id) &&
+            //     orderDetails.find((c: any) => c._id === value._id) &&
+            //     product.key &&
+            //     orderDetails.find((c: any) => c._id === value._id).key !==
+            //         product.key
+            // ) {
+            //     fillEmpty();
+            // } else {
+            //     setValue(
+            //         options.find((option: any) => option._id === product._id)
+            //     );
+            //     handleChangeProduct("all", product);
+            // }
         }
-    }, [product, options]);
+    }, [options]);
 
     const handleCollapseChange = () => {
         setIsExpanded((prevExpanded) => !prevExpanded);
     };
+
+    useEffect(() => console.log("v", value), [value]);
 
     return (
         options && (
@@ -293,33 +298,18 @@ const OrderProduct = (props: any) => {
                                                             fillEmpty();
                                                         } else {
                                                             setValue(value);
-                                                            if (
-                                                                value._id ===
-                                                                product._id
-                                                            ) {
-                                                                handleChangeProduct(
-                                                                    "all",
-                                                                    {
-                                                                        ...product,
-                                                                        numberOfFlowers:
-                                                                            product.numberOfFlowers
-                                                                                ? product
-                                                                                : "",
-                                                                    }
-                                                                );
-                                                            } else {
-                                                                handleChangeProduct(
-                                                                    "all",
-                                                                    {
-                                                                        ...value,
-                                                                        key: product.key,
-                                                                        numberOfFlowers:
-                                                                            product.numberOfFlowers
-                                                                                ? product.numberOfFlowers
-                                                                                : "",
-                                                                    }
-                                                                );
-                                                            }
+
+                                                            handleChangeProduct(
+                                                                "all",
+                                                                {
+                                                                    ...value,
+                                                                    key: product.key,
+                                                                    numberOfFlowers:
+                                                                        product.numberOfFlowers
+                                                                            ? product.numberOfFlowers
+                                                                            : "",
+                                                                }
+                                                            );
                                                         }
                                                     }}
                                                     value={value}
