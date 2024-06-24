@@ -163,7 +163,7 @@ class UserService {
                                                         "$$flowerIds",
                                                     ],
                                                 },
-                                                { $eq: ["$isDeleted", false] },
+                                                // { $eq: ["$isDeleted", false] },
                                             ],
                                         },
                                     },

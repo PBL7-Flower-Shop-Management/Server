@@ -41,7 +41,7 @@ class CartService {
                                                         "$$flowerIds",
                                                     ],
                                                 },
-                                                { $eq: ["$isDeleted", false] },
+                                                // { $eq: ["$isDeleted", false] },
                                             ],
                                         },
                                     },

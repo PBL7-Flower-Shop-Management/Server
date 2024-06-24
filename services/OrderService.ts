@@ -4,7 +4,11 @@ import ApiResponse from "@/utils/ApiResponse";
 import mongoose from "mongoose";
 import OrderModel from "@/models/OrderModel";
 import moment from "moment";
-import { parseSortString } from "@/utils/helper";
+import {
+    calculateTotalPrice,
+    isNumberic,
+    parseSortString,
+} from "@/utils/helper";
 import UserModel from "@/models/UserModel";
 import AccountModel from "@/models/AccountModel";
 import FlowerModel from "@/models/FlowerModel";
@@ -233,13 +237,22 @@ class OrderService {
                     }
                 }
 
+                order.totalPrice = calculateTotalPrice(
+                    order.shipPrice,
+                    order.discount,
+                    order.orderDetails
+                );
+
+                const isCancelled = order.status === orderStatusMap.Cancelled;
+
                 if (order.orderDetails) {
                     //check flower id exists
                     for (let orderDetail of order.orderDetails) {
                         const flower = await FlowerModel.findOne({
                             _id: orderDetail._id,
                             isDeleted: false,
-                        });
+                        }).session(session);
+
                         if (!flower)
                             return reject(
                                 new ApiResponse({
@@ -247,6 +260,22 @@ class OrderService {
                                     message: `Flower id ${orderDetail._id} don't exists!`,
                                 })
                             );
+
+                        if (
+                            orderDetail.numberOfFlowers >
+                            flower.quantity - flower.soldQuantity
+                        )
+                            return reject(
+                                new ApiResponse({
+                                    status: HttpStatus.BAD_REQUEST,
+                                    message: `The remain quantity of flower "${flower.name}" not enough for this order!`,
+                                })
+                            );
+
+                        if (!isCancelled) {
+                            flower.soldQuantity += orderDetail.numberOfFlowers;
+                            flower.save();
+                        }
 
                         orderDetail.unitPrice = flower.unitPrice;
                         orderDetail.discount = flower.discount;
@@ -323,7 +352,7 @@ class OrderService {
                 const orderDb = await OrderModel.findOne({
                     _id: order._id,
                     isDeleted: false,
-                });
+                }).session(session);
 
                 if (!orderDb)
                     return reject(
@@ -333,17 +362,20 @@ class OrderService {
                         })
                     );
 
-                if (
-                    orderDb.status === orderStatusMap.Delivered ||
-                    orderDb.status === orderStatusMap.Cancelled
-                )
+                if (orderDb.status === orderStatusMap.Delivered)
                     return reject(
                         new ApiResponse({
                             status: HttpStatus.FORBIDDEN,
                             message:
-                                "Order can't be updated because it had been delivered or cancelled!",
+                                "Order can't be updated because it had been delivered!",
                         })
                     );
+
+                order.totalPrice = calculateTotalPrice(
+                    order.shipPrice,
+                    order.discount,
+                    order.orderDetails
+                );
 
                 if (order.orderDetails) {
                     //check flower id exists
@@ -351,7 +383,7 @@ class OrderService {
                         const flower = await FlowerModel.findOne({
                             _id: orderDetail._id,
                             isDeleted: false,
-                        });
+                        }).session(session);
                         if (!flower)
                             return reject(
                                 new ApiResponse({
@@ -362,6 +394,9 @@ class OrderService {
 
                         orderDetail.unitPrice = flower.unitPrice;
                         orderDetail.discount = flower.discount;
+                        orderDetail.remain =
+                            flower.quantity - flower.soldQuantity;
+                        orderDetail.flowerName = flower.name;
                     }
                 }
 
@@ -382,7 +417,30 @@ class OrderService {
                 // Find existing order details for the orderId
                 const existingOrderDetails = await OrderDetailModel.find({
                     orderId: updatedOrder._id,
-                });
+                }).session(session);
+
+                const isFirstCancelled =
+                    order.status === orderStatusMap.Cancelled &&
+                    orderDb.status !== orderStatusMap.Cancelled;
+
+                const isUndoCancel =
+                    order.status !== orderStatusMap.Cancelled &&
+                    orderDb.status === orderStatusMap.Cancelled;
+
+                if (isFirstCancelled) {
+                    for (let orderDetailDb of existingOrderDetails) {
+                        const flower = await FlowerModel.findOne({
+                            _id: orderDetailDb.flowerId,
+                            //isDeleted: false,
+                        }).session(session);
+
+                        if (flower) {
+                            flower.soldQuantity -=
+                                orderDetailDb.numberOfFlowers;
+                            flower.save({ session });
+                        }
+                    }
+                }
 
                 // Create a map of existing order details by flowerId for easy lookup
                 const existingOrderDetailsMap = new Map(
@@ -400,22 +458,60 @@ class OrderService {
                         );
 
                         if (existingDetail) {
+                            //check oversales
+                            if (isUndoCancel) {
+                                if (
+                                    newDetail.numberOfFlowers > newDetail.remain
+                                )
+                                    return reject(
+                                        new ApiResponse({
+                                            status: HttpStatus.BAD_REQUEST,
+                                            message: `The remain quantity of flower "${newDetail.flowerName}" not enough for this order!`,
+                                        })
+                                    );
+                            } else if (
+                                newDetail.numberOfFlowers >
+                                newDetail.remain +
+                                    existingDetail.numberOfFlowers
+                            )
+                                return reject(
+                                    new ApiResponse({
+                                        status: HttpStatus.BAD_REQUEST,
+                                        message: `The remain quantity of flower "${newDetail.flowerName}" not enough for this order!`,
+                                    })
+                                );
+
                             // Update existing order detail
                             existingDetail.numberOfFlowers =
                                 newDetail.numberOfFlowers;
-                            await existingDetail.save();
+                            await existingDetail.save({ session });
 
                             // Remove the processed detail from the map
                             existingOrderDetailsMap.delete(newDetail._id);
                         } else {
+                            //check oversales
+                            if (newDetail.numberOfFlowers > newDetail.remain)
+                                return reject(
+                                    new ApiResponse({
+                                        status: HttpStatus.BAD_REQUEST,
+                                        message: `The quantity of flower "${newDetail.flowerName}" not enough for this order!`,
+                                    })
+                                );
+
                             // Create new order detail
-                            await OrderDetailModel.create({
-                                orderId: updatedOrder._id,
-                                flowerId: newDetail._id,
-                                unitPrice: newDetail.unitPrice,
-                                discount: newDetail.discount,
-                                numberOfFlowers: newDetail.numberOfFlowers,
-                            });
+                            await OrderDetailModel.create(
+                                [
+                                    {
+                                        orderId: updatedOrder._id,
+                                        flowerId: newDetail._id,
+                                        unitPrice: newDetail.unitPrice,
+                                        discount: newDetail.discount,
+                                        numberOfFlowers:
+                                            newDetail.numberOfFlowers,
+                                    },
+                                ],
+                                { session: session }
+                            );
                         }
                     }
                 }
@@ -428,7 +524,7 @@ class OrderService {
                 await OrderDetailModel.deleteMany({
                     orderId: updatedOrder._id,
                     flowerId: { $in: remainingDetailIds },
-                });
+                }).session(session);
 
                 let updatedObj = updatedOrder.toObject();
                 updatedObj.orderDetails = order.orderDetails;
@@ -534,16 +630,25 @@ class OrderService {
                     orders[0].orderUserId = undefined;
                 }
 
+                const isCancelled =
+                    orders[0].status === orderStatusMap.Cancelled;
+
                 for (let i = 0; i < orders[0].orderDetails.length; i++) {
                     let orderDetail = orders[0].orderDetails[i];
                     const flowerDetail = await FlowerModel.findOne({
                         _id: orderDetail.flowerId,
                     });
                     if (flowerDetail) {
-                        orders[0].orderDetails[i] = {
-                            ...orderDetail,
-                            ...flowerDetail._doc,
-                        };
+                        if (isCancelled)
+                            orders[0].orderDetails[i] = {
+                                ...orderDetail,
+                                ...flowerDetail._doc,
+                            };
+                        else
+                            orders[0].orderDetails[i] = {
+                                ...orderDetail,
+                                ...flowerDetail._doc,
+                            };
                     }
                 }
 

@@ -7,9 +7,10 @@ import FlowerCategoryModel from "@/models/FlowerCategoryModel";
 import { connectToDB } from "@/utils/database";
 import ApiResponse from "@/utils/ApiResponse";
 import mongoose from "mongoose";
-import { parseSortString } from "@/utils/helper";
+import { calculateTotalPrice, parseSortString } from "@/utils/helper";
 import moment from "moment";
 import CloudinaryService from "./CloudinaryService";
+import { orderStatusMap } from "@/utils/constants";
 
 class FlowerService {
     async GetAllFlower(query: any): Promise<ApiResponse> {
@@ -389,6 +390,69 @@ class FlowerService {
                                     message: `Category id ${categoryId} don't exists!`,
                                 })
                             );
+                    }
+                }
+
+                //update order cancelled
+                if (
+                    flowerDb.unitPrice !== flower.unitPrice ||
+                    flowerDb.discount !== flower.discount
+                ) {
+                    // Find all orders with status "cancelled"
+                    const cancelledOrders = await OrderModel.find({
+                        status: orderStatusMap.Cancelled,
+                        isDeleted: false,
+                    }).session(session);
+
+                    // Extract the IDs of these orders
+                    const cancelledOrderIds = cancelledOrders.map(
+                        (order) => order._id
+                    );
+
+                    // Update all orderdetails where flowerId matches and orderId is in the list of cancelled order IDs
+                    await OrderDetailModel.updateMany(
+                        {
+                            flowerId: flowerDb._id,
+                            orderId: { $in: cancelledOrderIds },
+                        },
+                        {
+                            $set: {
+                                unitPrice: flower.unitPrice,
+                                discount: flower.discount,
+                            },
+                        },
+                        {
+                            session: session,
+                        }
+                    );
+
+                    // Find distinct orderIds that were updated (contain flowerDb)
+                    const updatedOrderDetails = await OrderDetailModel.distinct(
+                        "orderId",
+                        {
+                            flowerId: flowerDb._id,
+                            orderId: { $in: cancelledOrderIds },
+                        }
+                    );
+
+                    // Step 5: Recalculate and update totalPrice for each updated order
+                    for (const orderId of updatedOrderDetails) {
+                        const orderDetails = await OrderDetailModel.find({
+                            orderId,
+                        }).session(session);
+
+                        const order = await OrderModel.findOne({
+                            _id: orderId,
+                        }).session(session);
+
+                        if (order) {
+                            order.totalPrice = calculateTotalPrice(
+                                order.shipPrice,
+                                order.discount,
+                                orderDetails
+                            );
+                            order.save({ session });
+                        }
                     }
                 }
 

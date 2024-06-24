@@ -173,3 +173,33 @@ export const createFileFromBuffer = (
     const file = new File([blob], filename, { type: mimeType });
     return file;
 };
+
+export const calculateTotalPrice = (
+    shipPrice: any,
+    discount: any,
+    orderDetails: any[] | undefined | null
+): number => {
+    const totalProductPrice =
+        orderDetails === undefined || orderDetails === null
+            ? 0
+            : orderDetails.reduce((acc: number, val: any) => {
+                  const validNumberOfFlowers = isNumberic(val.numberOfFlowers)
+                      ? val.numberOfFlowers
+                      : `${val.numberOfFlowers}`.trim() === ""
+                      ? 0
+                      : NaN;
+
+                  const itemTotal =
+                      val.unitPrice *
+                      (1 - val.discount / 100) *
+                      validNumberOfFlowers;
+                  return acc + itemTotal;
+              }, 0);
+
+    console.log(totalProductPrice);
+
+    return (
+        (totalProductPrice + parseFloat(shipPrice)) *
+        (1 - parseFloat(discount) / 100)
+    );
+};
