@@ -16,7 +16,7 @@ import { roleMap } from "@/utils/constants";
 import CloudinaryService from "./CloudinaryService";
 
 class AccountService {
-    async GetAllAccount(query: any, userRole: string): Promise<ApiResponse> {
+    async GetAllAccount(query: any, user: any): Promise<ApiResponse> {
         return new Promise(async (resolve, reject) => {
             try {
                 await connectToDB();
@@ -40,8 +40,13 @@ class AccountService {
                 const results = await UserModel.aggregate([
                     {
                         $match: {
+                            _id: {
+                                $ne: new mongoose.Types.ObjectId(
+                                    String(user._id)
+                                ),
+                            },
                             isDeleted: false,
-                            ...((userRole === roleMap.Employee ||
+                            ...((user.role === roleMap.Employee ||
                                 query.getCustomer) && {
                                 role: roleMap.Customer,
                             }),

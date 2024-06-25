@@ -79,10 +79,11 @@ export const TopNav = (props: any) => {
                             gap={1.2}
                         >
                             <Typography sx={{ color: "black" }}>
-                                {userInfo?.name ??
+                                {/* {userInfo?.name ??
                                     userInfo?.email ??
                                     user?.name ??
-                                    user?.email}
+                                    user?.email} */}
+                                {userInfo?.name ?? userInfo?.email}
                             </Typography>
                             <Avatar
                                 sx={{
@@ -90,7 +91,8 @@ export const TopNav = (props: any) => {
                                     height: 40,
                                     width: 40,
                                 }}
-                                src={userInfo?.avatarUrl ?? user?.avatarUrl}
+                                // src={userInfo?.avatarUrl ?? user?.avatarUrl}
+                                src={userInfo?.avatarUrl}
                                 alt={"Avatar"}
                             />
                         </Box>
@@ -98,7 +100,8 @@ export const TopNav = (props: any) => {
                 </Stack>
             </Box>
             <AccountPopover
-                user={userInfo ?? user}
+                // user={userInfo ?? user}
+                user={userInfo}
                 anchorEl={accountPopover.anchorRef.current}
                 open={accountPopover.open}
                 onClose={accountPopover.handleClose}

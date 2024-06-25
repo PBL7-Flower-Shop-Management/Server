@@ -154,7 +154,8 @@ export const SalesByCategory = (props: any) => {
                                             lineHeight: 1,
                                         }}
                                     >
-                                        ${item.totalSales}
+                                        $
+                                        {parseFloat(item.totalSales.toFixed(2))}
                                     </Typography>
                                 </Stack>
                                 <Stack sx={{ width: "20%" }}>

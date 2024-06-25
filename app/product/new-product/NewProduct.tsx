@@ -143,13 +143,13 @@ const NewProduct = () => {
                                                 v.size <=
                                                     Number(
                                                         process.env
-                                                            .MAX_SIZE_IMAGE
+                                                            .NEXT_PUBLIC_MAX_SIZE_IMAGE
                                                     )) ||
                                             (v.type.startsWith("video") &&
                                                 v.size <=
                                                     Number(
                                                         process.env
-                                                            .MAX_SIZE_VIDEO
+                                                            .NEXT_PUBLIC_MAX_SIZE_VIDEO
                                                     ))
                                         )
                                 ).length === 0

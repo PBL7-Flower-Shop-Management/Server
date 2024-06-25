@@ -161,6 +161,7 @@ const Profile = () => {
             } else if (response.succeeded) {
                 showToast("Cập nhật thông tin cá nhân thành công.", "success");
                 formik.setValues(response.data);
+                setUserInfo(response.data);
                 return true;
             } else {
                 showToast(response.message, "error");

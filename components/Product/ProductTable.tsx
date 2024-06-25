@@ -276,10 +276,14 @@ export const ProductTable = (props: any) => {
                                                 {product.habitat}
                                             </TableCell>
                                             <TableCell>
-                                                {product.unitPrice}
+                                                {parseFloat(
+                                                    product.unitPrice.toFixed(2)
+                                                )}
                                             </TableCell>
                                             <TableCell>
-                                                {product.discount}
+                                                {parseFloat(
+                                                    product.discount.toFixed(2)
+                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 {product.quantity}

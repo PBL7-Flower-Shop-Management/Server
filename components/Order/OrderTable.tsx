@@ -281,7 +281,9 @@ export const OrderTable = (props: any) => {
                                                 {order.paymentMethod}
                                             </TableCell>
                                             <TableCell>
-                                                {order.totalPrice}
+                                                {parseFloat(
+                                                    order.totalPrice.toFixed(2)
+                                                )}
                                             </TableCell>
                                             <TableCell
                                                 sx={{

@@ -254,8 +254,8 @@ export const AccountTable = (props: any) => {
                                                     <Image
                                                         src={account.avatarUrl}
                                                         alt="avatar"
-                                                        width={100}
-                                                        height={100}
+                                                        width={50}
+                                                        height={50}
                                                     />
                                                 )}
                                             </TableCell>

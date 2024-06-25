@@ -85,16 +85,16 @@ const validateFileType = async (
 
 const validateFileSize = async (file: File, isImage: boolean) => {
     if (isImage) {
-        if (file.size > Number(process.env.MAX_SIZE_IMAGE)) {
+        if (file.size > Number(process.env.NEXT_PUBLIC_MAX_SIZE_IMAGE)) {
             return `Ảnh ${file.name} vượt quá kích thước tối đa cho phép (${
-                Number(process.env.MAX_SIZE_IMAGE) / (1024 * 1024)
+                Number(process.env.NEXT_PUBLIC_MAX_SIZE_IMAGE) / (1024 * 1024)
             } MB)`;
         }
         return "";
     } else {
-        if (file.size > Number(process.env.MAX_SIZE_VIDEO)) {
+        if (file.size > Number(process.env.NEXT_PUBLIC_MAX_SIZE_VIDEO)) {
             return `Video ${file.name} vượt quá kích thước tối đa cho phép (${
-                Number(process.env.MAX_SIZE_VIDEO) / (1024 * 1024)
+                Number(process.env.NEXT_PUBLIC_MAX_SIZE_VIDEO) / (1024 * 1024)
             } MB)`;
         }
         return "";

@@ -157,6 +157,10 @@ const CategoryDetail = ({ params }: any) => {
                     "success"
                 );
                 formik.setValues(response.data);
+                setOriginalCategory({
+                    ...originalCategory,
+                    categoryName: response.data.categoryName,
+                });
                 return true;
             } else {
                 showToast(response.message, "error");

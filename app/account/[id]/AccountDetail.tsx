@@ -15,7 +15,7 @@ import {
     CardActions,
     Divider,
 } from "@mui/material";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AccountInformation from "@/components/Account/Detail/AccountInformation";
 import { AccountAvatar } from "@/components/Account/Detail/AccountAvatar";
 import { appendJsonToFormData } from "@/utils/helper";
@@ -44,6 +44,7 @@ const AccountDetail = ({ params }: any) => {
     const [isFieldDisabled, setIsFieldDisabled] = useState(!canEdit);
     const [isEmployee, setIsEmployee] = useState(true);
     const { data: session } = useSession();
+    const router = useRouter();
 
     const formik = useFormik({
         initialValues: {} as any,
@@ -184,6 +185,7 @@ const AccountDetail = ({ params }: any) => {
                     "success"
                 );
                 formik.setValues(response.data);
+                setOriginalAccount(response.data);
                 return true;
             } else {
                 showToast(response.message, "error");
@@ -279,14 +281,13 @@ const AccountDetail = ({ params }: any) => {
     };
 
     useEffect(() => {
-        if (!alreadyRun.current) {
-            alreadyRun.current = true;
-            getAccount();
-        }
-    }, []);
-    useEffect(() => {
         if (session?.user) {
             setIsEmployee(session?.user.role === roleMap.Employee);
+            if (!alreadyRun.current) {
+                alreadyRun.current = true;
+                if (session?.user._id !== accountId) getAccount();
+                else router.replace("/404");
+            }
         }
     }, [session?.user]);
 

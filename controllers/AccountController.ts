@@ -1,9 +1,9 @@
 import AccountService from "@/services/AccountService";
 
 class AccountController {
-    async GetAllAccount(query: any, userRole: string) {
+    async GetAllAccount(query: any, user: any) {
         try {
-            return await AccountService.GetAllAccount(query, userRole);
+            return await AccountService.GetAllAccount(query, user);
         } catch (error) {
             throw error;
         }

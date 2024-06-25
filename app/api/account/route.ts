@@ -273,7 +273,7 @@ export const GET = async (req: NextRequest) => {
                     await validate(schemas.GetAllAccountSchema)(null, query);
                     return await AccountController.GetAllAccount(
                         query,
-                        userToken.user.role
+                        userToken.user
                     );
                 }
             );

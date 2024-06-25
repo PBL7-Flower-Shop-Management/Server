@@ -147,6 +147,16 @@ export const saveToken = (response: any) => {
     Cookies.set("refreshTokenExpiryTime", refreshTokenExpiryTime, {
         expires: new Date(refreshTokenExpiryTime),
     });
+
+    Cookies.set("name", response.user?.name, {
+        expires: new Date(refreshTokenExpiryTime),
+    });
+    Cookies.set("email", response.user?.email, {
+        expires: new Date(refreshTokenExpiryTime),
+    });
+    Cookies.set("avatarUrl", response.user?.avatarUrl, {
+        expires: new Date(refreshTokenExpiryTime),
+    });
 };
 
 export const removeItems = () => {

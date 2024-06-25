@@ -710,8 +710,9 @@ class OrderService {
                             };
                         else
                             orders[0].orderDetails[i] = {
-                                ...orderDetail,
                                 ...flowerDetail._doc,
+                                ...orderDetail,
+                                _id: flowerDetail._doc._id,
                             };
                     }
                 }

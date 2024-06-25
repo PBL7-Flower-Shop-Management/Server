@@ -292,6 +292,8 @@ export function createComponents(
                     borderBottomColor: palette.divider,
                     padding: "15px 16px",
                     zIndex: zIndexLevel.two,
+                    width: "auto",
+                    whiteSpace: "nowrap",
                 },
             },
         },
